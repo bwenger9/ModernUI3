@@ -1,0 +1,593 @@
+/* ==========================================================================
+   ModernUI3 Cyber-Tech Login Theme (100% Original Override Stylesheet)
+   ========================================================================== */
+html, body
+{
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	min-height: 100vh !important;
+	min-height: 100dvh !important;
+	height: auto !important;
+	background: radial-gradient(circle at 50% 24%, #102132 0%, #0A111A 52%, #070B10 100%) !important;
+	background-color: #090D14 !important;
+	background-image: radial-gradient(circle at 50% 24%, #102132 0%, #0A111A 52%, #070B10 100%) !important;
+	backdrop-filter: none !important;
+	-webkit-backdrop-filter: none !important;
+	font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif !important;
+	color: #E2F1FF !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	box-sizing: border-box !important;
+}
+
+.theme-blue-iris-6:root body,
+.theme-blue-iris-5:root body
+{
+	background: radial-gradient(circle at 50% 24%, #102132 0%, #0A111A 52%, #070B10 100%) !important;
+	background-color: #090D14 !important;
+	background-image: radial-gradient(circle at 50% 24%, #102132 0%, #0A111A 52%, #070B10 100%) !important;
+	backdrop-filter: none !important;
+}
+
+#loginLoading
+{
+	text-shadow: 0 0 14px rgba(0, 229, 255, 0.35) !important;
+	color: #94B8D0 !important;
+	z-index: 2 !important;
+}
+
+/* Circuit Background Layer anchored directly to Lens Logo (cx=300, cy=210) */
+.cyber-bg-wrapper
+{
+	position: absolute !important;
+	top: 50% !important;
+	left: 50% !important;
+	transform: translate(-50%, -21%) !important;
+	width: min(600px, 96vw) !important;
+	aspect-ratio: 600 / 1000 !important;
+	pointer-events: none !important;
+	z-index: 0 !important;
+	display: block !important;
+	overflow: visible !important;
+}
+
+.cyber-circuit-svg
+{
+	width: 100% !important;
+	height: 100% !important;
+	display: block !important;
+	opacity: 0.9 !important;
+}
+
+/* Main Login Container */
+#login
+{
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	z-index: 2 !important;
+	width: 100% !important;
+	max-width: 390px !important;
+	max-height: none !important;
+	padding: 20px 22px 16px 22px !important;
+	margin: auto !important;
+	box-sizing: border-box !important;
+}
+
+#login[style*="block"]
+{
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+}
+
+/* Central Camera Aperture Lens */
+.cyber-lens-container
+{
+	position: relative !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	margin-bottom: 16px !important;
+	overflow: visible !important;
+}
+
+.cyber-lens-ring
+{
+	position: relative !important;
+	z-index: 2 !important;
+	width: 176px !important;
+	height: 176px !important;
+	border-radius: 50% !important;
+	padding: 3px !important;
+	background: radial-gradient(circle, rgba(0, 229, 255, 0.25) 0%, rgba(10, 18, 28, 0.95) 70%) !important;
+	box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 28px rgba(0, 229, 255, 0.25), inset 0 0 12px rgba(0, 229, 255, 0.3) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-sizing: border-box !important;
+}
+
+.cyber-lens-img
+{
+	width: 100% !important;
+	height: 100% !important;
+	border-radius: 50% !important;
+	object-fit: cover !important;
+	display: block !important;
+	pointer-events: none !important;
+}
+
+/* Site Blue Iris Name Heading */
+#login h1,
+#loginLoading h1
+{
+	color: #5CE6FF !important;
+	font-size: clamp(22px, 5.8vw, 29px) !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.1em !important;
+	text-transform: uppercase !important;
+	text-align: center !important;
+	margin: 4px 0 24px 0 !important;
+	text-shadow: 0 0 14px rgba(0, 229, 255, 0.65), 0 0 28px rgba(0, 180, 255, 0.35), 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+	line-height: 1.25 !important;
+	width: 100% !important;
+	word-break: break-word !important;
+}
+
+/* Frosted Glass Input Cards (USER ID & PASSWORD) */
+.cyber-field-card,
+.cyber-field-card.pwFieldWrap
+{
+	position: relative !important;
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	width: 100% !important;
+	margin: 0 0 16px 0 !important;
+	padding: 11px 16px !important;
+	background: linear-gradient(135deg, rgba(32, 60, 82, 0.55) 0%, rgba(16, 31, 46, 0.68) 48%, rgba(12, 23, 36, 0.78) 100%) !important;
+	border: 1.5px solid rgba(0, 229, 255, 0.42) !important;
+	border-radius: 13px !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 14px rgba(0, 229, 255, 0.14), inset 0 1px 1px rgba(255, 255, 255, 0.18) !important;
+	backdrop-filter: blur(12px) !important;
+	-webkit-backdrop-filter: blur(12px) !important;
+	box-sizing: border-box !important;
+	overflow: hidden !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease !important;
+}
+
+/* Diagonal Glass Sheen Highlight */
+.cyber-field-card::before
+{
+	content: "" !important;
+	position: absolute !important;
+	top: -50% !important;
+	left: -10% !important;
+	width: 65% !important;
+	height: 200% !important;
+	background: linear-gradient(90deg, rgba(255, 255, 255, 0.01) 0%, rgba(160, 235, 255, 0.08) 50%, rgba(255, 255, 255, 0) 100%) !important;
+	transform: rotate(28deg) !important;
+	pointer-events: none !important;
+}
+
+/* Bottom Specular Glow Highlight on Input Card */
+.cyber-field-card::after
+{
+	content: "" !important;
+	position: absolute !important;
+	left: 25% !important;
+	right: 25% !important;
+	bottom: 0 !important;
+	height: 1.5px !important;
+	background: radial-gradient(circle, rgba(140, 248, 255, 0.95) 0%, rgba(0, 229, 255, 0) 80%) !important;
+	pointer-events: none !important;
+}
+
+.cyber-field-card:focus-within,
+.cyber-field-card.pwFieldWrap:focus-within
+{
+	border-color: #4DF0FF !important;
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 229, 255, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.25) !important;
+	outline: none !important;
+}
+
+.cyber-field-icon
+{
+	flex: 0 0 38px !important;
+	width: 38px !important;
+	height: 38px !important;
+	margin-right: 12px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	color: #5CE6FF !important;
+	filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.65)) !important;
+}
+
+.cyber-field-icon svg
+{
+	width: 30px !important;
+	height: 30px !important;
+}
+
+.cyber-field-body
+{
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: center !important;
+}
+
+.cyber-field-label
+{
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.08em !important;
+	color: #7CE8FF !important;
+	text-transform: uppercase !important;
+	margin-bottom: 3px !important;
+	text-shadow: 0 0 8px rgba(0, 229, 255, 0.35) !important;
+}
+
+.cyber-pw-row
+{
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	width: 100% !important;
+}
+
+.cyber-field-card .ltext,
+.cyber-field-card .pwInput
+{
+	width: 100% !important;
+	margin: 0 !important;
+	padding: 2px 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	outline: none !important;
+	color: #FFFFFF !important;
+	font-size: 16px !important;
+	font-weight: 500 !important;
+	letter-spacing: 0.02em !important;
+}
+
+.cyber-field-card .ltext:focus,
+.cyber-field-card .pwInput:focus
+{
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	outline: none !important;
+}
+
+.cyber-field-card .ltext::placeholder,
+.cyber-field-card .pwInput::placeholder
+{
+	color: rgba(165, 205, 225, 0.52) !important;
+	font-weight: 400 !important;
+}
+
+/* Override browser autofill background inside glass cards */
+.cyber-field-card input:-webkit-autofill,
+.cyber-field-card input:-webkit-autofill:hover,
+.cyber-field-card input:-webkit-autofill:focus
+{
+	-webkit-text-fill-color: #FFFFFF !important;
+	-webkit-box-shadow: 0 0 0px 1000px rgba(15, 30, 45, 0.01) inset !important;
+	transition: background-color 5000s ease-in-out 0s !important;
+}
+
+.cyber-field-card .pwToggleBtn
+{
+	flex: 0 0 auto !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 34px !important;
+	height: 28px !important;
+	cursor: pointer !important;
+	color: #7CE8FF !important;
+	opacity: 0.75 !important;
+	margin-left: 6px !important;
+	-webkit-tap-highlight-color: transparent !important;
+}
+
+.cyber-field-card .pwToggleBtn:hover
+{
+	opacity: 1 !important;
+	color: #FFFFFF !important;
+	filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.8)) !important;
+}
+
+/* Log in automatically toggle row */
+.checkboxWrapper
+{
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 2px 0 16px 0 !important;
+	margin: 0 !important;
+	display: flex !important;
+	justify-content: center !important;
+	align-items: center !important;
+	box-sizing: border-box !important;
+}
+
+.checkboxWrapper [type="checkbox"]:not(:checked),
+.checkboxWrapper [type="checkbox"]:checked
+{
+	position: absolute !important;
+	left: -9999px !important;
+}
+
+#lblLoginAutomatically
+{
+	position: relative !important;
+	cursor: pointer !important;
+	user-select: none !important;
+	font-size: 13.5px !important;
+	font-weight: 600 !important;
+	letter-spacing: 0.04em !important;
+	color: #94B8D0 !important;
+	padding-right: 72px !important;
+	line-height: 26px !important;
+	display: inline-block !important;
+}
+
+[type="checkbox"]:not(:checked) + label:before,
+[type="checkbox"]:checked + label:before
+{
+	content: "" !important;
+	position: absolute !important;
+	right: 0 !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	width: 58px !important;
+	height: 26px !important;
+	background: rgba(10, 18, 28, 0.9) !important;
+	border: 1px solid rgba(0, 229, 255, 0.35) !important;
+	border-radius: 13px !important;
+	box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6) !important;
+}
+
+[type="checkbox"]:checked + label:before
+{
+	background: rgba(0, 229, 255, 0.2) !important;
+	border-color: rgba(0, 229, 255, 0.65) !important;
+	box-shadow: 0 0 12px rgba(0, 229, 255, 0.25) !important;
+}
+
+[type="checkbox"]:not(:checked) + label:after,
+[type="checkbox"]:checked + label:after,
+.theme-blue-iris-6:root [type="checkbox"]:checked + label:after
+{
+	content: "" !important;
+	position: absolute !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	width: 18px !important;
+	height: 18px !important;
+	border-radius: 50% !important;
+	transition: all 0.2s ease !important;
+}
+
+[type="checkbox"]:not(:checked) + label:after
+{
+	right: 36px !important;
+	background: #64748B !important;
+}
+
+[type="checkbox"]:checked + label:after,
+.theme-blue-iris-6:root [type="checkbox"]:checked + label:after
+{
+	right: 4px !important;
+	background: #00E5FF !important;
+	box-shadow: 0 0 10px rgba(0, 229, 255, 0.85) !important;
+}
+
+[type="checkbox"]:not(:checked) + label .ui,
+[type="checkbox"]:checked + label .ui
+{
+	position: absolute !important;
+	right: 0 !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	width: 58px !important;
+	height: 26px !important;
+	pointer-events: none !important;
+}
+
+[type="checkbox"]:not(:checked) + label .ui:before
+{
+	content: "no" !important;
+	position: absolute !important;
+	right: 8px !important;
+	left: auto !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	width: auto !important;
+	font-size: 10px !important;
+	font-weight: 700 !important;
+	text-transform: uppercase !important;
+	color: #94A3B8 !important;
+}
+
+[type="checkbox"]:checked + label .ui:after,
+.theme-blue-iris-6:root [type="checkbox"]:checked + label .ui:after
+{
+	content: "yes" !important;
+	position: absolute !important;
+	left: 8px !important;
+	right: auto !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	width: auto !important;
+	font-size: 10px !important;
+	font-weight: 700 !important;
+	text-transform: uppercase !important;
+	color: #00E5FF !important;
+	text-shadow: 0 0 8px rgba(0, 229, 255, 0.6) !important;
+}
+
+/* Chamfered Metallic Bezel & Glowing Cyan AUTHENTICATE Button */
+.cyber-auth-btn-bezel
+{
+	position: relative !important;
+	width: 90% !important;
+	padding: 5px !important;
+	margin: 2px auto 18px auto !important;
+	background: linear-gradient(180deg, #52687A 0%, #1E2C3A 45%, #121C26 100%) !important;
+	clip-path: polygon(16px 0%, calc(100% - 16px) 0%, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0% calc(100% - 16px), 0% 16px) !important;
+	box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 229, 255, 0.25) !important;
+	box-sizing: border-box !important;
+	transition: transform 0.15s ease, filter 0.2s ease !important;
+}
+
+.cyber-auth-btn-bezel:hover
+{
+	filter: brightness(1.1) drop-shadow(0 0 12px rgba(0, 229, 255, 0.45)) !important;
+}
+
+.cyber-auth-btn-bezel:active
+{
+	transform: translateY(1px) !important;
+}
+
+.cyber-auth-btn-bezel .btn,
+.theme-blue-iris-6:root .cyber-auth-btn-bezel .btn
+{
+	width: 100% !important;
+	margin: 0 !important;
+	padding: 13px 18px !important;
+	background: linear-gradient(90deg, #00F0FF 0%, #00B8FF 45%, #0066E6 100%) !important;
+	border: 1px solid rgba(170, 250, 255, 0.75) !important;
+	clip-path: polygon(13px 0%, calc(100% - 13px) 0%, 100% 13px, 100% calc(100% - 13px), calc(100% - 13px) 100%, 13px 100%, 0% calc(100% - 13px), 0% 13px) !important;
+	color: #E8FAFF !important;
+	font-size: 19px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.12em !important;
+	text-transform: uppercase !important;
+	text-shadow: 0 2px 4px rgba(0, 20, 50, 0.75), 0 0 10px rgba(255, 255, 255, 0.35) !important;
+	box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.6), inset 0 -3px 8px rgba(0, 30, 90, 0.6) !important;
+	cursor: pointer !important;
+	box-sizing: border-box !important;
+}
+
+.cyber-auth-btn-bezel .btn:disabled,
+.theme-blue-iris-6:root .cyber-auth-btn-bezel .btn:disabled
+{
+	opacity: 0.75 !important;
+	cursor: wait !important;
+}
+
+/* Status & Existing Session Links */
+#status_wrapper_upper,
+#status_wrapper_lower
+{
+	width: 100% !important;
+	text-align: center !important;
+}
+
+#status
+{
+	color: #94B8D0 !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	letter-spacing: 0.05em !important;
+	line-height: 1.5 !important;
+	padding: 4px 0 14px 0 !important;
+}
+
+#status a,
+#status a:visited,
+.theme-blue-iris-6:root #status a,
+.theme-blue-iris-6:root #status a:visited
+{
+	display: inline-block !important;
+	margin-top: 4px !important;
+	color: #5CE6FF !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.08em !important;
+	font-weight: 700 !important;
+	text-decoration: none !important;
+	border-bottom: 1.5px solid rgba(0, 229, 255, 0.55) !important;
+	padding-bottom: 2px !important;
+	text-shadow: 0 0 10px rgba(0, 229, 255, 0.45) !important;
+	transition: all 0.2s ease !important;
+}
+
+#status a:hover
+{
+	color: #FFFFFF !important;
+	border-bottom-color: #FFFFFF !important;
+	text-shadow: 0 0 14px rgba(0, 229, 255, 0.9) !important;
+}
+
+/* Decorative Data Telemetry Footer */
+.cyber-telemetry-footer
+{
+	width: 100% !important;
+	margin-top: 14px !important;
+	padding-top: 12px !important;
+	border-top: 1px solid rgba(0, 229, 255, 0.14) !important;
+	opacity: 0.72 !important;
+	pointer-events: none !important;
+}
+
+.cyber-telemetry-charts
+{
+	display: grid !important;
+	grid-template-columns: repeat(3, 1fr) !important;
+	gap: 8px !important;
+	width: 100% !important;
+}
+
+.cyber-chart-box
+{
+	height: 36px !important;
+	border-left: 1px solid rgba(0, 229, 255, 0.22) !important;
+	border-bottom: 1px solid rgba(0, 229, 255, 0.22) !important;
+	padding: 2px !important;
+	box-sizing: border-box !important;
+}
+
+.cyber-chart-box svg
+{
+	width: 100% !important;
+	height: 100% !important;
+	display: block !important;
+}
+
+.cyber-telemetry-meta
+{
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	margin-top: 6px !important;
+	font-size: 9px !important;
+	font-family: Consolas, monospace !important;
+	letter-spacing: 0.1em !important;
+	color: rgba(124, 232, 255, 0.55) !important;
+}
+
+.cyber-telemetry-bars
+{
+	display: inline-flex !important;
+	gap: 4px !important;
+}
+
+.cyber-telemetry-bars i
+{
+	display: inline-block !important;
+	width: 14px !important;
+	height: 3px !important;
+	background: rgba(0, 229, 255, 0.35) !important;
+	transform: skewX(-30deg) !important;
+}

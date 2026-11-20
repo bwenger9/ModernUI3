@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<script type="text/javascript">
+		(function () {
+			try {
+				var accent = "cyan";
+				var exactAccentKeyFound = false;
+				var themeMode = "dark";
+				var exactThemeKeyFound = false;
+				var validAccents = ["cyan", "emerald", "violet", "amber", "crimson", "white", "gray", "silver", "gold", "blue", "pink", "orange", "lime"];
+
+				for (var i = 0; i < localStorage.length; i++) {
+					var k = localStorage.key(i);
+					if (k === "ui3_modern_accent") {
+						var aExact = localStorage.getItem(k);
+						if (aExact && validAccents.indexOf(aExact.toLowerCase()) !== -1) { accent = aExact.toLowerCase(); }
+						exactAccentKeyFound = true;
+					} else if (!exactAccentKeyFound && k && k.indexOf("ui3_modern_accent") !== -1) {
+						var aVal = localStorage.getItem(k);
+						if (aVal && validAccents.indexOf(aVal.toLowerCase()) !== -1) { accent = aVal.toLowerCase(); }
+					}
+					if (k === "ui3_modern_theme") {
+						var tExact = localStorage.getItem(k);
+						if (tExact === "dark" || tExact === "light" || tExact === "system") { themeMode = tExact; }
+						exactThemeKeyFound = true;
+					} else if (!exactThemeKeyFound && k && k.indexOf("ui3_modern_theme") !== -1) {
+						var tVal = localStorage.getItem(k);
+						if (tVal === "dark" || tVal === "light" || tVal === "system") { themeMode = tVal; }
+					}
+				}
+
+				var palettes = {
+					cyan:    { p: '#00E5FF', s: '#00F0FF', l: '#9DF7FF', rgb: '0, 229, 255', g: 'rgba(0, 229, 255, 0.4)', gs: 'rgba(0, 229, 255, 0.7)', bg: 'rgba(0, 229, 255, 0.12)', grad: 'linear-gradient(135deg, #00E5FF 0%, #2563EB 100%)', beam: 'linear-gradient(90deg, transparent 0%, #0077FF 25%, #00E5FF 65%, #FFFFFF 92%, #00F0FF 100%)' },
+					emerald: { p: '#10B981', s: '#34D399', l: '#A7F3D0', rgb: '16, 185, 129', g: 'rgba(16, 185, 129, 0.4)', gs: 'rgba(16, 185, 129, 0.7)', bg: 'rgba(16, 185, 129, 0.12)', grad: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', beam: 'linear-gradient(90deg, transparent 0%, #059669 25%, #10B981 65%, #FFFFFF 92%, #34D399 100%)' },
+					violet:  { p: '#A855F7', s: '#C084FC', l: '#E9D5FF', rgb: '168, 85, 247', g: 'rgba(168, 85, 247, 0.4)', gs: 'rgba(168, 85, 247, 0.7)', bg: 'rgba(168, 85, 247, 0.12)', grad: 'linear-gradient(135deg, #A855F7 0%, #7C3AED 100%)', beam: 'linear-gradient(90deg, transparent 0%, #7C3AED 25%, #A855F7 65%, #FFFFFF 92%, #C084FC 100%)' },
+					amber:   { p: '#F59E0B', s: '#FBBF24', l: '#FDE68A', rgb: '245, 158, 11', g: 'rgba(245, 158, 11, 0.4)', gs: 'rgba(245, 158, 11, 0.7)', bg: 'rgba(245, 158, 11, 0.12)', grad: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', beam: 'linear-gradient(90deg, transparent 0%, #D97706 25%, #F59E0B 65%, #FFFFFF 92%, #FBBF24 100%)' },
+					crimson: { p: '#EF4444', s: '#F87171', l: '#FECACA', rgb: '239, 68, 68', g: 'rgba(239, 68, 68, 0.4)', gs: 'rgba(239, 68, 68, 0.7)', bg: 'rgba(239, 68, 68, 0.12)', grad: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)', beam: 'linear-gradient(90deg, transparent 0%, #DC2626 25%, #EF4444 65%, #FFFFFF 92%, #F87171 100%)' },
+					white:   { p: '#FFFFFF', s: '#F1F5F9', l: '#FFFFFF', rgb: '255, 255, 255', g: 'rgba(255, 255, 255, 0.45)', gs: 'rgba(255, 255, 255, 0.85)', bg: 'rgba(255, 255, 255, 0.12)', grad: 'linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%)', beam: 'linear-gradient(90deg, transparent 0%, #94A3B8 25%, #FFFFFF 65%, #FFFFFF 92%, #F1F5F9 100%)' },
+					gray:    { p: '#94A3B8', s: '#CBD5E1', l: '#E2E8F0', rgb: '148, 163, 184', g: 'rgba(148, 163, 184, 0.35)', gs: 'rgba(148, 163, 184, 0.65)', bg: 'rgba(148, 163, 184, 0.10)', grad: 'linear-gradient(135deg, #94A3B8 0%, #475569 100%)', beam: 'linear-gradient(90deg, transparent 0%, #475569 25%, #94A3B8 65%, #FFFFFF 92%, #CBD5E1 100%)' },
+					silver:  { p: '#CBD5E1', s: '#F8FAFC', l: '#FFFFFF', rgb: '203, 213, 225', g: 'rgba(203, 213, 225, 0.45)', gs: 'rgba(203, 213, 225, 0.75)', bg: 'rgba(203, 213, 225, 0.12)', grad: 'linear-gradient(135deg, #F8FAFC 0%, #64748B 100%)', beam: 'linear-gradient(90deg, transparent 0%, #64748B 25%, #CBD5E1 65%, #FFFFFF 92%, #F8FAFC 100%)' },
+					gold:    { p: '#FFD700', s: '#FDE047', l: '#FEF08A', rgb: '255, 215, 0', g: 'rgba(255, 215, 0, 0.45)', gs: 'rgba(255, 215, 0, 0.75)', bg: 'rgba(255, 215, 0, 0.12)', grad: 'linear-gradient(135deg, #FFD700 0%, #B45309 100%)', beam: 'linear-gradient(90deg, transparent 0%, #B45309 25%, #FFD700 65%, #FFFFFF 92%, #FDE047 100%)' },
+					blue:    { p: '#3B82F6', s: '#60A5FA', l: '#BFDBFE', rgb: '59, 130, 246', g: 'rgba(59, 130, 246, 0.40)', gs: 'rgba(59, 130, 246, 0.70)', bg: 'rgba(59, 130, 246, 0.12)', grad: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)', beam: 'linear-gradient(90deg, transparent 0%, #1D4ED8 25%, #3B82F6 65%, #FFFFFF 92%, #60A5FA 100%)' },
+					pink:    { p: '#EC4899', s: '#F472B6', l: '#FBCFE8', rgb: '236, 72, 153', g: 'rgba(236, 72, 153, 0.40)', gs: 'rgba(236, 72, 153, 0.70)', bg: 'rgba(236, 72, 153, 0.12)', grad: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)', beam: 'linear-gradient(90deg, transparent 0%, #BE185D 25%, #EC4899 65%, #FFFFFF 92%, #F472B6 100%)' },
+					orange:  { p: '#FF6B00', s: '#FB923C', l: '#FED7AA', rgb: '255, 107, 0', g: 'rgba(255, 107, 0, 0.40)', gs: 'rgba(255, 107, 0, 0.70)', bg: 'rgba(255, 107, 0, 0.12)', grad: 'linear-gradient(135deg, #FF6B00 0%, #C2410C 100%)', beam: 'linear-gradient(90deg, transparent 0%, #C2410C 25%, #FF6B00 65%, #FFFFFF 92%, #FB923C 100%)' },
+					lime:    { p: '#84CC16', s: '#A3E635', l: '#D9F99D', rgb: '132, 204, 22', g: 'rgba(132, 204, 22, 0.40)', gs: 'rgba(132, 204, 22, 0.70)', bg: 'rgba(132, 204, 22, 0.12)', grad: 'linear-gradient(135deg, #84CC16 0%, #4D7C0F 100%)', beam: 'linear-gradient(90deg, transparent 0%, #4D7C0F 25%, #84CC16 65%, #FFFFFF 92%, #A3E635 100%)' }
+				};
+				var lightOverrides = {
+					cyan:    { p: '#0284C7', s: '#0EA5E9', l: '#0369A1', rgb: '2, 132, 199', g: 'rgba(2, 132, 199, 0.25)', gs: 'rgba(2, 132, 199, 0.45)', bg: 'rgba(2, 132, 199, 0.10)', grad: 'linear-gradient(135deg, #0284C7 0%, #1D4ED8 100%)' },
+					emerald: { p: '#059669', s: '#10B981', l: '#047857', rgb: '5, 150, 105', g: 'rgba(5, 150, 105, 0.25)', gs: 'rgba(5, 150, 105, 0.45)', bg: 'rgba(5, 150, 105, 0.10)' },
+					amber:   { p: '#D97706', s: '#F59E0B', l: '#B45309', rgb: '217, 119, 6', g: 'rgba(217, 119, 6, 0.25)', gs: 'rgba(217, 119, 6, 0.45)', bg: 'rgba(217, 119, 6, 0.10)' },
+					white:   { p: '#334155', s: '#475569', l: '#1E293B', rgb: '51, 65, 85', g: 'rgba(51, 65, 85, 0.22)', gs: 'rgba(51, 65, 85, 0.40)', bg: 'rgba(51, 65, 85, 0.10)', grad: 'linear-gradient(135deg, #475569 0%, #1E293B 100%)' },
+					gray:    { p: '#475569', s: '#64748B', l: '#334155', rgb: '71, 85, 105', g: 'rgba(71, 85, 105, 0.22)', gs: 'rgba(71, 85, 105, 0.40)', bg: 'rgba(71, 85, 105, 0.10)' },
+					silver:  { p: '#475569', s: '#64748B', l: '#334155', rgb: '71, 85, 105', g: 'rgba(71, 85, 105, 0.22)', gs: 'rgba(71, 85, 105, 0.40)', bg: 'rgba(71, 85, 105, 0.10)', grad: 'linear-gradient(135deg, #64748B 0%, #334155 100%)' },
+					gold:    { p: '#B45309', s: '#D97706', l: '#92400E', rgb: '180, 83, 9', g: 'rgba(180, 83, 9, 0.25)', gs: 'rgba(180, 83, 9, 0.45)', bg: 'rgba(180, 83, 9, 0.10)', grad: 'linear-gradient(135deg, #D97706 0%, #92400E 100%)' },
+					lime:    { p: '#4D7C0F', s: '#65A30D', l: '#3F6212', rgb: '77, 124, 15', g: 'rgba(77, 124, 15, 0.25)', gs: 'rgba(77, 124, 15, 0.45)', bg: 'rgba(77, 124, 15, 0.10)' }
+				};
+
+				function applyModernTheme(resolvedTheme) {
+					var docEl = document.documentElement;
+					docEl.classList.add("modern-ui3");
+					docEl.setAttribute("data-modern-accent", accent);
+					docEl.setAttribute("data-modern-theme-mode", themeMode);
+					docEl.setAttribute("data-modern-theme", resolvedTheme);
+					docEl.style.colorScheme = resolvedTheme;
+					docEl.style.backgroundColor = (resolvedTheme === "light") ? "#F1F5F9" : "#090D14";
+
+					var basePal = palettes[accent] || palettes.cyan;
+					var pal = basePal;
+					if (resolvedTheme === "light" && lightOverrides[accent]) {
+						var ov = lightOverrides[accent];
+						pal = { p: ov.p, s: ov.s, l: ov.l, rgb: ov.rgb, g: ov.g, gs: ov.gs, bg: ov.bg, grad: ov.grad || basePal.grad, beam: ov.beam || basePal.beam };
+					}
+					var s = docEl.style;
+					s.setProperty('--modern-accent-cyan', pal.p);
+					s.setProperty('--modern-accent-primary', pal.p);
+					s.setProperty('--modern-accent-secondary', pal.s);
+					s.setProperty('--modern-accent-light', pal.l);
+					s.setProperty('--modern-accent-rgb', pal.rgb);
+					s.setProperty('--modern-accent-glow', pal.g);
+					s.setProperty('--modern-accent-glow-strong', pal.gs);
+					s.setProperty('--modern-accent-bg-subtle', pal.bg);
+					s.setProperty('--modern-card-border-glow', 'rgba(' + pal.rgb + ', 0.35)');
+					s.setProperty('--modern-card-border-hover', 'rgba(' + pal.rgb + ', 0.45)');
+					s.setProperty('--modern-cyan-gradient', pal.grad);
+					s.setProperty('--modern-beam-gradient', pal.beam);
+					window.__modernPrebootTheme = resolvedTheme;
+
+					var tc = document.getElementById("ui3ThemeColorMeta");
+					var cs = document.getElementById("ui3ColorSchemeMeta");
+					if (tc) tc.setAttribute("content", (resolvedTheme === "light") ? "#F8FAFC" : "#090D14");
+					if (cs) cs.setAttribute("content", resolvedTheme);
+				}
+
+				var resolvedTheme = themeMode;
+				if (resolvedTheme === "system") {
+					resolvedTheme = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+				}
+				if (resolvedTheme !== "light" && resolvedTheme !== "dark") {
+					resolvedTheme = "dark";
+				}
+				applyModernTheme(resolvedTheme);
+
+				if (themeMode === "system" && window.matchMedia) {
+					var mq = window.matchMedia("(prefers-color-scheme: light)");
+					var onSchemeChange = function (e) {
+						applyModernTheme(e.matches ? "light" : "dark");
+					};
+					if (mq.addEventListener) mq.addEventListener("change", onSchemeChange);
+					else if (mq.addListener) mq.addListener(onSchemeChange);
+				}
+			} catch (e) {}
+		})();
+	</script>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<link rel="shortcut icon" href="../applet/modernui3/logos/launcher-icon48.png?v=0.348.1" type="image/png" />
+	<link rel="apple-touch-icon" href="../applet/modernui3/logos/launcher-icon256_ios.webp?v=0.348.1" type="image/webp" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+	<meta name="theme-color" id="ui3ThemeColorMeta" content="#090D14" />
+	<meta name="color-scheme" id="ui3ColorSchemeMeta" content="dark" />
+	<script type="text/javascript">
+		(function () {
+			if (window.__modernPrebootTheme === "light") {
+				var tc = document.getElementById("ui3ThemeColorMeta");
+				var cs = document.getElementById("ui3ColorSchemeMeta");
+				if (tc) tc.setAttribute("content", "#F8FAFC");
+				if (cs) cs.setAttribute("content", "light");
+			}
+		})();
+	</script>
+	<title>Timeout - %%SYSNAME%% ModernUI3</title>
+	<style type="text/css">
+		:root
+		{
+			--modern-bg-canvas: #090D14;
+			--modern-bg-surface: rgba(19, 29, 53, 0.72);
+			--modern-text-primary: #F8FAFC;
+			--modern-text-secondary: #94A3B8;
+			--modern-card-border: rgba(255, 255, 255, 0.08);
+			--modern-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+			--modern-radial-alpha: 0.14;
+			--modern-accent-primary: #00E5FF;
+			--modern-accent-secondary: #00F0FF;
+			--modern-accent-light: #9DF7FF;
+			--modern-accent-rgb: 0, 229, 255;
+			--modern-accent-glow: rgba(0, 229, 255, 0.4);
+			--modern-accent-glow-strong: rgba(0, 229, 255, 0.7);
+			--modern-accent-bg-subtle: rgba(0, 229, 255, 0.12);
+			--modern-beam-gradient: linear-gradient(90deg, transparent 0%, #0077FF 25%, #00E5FF 65%, #FFFFFF 92%, #00F0FF 100%);
+		}
+
+		html[data-modern-theme="light"]
+		{
+			--modern-bg-canvas: #F1F5F9;
+			--modern-bg-surface: rgba(255, 255, 255, 0.88);
+			--modern-text-primary: #0F172A;
+			--modern-text-secondary: #475569;
+			--modern-card-border: rgba(15, 23, 42, 0.10);
+			--modern-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+			--modern-radial-alpha: 0.09;
+		}
+
+		html, body
+		{
+			margin: 0;
+			padding: 0;
+			height: 100%;
+		}
+
+		body
+		{
+			background-color: var(--modern-bg-canvas);
+			background-image: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(var(--modern-accent-rgb), var(--modern-radial-alpha)) 0%, transparent 70%);
+			color: var(--modern-text-secondary);
+			font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+			height: 100vh;
+			height: 100dvh;
+			overflow: hidden;
+			box-sizing: border-box;
+		}
+
+		.timeout-shell
+		{
+			height: 100%;
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			box-sizing: border-box;
+			padding: clamp(10px, 2.5vmin, 22px);
+			gap: clamp(10px, 2.2vmin, 18px);
+		}
+
+		.timeout-card
+		{
+			position: relative;
+			overflow: hidden;
+			display: flex;
+			align-items: flex-start;
+			gap: clamp(10px, 2vmin, 16px);
+			flex-shrink: 1;
+			min-height: 0;
+			background: var(--modern-bg-surface);
+			backdrop-filter: blur(16px);
+			-webkit-backdrop-filter: blur(16px);
+			border: 1px solid rgba(var(--modern-accent-rgb), 0.25);
+			border-radius: 14px;
+			box-shadow: var(--modern-shadow);
+			padding: clamp(10px, 2.2vmin, 20px);
+		}
+
+		#brandIcon
+		{
+			width: clamp(42px, 11vmin, 72px);
+			height: clamp(42px, 11vmin, 72px);
+			flex-shrink: 0;
+			border-radius: 12px;
+			padding: 3px;
+			border: 1px solid rgba(var(--modern-accent-rgb), 0.35);
+			background: rgba(var(--modern-accent-rgb), 0.08);
+			filter: drop-shadow(0 0 10px var(--modern-accent-glow));
+			object-fit: contain;
+			box-sizing: border-box;
+		}
+
+		.timeout-card-text
+		{
+			flex: 1;
+			min-width: 0;
+			overflow-y: auto;
+			max-height: 100%;
+		}
+
+		.status-pill
+		{
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 3px 10px;
+			border-radius: 9999px;
+			font-size: clamp(0.68em, 1.5vmin, 0.78em);
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			color: var(--modern-accent-primary);
+			background: var(--modern-accent-bg-subtle);
+			border: 1px solid rgba(var(--modern-accent-rgb), 0.35);
+			margin-bottom: clamp(4px, 1vmin, 8px);
+		}
+
+		.status-dot
+		{
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: var(--modern-accent-primary);
+			box-shadow: 0 0 6px var(--modern-accent-primary);
+			flex-shrink: 0;
+		}
+
+		h1
+		{
+			font-size: clamp(0.95em, 3.2vmin, 1.5em);
+			font-weight: 700;
+			color: var(--modern-text-primary);
+			margin: 0 0 0.35em 0;
+			line-height: 1.2;
+		}
+
+		p
+		{
+			font-size: clamp(0.8em, 2.3vmin, 0.98em);
+			color: var(--modern-text-secondary);
+			margin: 0.35em 0;
+			line-height: 1.35;
+		}
+
+		.reconnect-wrap
+		{
+			flex: 1 1 0;
+			display: flex;
+			min-height: clamp(80px, 25vmin, 160px);
+		}
+
+		#reconnectBtn
+		{
+			position: relative;
+			overflow: hidden;
+			flex: 1;
+			color: var(--modern-accent-primary);
+			border: 1.5px solid rgba(var(--modern-accent-rgb), 0.45);
+			border-radius: 16px;
+			background: var(--modern-accent-bg-subtle);
+			backdrop-filter: blur(12px);
+			-webkit-backdrop-filter: blur(12px);
+			text-decoration: none;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: clamp(1em, 4.5vmin, 1.75em);
+			font-weight: 700;
+			letter-spacing: 0.01em;
+			padding: clamp(10px, 2vmin, 20px);
+			text-align: center;
+			-webkit-tap-highlight-color: rgba(var(--modern-accent-rgb), 0.2);
+			transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.12s ease;
+		}
+
+		#reconnectBtn::before
+		{
+			content: "";
+			position: absolute;
+			top: 0;
+			left: 10%;
+			right: 10%;
+			height: 2px;
+			background: var(--modern-beam-gradient);
+			opacity: 0.85;
+			pointer-events: none;
+		}
+
+		#reconnectBtn:visited
+		{
+			color: var(--modern-accent-primary);
+		}
+
+		#reconnectBtn:hover
+		{
+			color: var(--modern-accent-light);
+			border-color: var(--modern-accent-primary);
+			background: rgba(var(--modern-accent-rgb), 0.20);
+			box-shadow: 0 0 28px var(--modern-accent-glow), inset 0 0 20px rgba(var(--modern-accent-rgb), 0.12);
+		}
+
+		#reconnectBtn:focus-visible
+		{
+			outline: 2px solid var(--modern-accent-primary);
+			outline-offset: 2px;
+			box-shadow: 0 0 24px var(--modern-accent-glow);
+		}
+
+		#reconnectBtn:active
+		{
+			color: var(--modern-text-primary);
+			background: rgba(var(--modern-accent-rgb), 0.28);
+			transform: scale(0.996);
+		}
+
+		#reconnectBtn svg
+		{
+			width: clamp(22px, 6vmin, 42px);
+			height: clamp(22px, 6vmin, 42px);
+			margin-right: clamp(8px, 1.5vmin, 14px);
+			flex-shrink: 0;
+			filter: drop-shadow(0 0 8px var(--modern-accent-glow));
+			transition: transform 0.25s ease;
+		}
+
+		#reconnectBtn:hover svg
+		{
+			transform: rotate(35deg);
+		}
+	</style>
+</head>
+<body>
+	<main class="timeout-shell">
+		<section class="timeout-card" aria-live="polite">
+			<img id="brandIcon" src="../applet/modernui3/logos/launcher-icon256_ios.webp?v=0.348.1" alt="ModernUI3" />
+			<div class="timeout-card-text">
+				<div class="status-pill"><span class="status-dot" aria-hidden="true"></span><span id="statusBadgeText">IDLE TIMEOUT</span></div>
+				<h1 id="timeoutHeading">Blue Iris — Session Timed Out</h1>
+				<p id="timeoutBody">Disconnected after a period of inactivity to conserve resources.</p>
+				<p id="timeoutHint">You can change the idle timeout under Main Menu &gt; UI Settings.</p>
+			</div>
+		</section>
+		<div class="reconnect-wrap">
+			<a id="reconnectBtn" href="../modernui3.htm">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<polyline points="23 4 23 10 17 10"></polyline>
+					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+				</svg>
+				<span>Click here to reconnect</span>
+			</a>
+		</div>
+	</main>
+	<script type="text/javascript">
+		(function () {
+			function isExpandedToken(val) {
+				return Boolean(val && !/^%%[^%]+%%$/.test(val));
+			}
+
+			function readQueryParam(params, targetName) {
+				var needle = targetName.toLowerCase();
+				var result = "";
+				params.forEach(function (value, key) {
+					if (!result && key.toLowerCase() === needle) {
+						result = value;
+					}
+				});
+				return result;
+			}
+
+			function scrubSessionFromAddressBar() {
+				if (!navigator.cookieEnabled) {
+					return;
+				}
+				try {
+					var currentUrl = new URL(window.location.href);
+					var removed = false;
+					Array.from(currentUrl.searchParams.keys()).forEach(function (k) {
+						if (k.toLowerCase() === "session") {
+							currentUrl.searchParams.delete(k);
+							removed = true;
+						}
+					});
+					if (removed) {
+						history.replaceState(history.state, "", currentUrl.toString());
+					}
+				} catch (e) {}
+			}
+
+			function resolveReconnectUrl(rawPath, biSession) {
+				var fallback = "../modernui3.htm";
+				var resolved;
+				try {
+					resolved = new URL(rawPath || fallback, window.location.href);
+					if (resolved.origin !== window.location.origin || (resolved.protocol !== "http:" && resolved.protocol !== "https:")) {
+						resolved = new URL(fallback, window.location.href);
+					}
+				} catch (e) {
+					resolved = new URL(fallback, window.location.href);
+				}
+				Array.from(resolved.searchParams.keys()).forEach(function (k) {
+					if (k.toLowerCase() === "session") {
+						resolved.searchParams.delete(k);
+					}
+				});
+				if (biSession && !navigator.cookieEnabled) {
+					resolved.searchParams.set("session", biSession);
+				}
+				return resolved.pathname + resolved.search + resolved.hash;
+			}
+
+			var sysToken = "%%SYSNAME%%";
+			var sessionToken = "%%SESSION%%";
+			var sysName = isExpandedToken(sysToken) ? sysToken : "Blue Iris";
+			var biSession = isExpandedToken(sessionToken) ? sessionToken : "";
+
+			scrubSessionFromAddressBar();
+
+			var query = new URLSearchParams(window.location.search);
+			var badgeEl = document.getElementById("statusBadgeText");
+			var headingEl = document.getElementById("timeoutHeading");
+			var bodyEl = document.getElementById("timeoutBody");
+			var hintEl = document.getElementById("timeoutHint");
+
+			if (readQueryParam(query, "serverSessionLimit") === "1") {
+				badgeEl.textContent = "SESSION LIMIT";
+				headingEl.textContent = sysName + " \u2014 Session Limit Reached";
+				bodyEl.textContent = "Your session reached the time limit configured for this user in Blue Iris Settings > Users.";
+				hintEl.style.display = "none";
+			} else if (readQueryParam(query, "serverDailyLimit") === "1") {
+				badgeEl.textContent = "DAILY LIMIT";
+				headingEl.textContent = sysName + " \u2014 Daily Limit Reached";
+				bodyEl.textContent = "This user account reached its daily time limit configured in Blue Iris Settings > Users.";
+				hintEl.style.display = "none";
+			} else {
+				badgeEl.textContent = "IDLE TIMEOUT";
+				headingEl.textContent = sysName + " \u2014 Session Timed Out";
+				bodyEl.textContent = "Disconnected after a period of inactivity to conserve resources.";
+				hintEl.style.display = "";
+			}
+
+			var targetUrl = resolveReconnectUrl(readQueryParam(query, "path"), biSession);
+			var reconnectBtn = document.getElementById("reconnectBtn");
+			reconnectBtn.setAttribute("href", targetUrl);
+
+			var navPending = false;
+			var leavingPage = false;
+			window.addEventListener("beforeunload", function () {
+				leavingPage = true;
+			});
+
+			reconnectBtn.addEventListener("click", function (ev) {
+				if (navPending) {
+					ev.preventDefault();
+					return;
+				}
+				navPending = true;
+				setTimeout(function () {
+					if (!leavingPage) {
+						window.location.assign(targetUrl);
+					}
+				}, 200);
+				try {
+					if (window.history.length > 1) {
+						ev.preventDefault();
+						window.history.back();
+					}
+				} catch (e) {}
+			});
+		})();
+	</script>
+</body>
+</html>

@@ -1,0 +1,3839 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>UI3 Storage Info</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="theme-color" content="#0A0F1D" />
+	<meta name="color-scheme" content="dark light" />
+	<link rel="icon" href="../applet/modernui3/logos/launcher-icon48.png?v=0.348.1" />
+	<script>
+		(function ()
+		{
+			try
+			{
+				document.documentElement.classList.add("modern-ui3");
+				var accent = localStorage.getItem("ui3_modern_accent") || "cyan";
+				document.documentElement.setAttribute("data-modern-accent", accent);
+			}
+			catch (e) {}
+		})();
+	</script>
+</head>
+<body>
+	<div id="loading">Loading UI3 Storage Info</div>
+	<div id="root" style="display: none;">
+		<h2>UI3 Storage Info</h2>
+		<p>UI3 stores its settings in your browser using <a href="https://www.google.com/search?q=local+storage+Web+API" target="_blank" rel="noopener noreferrer">Local Storage</a>. Larger items such as camera list thumbnails are stored using <a href="https://www.google.com/search?q=IndexedDB+Web+API" target="_blank" rel="noopener noreferrer">IndexedDB</a>, which has a much larger quota.</p>
+		<p>This page provides information about your browser's Storage usage for origin: <span class="origin" title="this field is censored for your privacy in case you want to screenshot the page">{{origin}}</span>.</p>
+		<div class="message">
+			<template v-for="storage in allStorage">
+				<div v-if="storage.enabled">
+					<h3>
+						{{storage.name}} Storage: {{storage.size}} / {{storage.capacity}} chars
+					</h3>
+					<div v-if="storage.capacity" :title="storage.size + '/' + storage.capacity + ' characters'">
+						<meter :value="storage.fullness"></meter> {{parseInt(storage.fullness*100)}}% full
+					</div>
+					<div v-else>
+						Calculating capacity...
+					</div>
+				</div>
+			</template>
+			<div>
+				<h3>IndexedDB Storage: {{idbHeading}}</h3>
+				<template v-if="idbStorage && idbStorage.enabled">
+					<div v-if="storageEstimateFullness !== null" :title="storageEstimateDescription">
+						<meter :value="storageEstimateFullness"></meter> {{parseInt(storageEstimateFullness*100)}}% full
+					</div>
+					<p>{{storageEstimateDescription}}</p>
+				</template>
+				<p v-else-if="idbStorage">IndexedDB is not available in this browser, so UI3 stores camera list thumbnails in Local Storage instead.</p>
+			</div>
+		</div>
+		<p v-if="wasCached">
+			Local Storage capacity values above assume that your browser enforces a <span title="in mebibytes (1 mebibyte is equal to 1048576 bytes)">5 MiB</span> quota per storage container, which was common as of 2023.  <a role="button" tabindex="0" v-on:click="recalculateStorageCapacity" v-on:keypress.enter.prevent="recalculateStorageCapacity" title="Storage fullness shown above depends on assumed capacity values. Click to recompute values specific to your browser.">recompute storage capacity</a>
+		</p>
+		<p v-else-if="isComputingCapacity">
+			Local Storage capacity values are being recomputed now...
+		</p>
+		<p v-else>
+			Local Storage capacity values above were validated during this browser session.
+		</p>
+		<template v-if="localStorageObject">
+			<h2>Storage Usage Breakdown</h2>
+			<div class="localStorageUsageBreakdownScroller">
+				<table class="localStorageUsageBreakdown">
+					<thead>
+						<tr>
+							<th>Usage</th>
+							<th title="Size in characters">Local Storage</th>
+							<th title="Size in characters">IndexedDB</th>
+							<th>View</th>
+							<th>Download</th>
+							<th title="Export this section in a format that can be imported later">Export</th>
+							<th>Delete</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="category in storageCategories()" :title="category.hint">
+							<td>{{category.name}}</td>
+							<td>{{category.localBytes}}</td>
+							<td>{{category.idbBytesText}}</td>
+							<td><input v-if="category.bytes" type="button" value="view" @click="onViewIndividual(category)" /></td>
+							<td><input v-if="category.download && category.bytes" type="button" :value="category.downloadButton" @click="onDownloadIndividual(category)" /></td>
+							<td title="Export this section in a format that can be imported later"><input v-if="category.bytes" type="button" value="export" @click="onExportIndividual(category)" /></td>
+							<td><input v-if="category.bytes" type="button" value="delete" @click="onClearIndividual(category)" /></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<h2>Export</h2>
+			<p><input type="button" value="Export All Storage" @click="onExportAll()" /></p>
+			<h2>Import</h2>
+			<p>Drag and drop or select a .json file that was previously exported from this page. The content of the file will be merged with existing data. Camera list thumbnails are imported into IndexedDB if it is available, and everything else is imported into Local Storage.</p>
+			<div id="dropTarget" :class="dropTargetClasses" @dragover.prevent="onFileDragOver" @dragenter="onFileDragEnter" @dragleave="onFileDragLeave" @drop.prevent="onFileDrop">
+				<input type="file" @change="onImportInputChange" />
+			</div>
+			<p><input type="button" value="Import" :disabled="!selectedImportFile" @click="importSelectedFile" /> {{selectedImportFileDescription}}</p>
+			<h2>Settings Transfer</h2>
+			<p>Copy UI3's settings between devices or web browsers using a QR code or key phrase, without handling any files. Saved login credentials are not included.</p>
+			<p><input type="button" value="Settings Transfer" @click="onSettingsTransfer()" /></p>
+			<h2>Erase</h2>
+			<p>This will "factory reset" UI3 in this web browser.</p>
+			<p><input type="button" value="Erase All Storage Data" @click="onEraseAllStorage()" /></p>
+		</template>
+		<p>&nbsp;</p>
+		<p><a href="../modernui3.htm" class="backToUi3Link">&larr; Return to ModernUI3</a></p>
+	</div>
+	<script>
+		var si_version = "4";
+		var bi_version = "%%VERSION%%";
+		var local_bi_session = "%%SESSION%%";
+		if (!local_bi_session || (local_bi_session.length === 11 && local_bi_session.indexOf("%") === 0 && local_bi_session.indexOf("SESSION") === 2))
+		{
+			local_bi_session = "";
+			bi_version = "0.0.0.0";
+		}
+		var combined_version = "StorageInfo-" + si_version + "-" + bi_version;
+		var local_bi_session_arg_always = local_bi_session ? "&session=" + local_bi_session : "";
+		var local_bi_session_arg = navigator.cookieEnabled ? "" : local_bi_session_arg_always;
+		document.write('<link href="libs-ui3.css?v=' + combined_version + local_bi_session_arg + '" rel="stylesheet" />');
+		document.write('<script src="libs-ui3.js?v=' + combined_version + local_bi_session_arg + '"><\/script>');
+		//document.write('<script src="libs-src/vue.js?v=' + combined_version + local_bi_session_arg + '"><\/script>');
+		document.write('<script src="storageinfo-libs.js?v=' + combined_version + local_bi_session_arg + '"><\/script>');
+	</script>
+	<style type="text/css">
+		:root
+		{
+			/* Dialogs */
+			--dialog-bg-color: #FFFFFF;
+			--dialog-border-color: #404040;
+			--dialog-color: #FFFFFF;
+			--dialog-titlebar-bg-color: #3E5F8A;
+			--dialog-titlebar-bottom-border-color: #2b405d;
+			--dialog-titlebar-color: #cdcdcd;
+		}
+
+		body
+		{
+			font-family: Arial, Sans-Serif;
+			font-size: 12pt;
+		}
+
+		a[role="button"]
+		{
+			color: #0000EE;
+			cursor: pointer;
+			text-decoration: underline;
+		}
+
+		.localStorageUsageBreakdownScroller
+		{
+			max-width: 100%;
+			overflow-x: auto;
+		}
+
+		.localStorageUsageBreakdown
+		{
+			border-collapse: collapse;
+		}
+
+			.localStorageUsageBreakdown th,
+			.localStorageUsageBreakdown td
+			{
+				border: 1px solid #AAAAAA;
+				padding: 2px;
+			}
+
+			.localStorageUsageBreakdown th
+			{
+				background-color: #EEEEEE;
+			}
+
+		.origin
+		{
+			border: 1px solid #777777;
+			color: transparent;
+			background-color: #AAAAAA;
+			padding: 1px 6px;
+			user-select: all;
+		}
+
+			.origin:hover,
+			.origin:active
+			{
+				color: #000000;
+				background-color: #FFF9E6;
+			}
+
+		#dropTarget
+		{
+			padding: 20px 10px;
+			border: 2px dashed #999999;
+			background-color: #eeeeee;
+		}
+
+			#dropTarget.dragover
+			{
+				border: 2px dashed #FFD900;
+				background-color: #f9e6bf;
+			}
+
+		.ImageVisualizer
+		{
+			background-color: #d5d5d5;
+		}
+
+		.ImageVisualizerList
+		{
+			word-wrap: break-word;
+			color: #000000;
+			padding: 10px;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-evenly;
+		}
+
+		.imageContainer
+		{
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			margin: 5px;
+			border: 1px solid black;
+			border-radius: 8px;
+			background-color: #FFFFFF;
+			padding: 5px;
+		}
+
+		.imageVisualizerImage
+		{
+			flex: 0 0;
+		}
+
+		.imageName
+		{
+			margin-top: 2px;
+			white-space: pre-line;
+		}
+		/* Dialog Theme */
+		.dialog_wrapper.darkTheme
+		{
+			border-color: var(--dialog-border-color);
+			background-color: var(--dialog-bg-color);
+			color: var(--dialog-color);
+		}
+
+			.dialog_wrapper.darkTheme .dialog_titlebar
+			{
+				border-bottom-color: var(--dialog-titlebar-bottom-border-color);
+				background-color: var(--dialog-titlebar-bg-color);
+			}
+
+			.dialog_wrapper.darkTheme .dialog_close,
+			.dialog_wrapper.darkTheme .dialog_refresh
+			{
+				background-color: var(--dialog-titlebar-bg-color);
+				color: var(--dialog-titlebar-color);
+			}
+
+			.dialog_wrapper.darkTheme div::-webkit-scrollbar-track
+			{
+				background: var(--dialog-bg-color);
+			}
+		/* Settings Transfer dialog */
+		.settingsTransferDialog
+		{
+			width: 380px;
+			max-width: 90vw;
+			box-sizing: border-box;
+			padding: 14px 16px 16px 16px;
+			background-color: #FFFFFF;
+			color: #222222;
+			font-family: Arial, Sans-Serif;
+			font-size: 14px;
+			line-height: 1.4;
+		}
+
+			.settingsTransferDialog a,
+			.settingsTransferDialog a:visited
+			{
+				color: #0645AD;
+			}
+
+			.settingsTransferDialog svg.stIcon
+			{
+				display: block;
+				width: 100%;
+				height: 100%;
+				fill: currentColor;
+			}
+
+		.stIntro
+		{
+			margin-bottom: 14px;
+		}
+
+		.stNote
+		{
+			margin-top: 14px;
+			font-size: 12px;
+			color: #666666;
+		}
+
+		.stChoices
+		{
+			display: flex;
+			gap: 10px;
+		}
+
+		.stChoice
+		{
+			flex: 1 1 0px;
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 16px 10px 14px 10px;
+			border: 1px solid #C9D3DF;
+			border-radius: 8px;
+			background-color: #F5F8FB;
+			color: inherit;
+			font: inherit;
+			text-align: center;
+			cursor: pointer;
+		}
+
+			.stChoice:hover
+			{
+				border-color: #3E5F8A;
+				background-color: #E8EFF7;
+			}
+
+			.stChoice:active
+			{
+				background-color: #DCE6F2;
+			}
+
+			.stChoice:focus-visible
+			{
+				outline: 2px solid #3E5F8A;
+				outline-offset: 2px;
+			}
+
+			.stChoice .stChoiceIcon
+			{
+				display: block;
+				width: 40px;
+				height: 40px;
+				margin-bottom: 8px;
+				color: #3E5F8A;
+			}
+
+			.stChoice .stChoiceTitle
+			{
+				display: block;
+				font-size: 17px;
+				font-weight: bold;
+			}
+
+			.stChoice .stChoiceDesc
+			{
+				display: block;
+				margin-top: 4px;
+				font-size: 12.5px;
+				color: #555555;
+			}
+
+		.stStatusView
+		{
+			text-align: center;
+			padding: 14px 4px 4px 4px;
+		}
+
+		.stSpinner
+		{
+			box-sizing: border-box;
+			width: 40px;
+			height: 40px;
+			margin: 0px auto 14px auto;
+			border: 4px solid #D6DEE8;
+			border-top-color: #3E5F8A;
+			border-radius: 50%;
+			animation: stSpin 0.9s linear infinite;
+		}
+
+		@keyframes stSpin
+		{
+			100%
+			{
+				transform: rotate(360deg);
+			}
+		}
+
+		.stProgress
+		{
+			width: 220px;
+			max-width: 100%;
+			height: 6px;
+			margin: 12px auto 4px auto;
+			border-radius: 3px;
+			overflow: hidden;
+			background-color: #E3E8EE;
+		}
+
+			.stProgress .stProgressBar
+			{
+				width: 0%;
+				height: 100%;
+				background-color: #3E5F8A;
+			}
+
+		.stStatusIcon
+		{
+			display: block;
+			width: 44px;
+			height: 44px;
+			margin: 0px auto 10px auto;
+			color: #3E5F8A;
+		}
+
+		.stStatusTitle
+		{
+			margin-bottom: 6px;
+			font-size: 17px;
+			font-weight: bold;
+		}
+
+		.stAdvice
+		{
+			margin-top: 8px;
+			font-size: 12.5px;
+			color: #555555;
+		}
+
+		.stStatusDetail
+		{
+			margin-top: 8px;
+			font-size: 12.5px;
+		}
+
+		.settingsTransferDialog .stErrorColor
+		{
+			color: #C62828;
+		}
+
+		.settingsTransferDialog .stSuccessColor
+		{
+			color: #2E7D32;
+		}
+
+		.stButtons
+		{
+			display: flex;
+			justify-content: space-between;
+			gap: 10px;
+			margin-top: 16px;
+		}
+
+			.stButtons.stButtonsCenter
+			{
+				justify-content: center;
+			}
+
+		.stBtn
+		{
+			box-sizing: border-box;
+			height: 32px;
+			min-width: 84px;
+			margin: 0px;
+			padding: 0px 14px;
+			border: 1px solid #B8C2CE;
+			border-radius: 4px;
+			background-color: #F3F5F8;
+			color: #222222;
+			font: inherit;
+			font-size: 14px;
+			white-space: nowrap;
+			cursor: pointer;
+		}
+
+			.stBtn:hover
+			{
+				background-color: #E6EAF0;
+			}
+
+			.stBtn:active
+			{
+				background-color: #D9DFE7;
+			}
+
+			.stBtn:focus-visible
+			{
+				outline: 2px solid #3E5F8A;
+				outline-offset: 1px;
+			}
+
+			.stBtn.stPrimary
+			{
+				border-color: #3E5F8A;
+				background-color: #3E5F8A;
+				color: #FFFFFF;
+			}
+
+				.stBtn.stPrimary:hover
+				{
+					background-color: #4A6FA0;
+				}
+
+				.stBtn.stPrimary:active
+				{
+					background-color: #34506F;
+				}
+
+		.stReadyHeading
+		{
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			margin-bottom: 12px;
+			font-size: 16px;
+			font-weight: bold;
+			color: #2E7D32;
+		}
+
+			.stReadyHeading .stHeadingIcon
+			{
+				flex: 0 0 auto;
+				width: 22px;
+				height: 22px;
+			}
+
+		.stContents
+		{
+			margin: -6px 0px 12px 0px;
+			font-size: 12.5px;
+			color: #555555;
+			text-align: center;
+		}
+
+		.stCheckRow
+		{
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			padding: 10px 12px;
+			border: 1px solid #C9D3DF;
+			border-radius: 6px;
+			background-color: #F5F8FB;
+			cursor: pointer;
+		}
+
+			.stCheckRow:hover
+			{
+				border-color: #3E5F8A;
+			}
+
+			.stCheckRow input[type="checkbox"]
+			{
+				flex: 0 0 auto;
+				width: 18px;
+				height: 18px;
+				margin: 1px 0px 0px 0px;
+				cursor: pointer;
+			}
+
+			.stCheckRow .stCheckTitle
+			{
+				display: block;
+				font-weight: bold;
+			}
+
+			.stCheckRow .stCheckDesc
+			{
+				display: block;
+				margin-top: 3px;
+				font-size: 12.5px;
+				color: #555555;
+			}
+
+		.stWarning
+		{
+			display: flex;
+			gap: 8px;
+			margin-bottom: 12px;
+			padding: 8px 10px;
+			border: 1px solid #E0B000;
+			border-radius: 4px;
+			background-color: #FFF8E1;
+			color: #5C4600;
+			font-size: 12.5px;
+		}
+
+			.stWarning .stWarningIcon
+			{
+				flex: 0 0 auto;
+				width: 18px;
+				height: 18px;
+				color: #B58900;
+			}
+
+		.stQrBox
+		{
+			text-align: center;
+		}
+
+			.stQrBox .stQr
+			{
+				display: inline-block;
+				border: 1px solid #DDDDDD;
+				border-radius: 6px;
+				overflow: hidden;
+				line-height: 0;
+			}
+
+				.stQrBox .stQr svg
+				{
+					display: block;
+					width: 100%;
+					height: 100%;
+					shape-rendering: crispEdges;
+				}
+
+			.stQrBox .stQrCaption
+			{
+				margin-top: 6px;
+				font-size: 13px;
+				color: #444444;
+			}
+
+			.stQrBox .stQrError
+			{
+				padding: 12px;
+				color: #C62828;
+				line-height: 1.4;
+			}
+
+		.stOr
+		{
+			display: flex;
+			align-items: center;
+			margin: 16px 0px 8px 0px;
+			font-size: 12.5px;
+			color: #555555;
+			text-align: center;
+		}
+
+			.stOr::before,
+			.stOr::after
+			{
+				content: "";
+				flex: 1 1 0px;
+				border-top: 1px solid #DDDDDD;
+			}
+
+			.stOr span
+			{
+				flex: 0 1 auto;
+				padding: 0px 10px;
+			}
+
+		.stCopyRow
+		{
+			display: flex;
+			align-items: stretch;
+		}
+
+			.stCopyRow .stCopyValue
+			{
+				flex: 1 1 auto;
+				min-width: 0;
+				padding: 6px 9px;
+				border: 1px solid #C9D3DF;
+				border-right: none;
+				border-radius: 4px 0px 0px 4px;
+				background-color: #F7F9FB;
+				font-family: Consolas, "Courier New", monospace;
+				font-size: 13px;
+				word-break: break-all;
+			}
+
+			.stCopyRow .stPhrase
+			{
+				font-size: 15px;
+				font-weight: bold;
+				color: #111111;
+				word-break: normal;
+				overflow-wrap: anywhere; /* Wraps after hyphens, keeping words whole. */
+			}
+
+			.stCopyRow .stCopyBtn
+			{
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				height: auto;
+				min-height: 32px;
+				min-width: 86px;
+				border-radius: 0px 4px 4px 0px;
+			}
+
+				.stCopyRow .stCopyBtn .stCopyIcon
+				{
+					flex: 0 0 auto;
+					width: 14px;
+					height: 14px;
+				}
+
+				.stCopyRow .stCopyBtn.stCopied
+				{
+					color: #2E7D32;
+				}
+
+		.stCopyFailed
+		{
+			margin-top: 4px;
+			font-size: 12px;
+			color: #C62828;
+		}
+
+		.stHint
+		{
+			margin-top: 5px;
+			font-size: 12px;
+			color: #666666;
+			text-align: center;
+		}
+
+		.stFooter
+		{
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			margin-top: 16px;
+		}
+
+		.stExpires
+		{
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 13px;
+			color: #444444;
+			font-variant-numeric: tabular-nums;
+		}
+
+			.stExpires .stExpiresIcon
+			{
+				flex: 0 0 auto;
+				width: 16px;
+				height: 16px;
+			}
+
+		.stLabel
+		{
+			display: block;
+			font-weight: bold;
+		}
+
+		.stPhraseInput
+		{
+			display: block;
+			width: 100%;
+			box-sizing: border-box;
+			height: 38px;
+			margin-top: 5px;
+			padding: 4px 10px;
+			border: 1px solid #B8C2CE;
+			border-radius: 4px;
+			font-family: Consolas, "Courier New", monospace;
+			font-size: 16px; /* 16px or more prevents iOS from zooming in when the field is focused */
+		}
+
+			.stPhraseInput:focus
+			{
+				border-color: #3E5F8A;
+				outline: 2px solid #3E5F8A;
+				outline-offset: 0px;
+			}
+
+		.stError
+		{
+			margin-top: 8px;
+		}
+	
+		/* Modern UI3 Cyber-Slate Theme for Storage Info */
+		html.modern-ui3
+		{
+			--modern-accent-primary: #00E5FF;
+			--modern-accent-cyan: #00E5FF;
+			--modern-accent-rgb: 0, 229, 255;
+			--modern-accent-glow: rgba(0, 229, 255, 0.4);
+			--modern-accent-glow-strong: rgba(0, 229, 255, 0.7);
+			--modern-accent-bg-subtle: rgba(0, 229, 255, 0.12);
+			--modern-card-border-hover: rgba(0, 229, 255, 0.45);
+			--modern-card-border-glow: rgba(0, 229, 255, 0.35);
+			--modern-cyan-gradient: linear-gradient(135deg, #00E5FF 0%, #2563EB 100%);
+			--modern-bg-canvas: #0A0F1D;
+			--modern-bg-card: #0D1527;
+			--modern-border: rgba(255, 255, 255, 0.08);
+			--modern-text-primary: #F8FAFC;
+			--modern-text-secondary: #94A3B8;
+			--modern-text-muted: #64748B;
+
+			/* Dialog variables */
+			--dialog-bg-color: #0D1527;
+			--dialog-border-color: rgba(255, 255, 255, 0.12);
+			--dialog-color: #E2E8F0;
+			--dialog-titlebar-bg-color: #131E35;
+			--dialog-titlebar-bottom-border-color: rgba(255, 255, 255, 0.08);
+			--dialog-titlebar-color: #F8FAFC;
+		}
+
+		/* Accent color variations */
+		html.modern-ui3[data-modern-accent="emerald"]
+		{
+			--modern-accent-primary: #10B981 !important;
+			--modern-accent-cyan: #10B981 !important;
+			--modern-accent-rgb: 16, 185, 129 !important;
+			--modern-accent-glow: rgba(16, 185, 129, 0.4) !important;
+			--modern-accent-glow-strong: rgba(16, 185, 129, 0.7) !important;
+			--modern-accent-bg-subtle: rgba(16, 185, 129, 0.12) !important;
+			--modern-card-border-hover: rgba(16, 185, 129, 0.45) !important;
+			--modern-card-border-glow: rgba(16, 185, 129, 0.35) !important;
+			--modern-cyan-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+		}
+
+		html.modern-ui3[data-modern-accent="violet"]
+		{
+			--modern-accent-primary: #A855F7 !important;
+			--modern-accent-cyan: #A855F7 !important;
+			--modern-accent-rgb: 168, 85, 247 !important;
+			--modern-accent-glow: rgba(168, 85, 247, 0.4) !important;
+			--modern-accent-glow-strong: rgba(168, 85, 247, 0.7) !important;
+			--modern-accent-bg-subtle: rgba(168, 85, 247, 0.12) !important;
+			--modern-card-border-hover: rgba(168, 85, 247, 0.45) !important;
+			--modern-card-border-glow: rgba(168, 85, 247, 0.35) !important;
+			--modern-cyan-gradient: linear-gradient(135deg, #A855F7 0%, #7C3AED 100%) !important;
+		}
+
+		html.modern-ui3[data-modern-accent="amber"]
+		{
+			--modern-accent-primary: #F59E0B !important;
+			--modern-accent-cyan: #F59E0B !important;
+			--modern-accent-rgb: 245, 158, 11 !important;
+			--modern-accent-glow: rgba(245, 158, 11, 0.4) !important;
+			--modern-accent-glow-strong: rgba(245, 158, 11, 0.7) !important;
+			--modern-accent-bg-subtle: rgba(245, 158, 11, 0.12) !important;
+			--modern-card-border-hover: rgba(245, 158, 11, 0.45) !important;
+			--modern-card-border-glow: rgba(245, 158, 11, 0.35) !important;
+			--modern-cyan-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+		}
+
+		html.modern-ui3[data-modern-accent="crimson"]
+		{
+			--modern-accent-primary: #EF4444 !important;
+			--modern-accent-cyan: #EF4444 !important;
+			--modern-accent-rgb: 239, 68, 68 !important;
+			--modern-accent-glow: rgba(239, 68, 68, 0.4) !important;
+			--modern-accent-glow-strong: rgba(239, 68, 68, 0.7) !important;
+			--modern-accent-bg-subtle: rgba(239, 68, 68, 0.12) !important;
+			--modern-card-border-hover: rgba(239, 68, 68, 0.45) !important;
+			--modern-card-border-glow: rgba(239, 68, 68, 0.35) !important;
+			--modern-cyan-gradient: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+		}
+
+		html.modern-ui3,
+		html.modern-ui3 body
+		{
+			background-color: #0A0F1D;
+			background-image: radial-gradient(ellipse at 50% 0%, #151e36 0%, #0A0F1D 70%);
+			background-attachment: fixed;
+			color: #E2E8F0;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+		}
+
+		html.modern-ui3 body
+		{
+			max-width: 1040px;
+			margin: 0 auto;
+			padding: 28px 24px 60px 24px;
+			box-sizing: border-box;
+		}
+
+		html.modern-ui3 #loading
+		{
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 50vh;
+			font-size: 1.25rem;
+			font-weight: 500;
+			color: var(--modern-accent-primary);
+			text-shadow: 0 0 16px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 h2
+		{
+			color: #F8FAFC;
+			font-size: 1.35rem;
+			font-weight: 600;
+			margin-top: 36px;
+			margin-bottom: 12px;
+			letter-spacing: -0.01em;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		html.modern-ui3 h2::before
+		{
+			content: "";
+			display: inline-block;
+			width: 4px;
+			height: 18px;
+			background: var(--modern-accent-primary);
+			border-radius: 2px;
+			box-shadow: 0 0 8px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 h3
+		{
+			color: #F1F5F9;
+			font-size: 1.05rem;
+			font-weight: 600;
+			margin-top: 0;
+			margin-bottom: 8px;
+		}
+
+		html.modern-ui3 p
+		{
+			color: #94A3B8;
+			line-height: 1.6;
+			font-size: 0.95rem;
+			margin: 10px 0;
+		}
+
+		html.modern-ui3 a
+		{
+			color: var(--modern-accent-primary);
+			text-decoration: none;
+			transition: color 0.15s ease;
+		}
+
+		html.modern-ui3 a:hover
+		{
+			text-decoration: underline;
+			color: var(--modern-accent-cyan);
+		}
+
+		html.modern-ui3 a[role="button"]
+		{
+			color: var(--modern-accent-primary);
+			text-decoration: underline;
+			cursor: pointer;
+		}
+
+		html.modern-ui3 .origin
+		{
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			color: transparent;
+			background-color: #1E293B;
+			padding: 2px 8px;
+			border-radius: 4px;
+			user-select: all;
+			transition: all 0.2s ease;
+		}
+
+		html.modern-ui3 .origin:hover,
+		html.modern-ui3 .origin:active
+		{
+			color: #F8FAFC;
+			background-color: #334155;
+			border-color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .message
+		{
+			background: rgba(13, 21, 39, 0.7);
+			backdrop-filter: blur(12px);
+			-webkit-backdrop-filter: blur(12px);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 12px;
+			padding: 20px 24px;
+			margin: 20px 0;
+			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 20px;
+		}
+
+		html.modern-ui3 meter
+		{
+			background: #1E293B;
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			border-radius: 8px;
+			height: 16px;
+			width: 180px;
+			vertical-align: middle;
+			overflow: hidden;
+		}
+
+		html.modern-ui3 meter::-webkit-meter-bar
+		{
+			background: #1E293B;
+			border-radius: 8px;
+			border: none;
+		}
+
+		html.modern-ui3 meter::-webkit-meter-optimum-value
+		{
+			background: var(--modern-cyan-gradient);
+			border-radius: 7px;
+			box-shadow: 0 0 10px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 meter::-webkit-meter-suboptimum-value
+		{
+			background: linear-gradient(135deg, #F59E0B, #D97706);
+			border-radius: 7px;
+		}
+
+		html.modern-ui3 meter::-webkit-meter-even-less-good-value
+		{
+			background: linear-gradient(135deg, #EF4444, #DC2626);
+			border-radius: 7px;
+		}
+
+		html.modern-ui3 meter::-moz-meter-bar
+		{
+			background: var(--modern-cyan-gradient);
+			border-radius: 7px;
+		}
+
+		html.modern-ui3 .localStorageUsageBreakdownScroller
+		{
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 12px;
+			overflow: hidden;
+			background: #0D1527;
+			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+			margin: 16px 0 24px 0;
+		}
+
+		html.modern-ui3 .localStorageUsageBreakdown
+		{
+			border-collapse: separate;
+			border-spacing: 0;
+			width: 100%;
+			font-size: 0.92rem;
+		}
+
+		html.modern-ui3 .localStorageUsageBreakdown th
+		{
+			background-color: #131E35;
+			color: #F1F5F9;
+			font-weight: 600;
+			padding: 12px 14px;
+			border: none;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+			border-right: 1px solid rgba(255, 255, 255, 0.04);
+			text-align: left;
+		}
+
+		html.modern-ui3 .localStorageUsageBreakdown td
+		{
+			padding: 10px 14px;
+			border: none;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+			border-right: 1px solid rgba(255, 255, 255, 0.04);
+			color: #CBD5E1;
+		}
+
+		html.modern-ui3 .localStorageUsageBreakdown tbody tr:last-child td
+		{
+			border-bottom: none;
+		}
+
+		html.modern-ui3 .localStorageUsageBreakdown tbody tr:hover td
+		{
+			background-color: rgba(255, 255, 255, 0.03);
+		}
+
+		html.modern-ui3 input[type="button"]
+		{
+			background: #182238;
+			color: #F1F5F9;
+			border: 1px solid rgba(255, 255, 255, 0.14);
+			border-radius: 6px;
+			padding: 6px 14px;
+			font-family: inherit;
+			font-size: 0.88rem;
+			font-weight: 500;
+			cursor: pointer;
+			transition: all 0.15s ease;
+		}
+
+		html.modern-ui3 input[type="button"]:hover
+		{
+			background: #202E4C;
+			border-color: var(--modern-accent-primary);
+			color: #FFFFFF;
+			box-shadow: 0 0 10px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 input[type="button"]:active
+		{
+			background: #141C30;
+			transform: translateY(1px);
+		}
+
+		html.modern-ui3 input[type="button"]:disabled
+		{
+			opacity: 0.4;
+			cursor: not-allowed;
+			box-shadow: none !important;
+			border-color: rgba(255, 255, 255, 0.08) !important;
+		}
+
+		html.modern-ui3 input[type="button"][value="delete"]
+		{
+			color: #FCA5A5;
+			border-color: rgba(239, 68, 68, 0.3);
+		}
+
+		html.modern-ui3 input[type="button"][value="delete"]:hover
+		{
+			background: rgba(239, 68, 68, 0.15);
+			border-color: #EF4444;
+			color: #FFFFFF;
+			box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+		}
+
+		html.modern-ui3 input[type="button"][value*="Erase"]
+		{
+			color: #FCA5A5;
+			border-color: rgba(239, 68, 68, 0.4);
+			background: rgba(239, 68, 68, 0.1);
+		}
+
+		html.modern-ui3 input[type="button"][value*="Erase"]:hover
+		{
+			background: #EF4444;
+			border-color: #EF4444;
+			color: #FFFFFF;
+			box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+		}
+
+		html.modern-ui3 input[type="button"][value="Export All Storage"],
+		html.modern-ui3 input[type="button"][value="Settings Transfer"]
+		{
+			background: var(--modern-accent-bg-subtle);
+			border-color: var(--modern-card-border-glow);
+			color: var(--modern-accent-primary);
+			font-weight: 600;
+		}
+
+		html.modern-ui3 input[type="button"][value="Export All Storage"]:hover,
+		html.modern-ui3 input[type="button"][value="Settings Transfer"]:hover
+		{
+			background: var(--modern-accent-primary);
+			border-color: var(--modern-accent-primary);
+			color: #0A0F1D;
+			box-shadow: 0 0 15px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 #dropTarget
+		{
+			padding: 30px 20px;
+			border: 2px dashed rgba(255, 255, 255, 0.18);
+			background-color: rgba(13, 21, 39, 0.6);
+			border-radius: 12px;
+			text-align: center;
+			transition: all 0.2s ease;
+		}
+
+		html.modern-ui3 #dropTarget.dragover
+		{
+			border-color: var(--modern-accent-primary);
+			background-color: var(--modern-accent-bg-subtle);
+			box-shadow: 0 0 24px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 #dropTarget input[type="file"]
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .dialog_wrapper.darkTheme
+		{
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			border-radius: 14px;
+			overflow: hidden;
+			background-color: #0D1527;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(255, 255, 255, 0.08);
+		}
+
+		html.modern-ui3 .dialog_wrapper.darkTheme .dialog_titlebar
+		{
+			background-color: #131E35;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+			color: #F8FAFC;
+			font-weight: 600;
+			padding: 10px 14px;
+		}
+
+		html.modern-ui3 .dialog_wrapper.darkTheme .dialog_close,
+		html.modern-ui3 .dialog_wrapper.darkTheme .dialog_refresh
+		{
+			background-color: transparent;
+			color: #94A3B8;
+			transition: color 0.15s ease;
+		}
+
+		html.modern-ui3 .dialog_wrapper.darkTheme .dialog_close:hover,
+		html.modern-ui3 .dialog_wrapper.darkTheme .dialog_refresh:hover
+		{
+			color: #FFFFFF;
+		}
+
+		html.modern-ui3 .settingsTransferDialog
+		{
+			background-color: #0D1527;
+			color: #E2E8F0;
+			border-radius: 10px;
+		}
+
+		html.modern-ui3 .settingsTransferDialog a,
+		html.modern-ui3 .settingsTransferDialog a:visited
+		{
+			color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stChoice
+		{
+			background-color: #131E35;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 10px;
+			color: #F1F5F9;
+			transition: all 0.2s ease;
+		}
+
+		html.modern-ui3 .stChoice:hover
+		{
+			background-color: #1A2644;
+			border-color: var(--modern-accent-primary);
+			box-shadow: 0 0 15px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 .stChoice:active
+		{
+			background-color: #111B30;
+		}
+
+		html.modern-ui3 .stChoice .stChoiceIcon
+		{
+			color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stChoice .stChoiceTitle
+		{
+			color: #FFFFFF;
+		}
+
+		html.modern-ui3 .stChoice .stChoiceDesc
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .stSpinner
+		{
+			border-color: rgba(255, 255, 255, 0.15);
+			border-top-color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stProgress
+		{
+			background-color: #1E293B;
+		}
+
+		html.modern-ui3 .stProgress .stProgressBar
+		{
+			background-color: var(--modern-accent-primary);
+			box-shadow: 0 0 8px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 .stStatusIcon
+		{
+			color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stStatusTitle
+		{
+			color: #FFFFFF;
+		}
+
+		html.modern-ui3 .stAdvice
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .stBtn
+		{
+			background-color: #1E293B;
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			color: #F1F5F9;
+			transition: all 0.15s ease;
+		}
+
+		html.modern-ui3 .stBtn:hover
+		{
+			background-color: #2D3B52;
+			border-color: var(--modern-accent-primary);
+			color: #FFFFFF;
+		}
+
+		html.modern-ui3 .stBtn.stPrimary
+		{
+			background-color: var(--modern-accent-primary);
+			border-color: var(--modern-accent-primary);
+			color: #0A0F1D;
+			font-weight: 600;
+		}
+
+		html.modern-ui3 .stBtn.stPrimary:hover
+		{
+			background-color: var(--modern-accent-cyan);
+			box-shadow: 0 0 15px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3 .stReadyHeading
+		{
+			color: #34D399;
+		}
+
+		html.modern-ui3 .stContents
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .stCheckRow
+		{
+			background-color: #131E35;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 8px;
+		}
+
+		html.modern-ui3 .stCheckRow:hover
+		{
+			border-color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stCheckRow .stCheckDesc
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .stWarning
+		{
+			background-color: rgba(245, 158, 11, 0.12);
+			border-color: rgba(245, 158, 11, 0.3);
+			color: #FCD34D;
+		}
+
+		html.modern-ui3 .stWarning .stWarningIcon
+		{
+			color: #FBBF24;
+		}
+
+		html.modern-ui3 .stQrBox .stQr
+		{
+			background-color: #FFFFFF !important;
+			padding: 12px !important;
+			border-radius: 8px !important;
+			border: 2px solid rgba(255, 255, 255, 0.2) !important;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+		}
+
+		html.modern-ui3 .stQrBox .stQrCaption
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .stOr
+		{
+			color: #64748B;
+		}
+
+		html.modern-ui3 .stOr::before,
+		html.modern-ui3 .stOr::after
+		{
+			border-color: rgba(255, 255, 255, 0.1);
+		}
+
+		html.modern-ui3 .stCopyRow .stCopyValue
+		{
+			background-color: #0A0F1D;
+			border-color: rgba(255, 255, 255, 0.15);
+			color: #38BDF8;
+		}
+
+		html.modern-ui3 .stCopyRow .stPhrase
+		{
+			color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stCopyRow .stCopyBtn
+		{
+			background-color: #1E293B;
+			border-color: rgba(255, 255, 255, 0.15);
+			color: #F1F5F9;
+		}
+
+		html.modern-ui3 .stCopyRow .stCopyBtn:hover
+		{
+			background-color: #2D3B52;
+			border-color: var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stCopyRow .stCopyBtn.stCopied
+		{
+			color: #34D399;
+		}
+
+		html.modern-ui3 .stHint
+		{
+			color: #64748B;
+		}
+
+		html.modern-ui3 .stExpires
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .stPhraseInput
+		{
+			background-color: #0A0F1D;
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			color: #F8FAFC;
+		}
+
+		html.modern-ui3 .stPhraseInput:focus
+		{
+			border-color: var(--modern-accent-primary);
+			outline: 2px solid var(--modern-accent-primary);
+		}
+
+		html.modern-ui3 .stNote
+		{
+			color: #64748B;
+		}
+
+		html.modern-ui3 .ObjectVisualizer
+		{
+			background-color: #0D1527;
+		}
+
+		html.modern-ui3 .ObjectVisualizer .selectable
+		{
+			background-color: #0D1527 !important;
+			color: #E2E8F0 !important;
+		}
+
+		html.modern-ui3 .jsonview
+		{
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			color: #E2E8F0;
+		}
+
+		html.modern-ui3 .jsonview .prop
+		{
+			color: var(--modern-accent-primary);
+			font-weight: 600;
+		}
+
+		html.modern-ui3 .jsonview .string
+		{
+			color: #6EE7B7;
+		}
+
+		html.modern-ui3 .jsonview .num
+		{
+			color: #93C5FD;
+		}
+
+		html.modern-ui3 .jsonview .bool
+		{
+			color: #FCD34D;
+		}
+
+		html.modern-ui3 .jsonview .null,
+		html.modern-ui3 .jsonview .undefined
+		{
+			color: #F87171;
+		}
+
+		html.modern-ui3 .jsonview .collapser
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .ImageVisualizer
+		{
+			background-color: #0D1527;
+		}
+
+		html.modern-ui3 .ImageVisualizerList
+		{
+			color: #E2E8F0;
+		}
+
+		html.modern-ui3 .imageContainer
+		{
+			background-color: #131E35;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 8px;
+			color: #E2E8F0;
+		}
+
+		html.modern-ui3 .imageName
+		{
+			color: #94A3B8;
+		}
+
+		html.modern-ui3 .backToUi3Link
+		{
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 18px;
+			background: #131E35;
+			border: 1px solid var(--modern-card-border-glow);
+			border-radius: 9999px;
+			color: var(--modern-accent-primary) !important;
+			font-weight: 600;
+			text-decoration: none !important;
+			transition: all 0.2s ease;
+		}
+
+		html.modern-ui3 .backToUi3Link:hover
+		{
+			background: var(--modern-accent-primary);
+			color: #0A0F1D !important;
+			box-shadow: 0 0 15px var(--modern-accent-glow);
+		}
+
+		html.modern-ui3::-webkit-scrollbar,
+		html.modern-ui3 *::-webkit-scrollbar
+		{
+			width: 8px;
+			height: 8px;
+		}
+
+		html.modern-ui3::-webkit-scrollbar-track,
+		html.modern-ui3 *::-webkit-scrollbar-track
+		{
+			background: #0A0F1D;
+		}
+
+		html.modern-ui3::-webkit-scrollbar-thumb,
+		html.modern-ui3 *::-webkit-scrollbar-thumb
+		{
+			background: #1E293B;
+			border-radius: 4px;
+			border: 1px solid rgba(255, 255, 255, 0.05);
+		}
+
+		html.modern-ui3::-webkit-scrollbar-thumb:hover,
+		html.modern-ui3 *::-webkit-scrollbar-thumb:hover
+		{
+			background: #334155;
+		}
+
+	</style>
+	<script type="text/javascript">
+		$(function ()
+		{
+			$DialogDefaults.theme = "dark";
+			window.app = null;
+			this.app = window.app = new Vue({
+				el: '#root',
+				data: function ()
+				{
+					return {
+						allStorage: null,
+						idbStorage: null,
+						storageEstimate: null,
+						wasCached: true,
+						isComputingCapacity: false,
+						origin: location.origin.trim(),
+						dropTargetClasses: "",
+						selectedImportFile: null,
+						dragEnterCounter: 0
+					};
+				},
+				created: function ()
+				{
+					var self = this;
+					this.allStorage = serializeAllStorage();
+					loadIdbStorage().then(function (idbStorage)
+					{
+						self.idbStorage = idbStorage;
+					});
+					try
+					{
+						// navigator.storage is only available in secure contexts (e.g. https)
+						if (navigator.storage && typeof navigator.storage.estimate === "function")
+						{
+							navigator.storage.estimate()
+								.then(function (estimate)
+								{
+									self.storageEstimate = estimate;
+								})
+								.catch(function (ex)
+								{
+									console.error(ex);
+								});
+						}
+					}
+					catch (ex)
+					{
+						console.error(ex);
+					}
+					document.getElementById("root").style.display = "block";
+					document.getElementById("loading").style.display = "none";
+				},
+				mounted: function ()
+				{
+				},
+				computed:
+				{
+					selectedImportFileDescription: function ()
+					{
+						if (this.selectedImportFile)
+						{
+							return this.selectedImportFile.name + " (" + formatBytes2(this.selectedImportFile.size) + ")";
+						}
+						return "";
+					},
+					localStorageObject: function ()
+					{
+						for (var i = 0; i < this.allStorage.length; i++)
+							if (this.allStorage[i].name === "Local")
+								return this.allStorage[i];
+						return null;
+					},
+					idbHeading: function ()
+					{
+						if (!this.idbStorage)
+							return "Loading...";
+						if (this.idbStorage.error)
+							return "Error: " + this.idbStorage.error;
+						if (!this.idbStorage.enabled)
+							return "Unavailable";
+						return this.idbStorage.size + " chars in " + this.idbStorage.count + " items";
+					},
+					storageEstimateFullness: function ()
+					{
+						if (this.storageEstimate && this.storageEstimate.quota)
+							return (this.storageEstimate.usage || 0) / this.storageEstimate.quota;
+						return null;
+					},
+					storageEstimateDescription: function ()
+					{
+						if (this.storageEstimateFullness !== null)
+							return "Your browser reports that this origin is using " + formatBytes2(this.storageEstimate.usage || 0) + " of its " + formatBytes2(this.storageEstimate.quota) + " storage quota.";
+						return "IndexedDB's quota is determined by your browser and is typically much larger than Local Storage's quota.";
+					}
+				},
+				methods:
+				{
+					recalculateStorageCapacity: function ()
+					{
+						this.wasCached = false;
+						this.isComputingCapacity = true;
+						this.recalculateStorageCapacity_recursive(0);
+					},
+					recalculateStorageCapacity_recursive: function (index)
+					{
+						if (index < this.allStorage.length)
+						{
+							this.allStorage[index].capacity = this.allStorage[index].fullness = 0;
+							setTimeout(function ()
+							{
+								app.calculateStorageCapacity(app.allStorage[index]);
+								app.recalculateStorageCapacity_recursive(++index);
+							}, 0);
+						}
+						else
+							this.isComputingCapacity = false;
+					},
+					calculateStorageCapacity: function (storageDef)
+					{
+						if (!storageDef)
+							return;
+
+						try
+						{
+							storageDef.storageObj.clear();
+
+							var limit = 20000000;
+							var startSize = limit / 2;
+							storageDef.capacity = getCapacity(storageDef.storageObj, startSize, limit);
+							storageDef.fullness = storageDef.size / storageDef.capacity;
+						}
+						finally
+						{
+							restoreStorageData(storageDef);
+						}
+					},
+					loadFromCache: function (storageDef, cachedCapacity)
+					{
+						storageDef.capacity = cachedCapacity;
+						storageDef.fullness = storageDef.size / storageDef.capacity;
+					},
+					storageCategories: function ()
+					{
+						var categories = [];
+						categories.push(this.newStorageCategory("ui3_settings", "UI3 Settings"));
+						categories.push(this.newStorageCategory("ui3_streamingProfileArray", "UI3 Streaming Quality Profiles"));
+						categories.push(this.newStorageCategory("camlist_thumbs_ui3", "Saved Thumbnails for UI3's Full Camera List", { download: "jpg" }));
+						categories.push(this.newStorageCategory("ui2_settings", "Old UI2 Settings"));
+						categories.push(this.newStorageCategory("camlist_thumbs_ui2", "Old Saved Thumbnails for UI2's Full Camera List", { download: "jpg" }));
+						categories.push(this.newStorageCategory("ui2_preset_thumbs", "Old Saved Thumbnails for UI2's PTZ Preset Buttons", { download: "jpg" }));
+						categories.push(this.newStorageCategory("other", "Other", {
+							hint: 'The "Other" category includes:\n'
+								+ '• saved credentials' + '\n'
+								+ '• items saved by other applications hosted by the same web origin' + '\n'
+								+ '• settings for other Blue Iris servers, if you have used UI2 as a client app for other servers (very advanced use, not supported by UI3)'
+						}));
+						return categories;
+					},
+					newStorageCategory: function (key, name, options)
+					{
+						options = $.extend({
+							hint: null,
+							download: false
+						}, options);
+						var localBytes = 0;
+						if (this.localStorageObject && this.localStorageObject.sizes && this.localStorageObject.sizes[key])
+							localBytes = this.localStorageObject.sizes[key];
+						var idbBytes = 0;
+						var idbBytesText = "...";
+						if (this.idbStorage)
+						{
+							if (this.idbStorage.enabled)
+								idbBytesText = idbBytes = this.idbStorage.sizes[key] || 0;
+							else
+								idbBytesText = "n/a";
+						}
+						var downloadButton = "download";
+						if (options.download === "jpg")
+							downloadButton = ".zip";
+						return {
+							name: name,
+							key: key,
+							localBytes: localBytes,
+							idbBytesText: idbBytesText,
+							bytes: localBytes + idbBytes,
+							hint: options.hint,
+							download: options.download,
+							downloadButton: downloadButton
+						};
+					},
+					// DELETE
+					onClearIndividual: function (category)
+					{
+						if (confirm(category.name + ' will be cleared. Continue?'))
+						{
+							ClearIndividualSettingCategory(category)
+								.then(function (errors)
+								{
+									if (errors.length)
+										alert(errors.join("\n\n"));
+									location.reload();
+								});
+						}
+					},
+					onEraseAllStorage: function ()
+					{
+						EraseAllStorage();
+					},
+					// VIEW
+					onViewIndividual: function (category)
+					{
+						if (category.download === "jpg")
+						{
+							ViewAllItemsInIndividualSettingCategory_jpg(category);
+						}
+						else
+						{
+							ViewAllItemsInIndividualSettingCategory_json(category);
+						}
+					},
+					// DOWNLOAD
+					onDownloadIndividual: function (category)
+					{
+						if (category.download === "jpg")
+						{
+							DownloadAllItemsInIndividualSettingCategory_jpg(category)
+								.then(function (result)
+								{
+									if (result === -1)
+										alert("Failed to create zip file.");
+									else if (result > 0)
+										alert(result + " items failed to be added to the zip file.");
+								});
+						}
+						else
+							this.onExportIndividual(category);
+					},
+					// EXPORT
+					onExportIndividual: function (category)
+					{
+						DownloadAllItemsInIndividualSettingCategory_json(category)
+							.then(function (result)
+							{
+								if (result === -1)
+									alert("Failed to create json file.");
+							});
+					},
+					onExportAll: function ()
+					{
+						this.onExportIndividual(this.newStorageCategory("All", "All"));
+					},
+					// IMPORT
+					onImportInputChange: function (e)
+					{
+						if (e.target.files && e.target.files.length)
+						{
+							this.selectedImportFile = e.target.files[0];
+						}
+					},
+					onFileDragOver: function (e)
+					{
+					},
+					onFileDragEnter: function (e)
+					{
+						this.dropTargetClasses = "dragover";
+						this.dragEnterCounter++;
+					},
+					onFileDragLeave: function (e)
+					{
+						if (--this.dragEnterCounter < 1)
+						{
+							this.dragEnterCounter = 0;
+							this.dropTargetClasses = "";
+						}
+					},
+					onFileDrop: function (e)
+					{
+						this.dragEnterCounter = 0;
+						this.dropTargetClasses = "";
+						if (e.dataTransfer.files && e.dataTransfer.files.length)
+						{
+							this.selectedImportFile = e.dataTransfer.files[0];
+						}
+					},
+					importSelectedFile: function (e)
+					{
+						if (this.selectedImportFile)
+							readImportFile(this.selectedImportFile);
+						else
+							alert("No file was selected for import.");
+					},
+					// SETTINGS TRANSFER
+					onSettingsTransfer: function ()
+					{
+						settingsTransfer.Open();
+					}
+				}
+			});
+			// A Settings Transfer link opens this page with a key phrase in the URL's hash.
+			settingsTransfer.HandleUrlHash();
+			$(window).on("hashchange", settingsTransfer.HandleUrlHash);
+		});
+		///////////////////////////////////////////////////////////////
+		// IndexedDB //////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////
+		// UI3 stores large items such as camera list thumbnails in IndexedDB.  See LargeItemStorage in ui3.js.
+		// Each item is a string value stored under the same key it would have in Local Storage.
+		// If an item exists in both Local Storage and IndexedDB, the Local Storage copy is newer.
+		var idbName = "ui3";
+		var idbStoreName = "largeItems";
+		/**
+		 * Export files are flat JSON objects mapping keys to string values, which every version of this page can import.
+		 * An export file containing items that belong in IndexedDB also contains this key, whose value is a JSON string such as {"indexedDB":["key1","key2"]}.
+		 * The list allows those items to be imported into IndexedDB even by versions of this page that do not otherwise know they belong there.
+		 * Older versions of this page import this key into Local Storage, where UI3 deletes it during startup.
+		 */
+		var exportManifestKey = "ui3_export_manifest";
+		/**
+		 * Returns true if UI3 stores the specified key in IndexedDB (see LargeItemStorage.IsLargeItemKey in ui3.js).
+		 */
+		function IsLargeItemKey(key)
+		{
+			return categorizeSetting(key) === "camlist_thumbs_ui3";
+		}
+		var idbPromise = null;
+		/**
+		 * Returns a promise that resolves with the open database, or null if IndexedDB is unavailable.  The promise does not reject.
+		 */
+		function getIdb()
+		{
+			if (!idbPromise)
+				idbPromise = openIdb();
+			return idbPromise;
+		}
+		/**
+		 * Returns a promise that resolves with the open database, or null if IndexedDB is unavailable.  The promise does not reject.
+		 * @param {Number} version (optional) Database version to request.  Omit to open the current version, which lets this code keep working if a future UI3 version upgrades the database.
+		 */
+		function openIdb(version)
+		{
+			return new Promise(function (resolve)
+			{
+				var finished = false;
+				var finish = function (db, error)
+				{
+					if (finished)
+						return;
+					finished = true;
+					clearTimeout(timeout);
+					if (error)
+						console.error("IndexedDB is unavailable.", error);
+					resolve(db);
+				};
+				// Some browser versions have been known to never finish opening IndexedDB.
+				var timeout = setTimeout(function ()
+				{
+					finish(null, new Error("Timed out opening IndexedDB database."));
+				}, 10000);
+				try
+				{
+					var request = version ? indexedDB.open(idbName, version) : indexedDB.open(idbName);
+					request.onupgradeneeded = function ()
+					{
+						if (!request.result.objectStoreNames.contains(idbStoreName))
+							request.result.createObjectStore(idbStoreName);
+					};
+					request.onsuccess = function ()
+					{
+						var db = request.result;
+						if (finished)
+						{
+							db.close();
+							return;
+						}
+						if (!db.objectStoreNames.contains(idbStoreName))
+						{
+							// The database exists without the object store we need, so it must be upgraded to a new version that has the object store.
+							var newVersion = db.version + 1;
+							db.close();
+							finished = true;
+							clearTimeout(timeout);
+							openIdb(newVersion).then(resolve);
+							return;
+						}
+						db.onversionchange = function ()
+						{
+							// Another page wants to upgrade or delete the database.  Close our connection so we don't block it.
+							db.close();
+							idbPromise = null;
+						};
+						db.onclose = function ()
+						{
+							idbPromise = null;
+						};
+						finish(db);
+					};
+					request.onerror = function ()
+					{
+						finish(null, request.error);
+					};
+					request.onblocked = function ()
+					{
+						console.log("Opening IndexedDB is blocked by a connection in another browser tab.");
+					};
+				}
+				catch (ex)
+				{
+					// IndexedDB may be unsupported or disabled by browser settings.
+					finish(null, ex);
+				}
+			});
+		}
+		/**
+		 * Returns a promise that resolves with an object mapping keys to values of all items in IndexedDB, or null if IndexedDB is unavailable.
+		 */
+		function idbReadAll()
+		{
+			return getIdb().then(function (db)
+			{
+				if (!db)
+					return null;
+				return new Promise(function (resolve, reject)
+				{
+					var items = {};
+					var request = db.transaction(idbStoreName, "readonly").objectStore(idbStoreName).openCursor();
+					request.onsuccess = function ()
+					{
+						var cursor = request.result;
+						if (cursor)
+						{
+							if (typeof cursor.key === "string" && typeof cursor.value === "string")
+								items[cursor.key] = cursor.value;
+							else
+								console.warn("Ignoring IndexedDB item that is not a string key/value pair.", cursor.key, cursor.value);
+							cursor.continue();
+						}
+						else
+							resolve(items);
+					};
+					request.onerror = function ()
+					{
+						reject(request.error);
+					};
+				});
+			});
+		}
+		/**
+		 * Writes and/or deletes items in one IndexedDB transaction, returning a promise that resolves when the transaction is complete.
+		 * @param {Object} putItems (optional) Object mapping keys to string values to write.
+		 * @param {Array} deleteKeys (optional) Array of keys to delete.
+		 */
+		function idbWrite(putItems, deleteKeys)
+		{
+			return getIdb().then(function (db)
+			{
+				if (!db)
+					throw new Error("IndexedDB is unavailable.");
+				return new Promise(function (resolve, reject)
+				{
+					var tx = db.transaction(idbStoreName, "readwrite");
+					tx.oncomplete = function ()
+					{
+						resolve();
+					};
+					tx.onerror = tx.onabort = function (e)
+					{
+						// For error events, the target is the failed request.  For abort events, the target is the transaction.
+						reject((e && e.target && e.target.error) || tx.error || new Error("IndexedDB transaction failed."));
+					};
+					var store = tx.objectStore(idbStoreName);
+					for (var key in putItems)
+						if (Object.prototype.hasOwnProperty.call(putItems, key))
+							store.put(putItems[key], key);
+					if (deleteKeys)
+						for (var i = 0; i < deleteKeys.length; i++)
+							store.delete(deleteKeys[i]);
+				});
+			});
+		}
+		/**
+		 * Returns a promise that resolves when UI3's IndexedDB database has been deleted (or if IndexedDB is unavailable).
+		 */
+		function idbDeleteDatabase()
+		{
+			return getIdb().then(function (db)
+			{
+				if (!db)
+					return;
+				db.close();
+				idbPromise = null;
+				return new Promise(function (resolve, reject)
+				{
+					var request = indexedDB.deleteDatabase(idbName);
+					request.onsuccess = function ()
+					{
+						resolve();
+					};
+					request.onerror = function ()
+					{
+						reject(request.error);
+					};
+					request.onblocked = function ()
+					{
+						reject(new Error("The database is in use by another browser tab. Close other UI3 tabs and try again."));
+					};
+				});
+			});
+		}
+		/**
+		 * Returns a promise that resolves with an object describing IndexedDB usage.  The promise does not reject.
+		 */
+		function loadIdbStorage()
+		{
+			return idbReadAll()
+				.then(function (items)
+				{
+					var obj = {
+						name: "IndexedDB",
+						enabled: !!items,
+						error: null,
+						size: 0,
+						count: 0,
+						sizes: {}
+					};
+					for (var key in items)
+					{
+						if (!Object.prototype.hasOwnProperty.call(items, key))
+							continue;
+						var itemSize = key.length + items[key].length;
+						obj.size += itemSize;
+						obj.count++;
+						var thisCategory = categorizeSetting(key);
+						if (!obj.sizes[thisCategory])
+							obj.sizes[thisCategory] = 0;
+						obj.sizes[thisCategory] += itemSize;
+					}
+					return obj;
+				})
+				.catch(function (ex)
+				{
+					console.error(ex);
+					return { name: "IndexedDB", enabled: false, error: String(ex), size: 0, count: 0, sizes: {} };
+				});
+		}
+		///////////////////////////////////////////////////////////////
+		// Categories /////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////
+		function IsKeyInCategory(key, category)
+		{
+			return category.key === "All" || category.key === categorizeSetting(key);
+		}
+		/**
+		 * Returns a promise that resolves with the category's items from Local Storage and IndexedDB, in the form:
+		 * { items: { key: value }, idbKeys: [keys of items that belong in IndexedDB] }
+		 * The promise rejects if Local Storage or IndexedDB could not be read.
+		 */
+		function GetAllItemsInIndividualSettingCategory(category)
+		{
+			return idbReadAll().then(function (idbItems)
+			{
+				var items = {};
+				var idbKeySet = {};
+				for (var key in idbItems)
+				{
+					if (Object.prototype.hasOwnProperty.call(idbItems, key) && IsKeyInCategory(key, category))
+					{
+						items[key] = idbItems[key];
+						idbKeySet[key] = true;
+					}
+				}
+				// Local Storage items are added last so they replace any IndexedDB items with the same key, because they are newer.
+				var storageObj = getLocalStorage();
+				if (storageObj)
+				{
+					try
+					{
+						for (var key in storageObj)
+						{
+							if (!storageObj.hasOwnProperty(key))
+								continue;
+							if (IsKeyInCategory(key, category))
+							{
+								items[key] = storageObj[key];
+								if (IsLargeItemKey(key))
+									idbKeySet[key] = true;
+							}
+						}
+					}
+					catch (ex)
+					{
+						console.error(ex);
+						throw new Error("Failed to iterate across localStorage.");
+					}
+				}
+				var idbKeys = [];
+				for (var key in idbKeySet)
+					if (Object.prototype.hasOwnProperty.call(idbKeySet, key))
+						idbKeys.push(key);
+				idbKeys.sort();
+				return { items: items, idbKeys: idbKeys };
+			});
+		}
+		function ClearIndividualSettingCategory(category)
+		{
+			var errors = [];
+			var storageObj = getLocalStorage();
+			if (storageObj)
+			{
+				try
+				{
+					var keys = [];
+					for (var key in storageObj)
+					{
+						if (!storageObj.hasOwnProperty(key))
+							continue;
+						if (IsKeyInCategory(key, category))
+							keys.push(key);
+					}
+					for (var i = 0; i < keys.length; i++)
+						storageObj.removeItem(keys[i]);
+				}
+				catch (ex)
+				{
+					console.error(ex);
+					errors.push("Failed to delete items from Local Storage. " + ex);
+				}
+			}
+			return idbReadAll()
+				.then(function (idbItems)
+				{
+					var keys = [];
+					for (var key in idbItems)
+						if (Object.prototype.hasOwnProperty.call(idbItems, key) && IsKeyInCategory(key, category))
+							keys.push(key);
+					if (keys.length)
+						return idbWrite(null, keys);
+				})
+				.catch(function (ex)
+				{
+					console.error(ex);
+					errors.push("Failed to delete items from IndexedDB. " + ex);
+				})
+				.then(function ()
+				{
+					return errors;
+				});
+		}
+		function GetDownloadFileNameNoExt(category)
+		{
+			var dateStr = TimestampToDateFileNameString(Date.now());
+			var fileNameNoExt = location.origin + "_" + category.key + "_" + dateStr;
+			fileNameNoExt = FormatFileName(fileNameNoExt);
+			return fileNameNoExt;
+		}
+		/**
+		 * Returns a promise that resolves with 0 if the category was downloaded as a .json file, or -1 if it failed.
+		 */
+		function DownloadAllItemsInIndividualSettingCategory_json(category)
+		{
+			return GetAllItemsInIndividualSettingCategory(category)
+				.then(function (result)
+				{
+					delete result.items[exportManifestKey];
+					if (result.idbKeys.length)
+						result.items[exportManifestKey] = JSON.stringify({ indexedDB: result.idbKeys });
+					var jsonStr = ItemsToSortedJson(result.items);
+					downloadBlob(new Blob([jsonStr], { type: "application/json" }), GetDownloadFileNameNoExt(category) + ".json");
+					return 0;
+				})
+				.catch(function (ex)
+				{
+					console.error(ex);
+					return -1;
+				});
+		}
+		function ViewAllItemsInIndividualSettingCategory_json(category)
+		{
+			GetAllItemsInIndividualSettingCategory(category)
+				.then(function (result)
+				{
+					VisualizeObject(ItemsToSortedJson(result.items), category.name);
+				})
+				.catch(function (ex)
+				{
+					console.error(ex);
+					alert("Failed to read items. " + ex);
+				});
+		}
+		function ItemsToSortedJson(items)
+		{
+			var jsonStr = JSON.stringify(items, null, 2);
+			return sortJsonProps(jsonStr);
+		}
+		function sortJsonProps(jsonFlat)
+		{
+			var lines = jsonFlat.split('\n');
+			var props = [];
+			for (var i = 0; i < lines.length; i++)
+			{
+				var line = lines[i];
+				var lineTrimmed = line.trim();
+				if (i === 0)
+				{
+					if (lineTrimmed !== "{")
+					{
+						console.error("Unable to sort json properties because first line did not meet expectations.");
+						return jsonFlat;
+					}
+				}
+				else if (i === lines.length - 1)
+				{
+					if (lineTrimmed !== "}")
+					{
+						console.error("Unable to sort json properties because last line did not meet expectations.");
+						return jsonFlat;
+					}
+				}
+				else if (lineTrimmed === "{" || lineTrimmed === "}")
+				{
+					console.error("Unable to sort json properties because line " + i + " did not meet expectations.");
+					return jsonFlat;
+				}
+				else
+				{
+					if (line.endsWith(","))
+						line = line.substr(0, line.length - 1);
+					props.push(line);
+				}
+			}
+			if (props.length === lines.length - 2)
+			{
+				props.sort();
+				return "{\n" + props.join(",\n") + "\n}";
+			}
+			else
+			{
+				console.error("Unable to sort json properties because line count was wrong at the end of the method.");
+				return jsonFlat;
+			}
+		}
+		/**
+		 * Returns a promise that resolves with the number of images that could not be added to the zip file, or -1 if the zip file could not be created.
+		 */
+		function DownloadAllItemsInIndividualSettingCategory_jpg(category)
+		{
+			return GetAllItemsInIndividualSettingCategory(category)
+				.then(function (result)
+				{
+					var images = GetImagesFromItems(result.items);
+					var files = [];
+					var errors = 0;
+					for (var i = 0; i < images.length; i++)
+					{
+						var image = images[i];
+						try
+						{
+							files.push({ name: image.name, input: dataURItoBlob(image.dataUri) });
+						}
+						catch (ex)
+						{
+							errors++;
+							console.error(image.name, ex);
+						}
+					}
+					return clientZip.downloadZip(files)
+						.blob()
+						.then(function (content)
+						{
+							downloadBlob(content, GetDownloadFileNameNoExt(category) + ".zip");
+							return errors;
+						});
+				})
+				.catch(function (ex)
+				{
+					console.error(ex);
+					return -1;
+				});
+		}
+		function ViewAllItemsInIndividualSettingCategory_jpg(category)
+		{
+			GetAllItemsInIndividualSettingCategory(category)
+				.then(function (result)
+				{
+					VisualizeImages(GetImagesFromItems(result.items), category.name);
+				})
+				.catch(function (ex)
+				{
+					console.error(ex);
+					alert("Failed to read items. " + ex);
+				});
+		}
+		/**
+		 * Returns an array of images from the items, pairing each image with its "_date" item if one exists.
+		 * @param {Object} items Object mapping keys to image data URIs and "_date" keys to timestamps.
+		 */
+		function GetImagesFromItems(items)
+		{
+			var images = [];
+			var keys = [];
+			for (var key in items)
+				if (Object.prototype.hasOwnProperty.call(items, key))
+					keys.push(key);
+			keys.sort();
+			var allTimestamps = {};
+			for (var i = 0; i < keys.length; i++)
+			{
+				var key = keys[i];
+				if (/_date$/.test(key))
+				{
+					var baseKey = key.substr(0, key.length - "_date".length);
+					var timestamp = parseInt(items[key]);
+					if (timestamp && !isNaN(timestamp))
+						allTimestamps[baseKey] = timestamp;
+				}
+			}
+			for (var i = 0; i < keys.length; i++)
+			{
+				var key = keys[i];
+				if (allTimestamps[key] || !(/_date$/.test(key)))
+				{
+					var timestamp = allTimestamps[key];
+					if (!timestamp)
+						timestamp = Date.now();
+					var dateStr = TimestampToDateFileNameString(timestamp);
+					images.push({
+						dataUri: items[key],
+						name: key + "_" + dateStr + ".jpg",
+						key: key,
+						dateStr: dateStr
+					});
+				}
+			}
+			return images;
+		}
+		function dataURItoBlob(dataURI)
+		{
+			// convert base64 to raw binary data held in a string
+			// doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
+			var byteString = atob(dataURI.split(',')[1]);
+
+			// separate out the mime component
+			var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+			// write the bytes of the string to an ArrayBuffer
+			var ab = new ArrayBuffer(byteString.length);
+
+			// create a view into the buffer
+			var ia = new Uint8Array(ab);
+
+			// set the bytes of the buffer to the correct values
+			for (var i = 0; i < byteString.length; i++)
+				ia[i] = byteString.charCodeAt(i);
+
+			// write the ArrayBuffer to a blob, and you're done
+			var blob = new Blob([ab], { type: mimeString });
+			return blob;
+
+		}
+		function TimestampToDateFileNameString(timestamp)
+		{
+			var str = GetPaddedDateStr(new Date(timestamp), true);
+			str = str.replace(/ /g, '_');
+			str = FormatFileName(str);
+			return str;
+		}
+		function GetPaddedDateStr(date, includeMilliseconds)
+		{
+			var str = date.getFullYear() + "/" + (date.getMonth() + 1).toString().padLeft(2, '0') + "/" + date.getDate().toString().padLeft(2, '0') + " " + GetTimeStr(date, includeMilliseconds);
+			return str;
+		}
+		function GetTimeStr(date, includeMilliseconds)
+		{
+			var ampm = "";
+			var hour = date.getHours();
+			var ms = includeMilliseconds ? ("." + date.getMilliseconds()) : "";
+
+			var str = hour.toString().padLeft(2, '0') + ":" + date.getMinutes().toString().padLeft(2, '0') + ":" + date.getSeconds().toString().padLeft(2, '0') + ms + ampm;
+			return str;
+		}
+		function FormatFileName(str)
+		{
+			return str.replace(/\//g, '-').replace(/:/g, '.');
+		}
+		String.prototype.padLeft = function (len, c)
+		{
+			var pads = len - this.length;
+			if (pads > 0)
+			{
+				var sb = [];
+				var pad = c || "&nbsp;";
+				for (var i = 0; i < pads; i++)
+					sb.push(pad);
+				sb.push(this);
+				return sb.join("");
+			}
+			return this;
+		};
+		function categorizeSetting(key)
+		{
+			if (!key)
+				return "other";
+			if (key === "ui3_streamingProfileArray")
+				return "ui3_streamingProfileArray";
+			if (key.indexOf("ui3_camlistthumb_") === 0)
+				return "camlist_thumbs_ui3";
+			if (key.indexOf("ui2_camlistthumb_") === 0)
+				return "camlist_thumbs_ui2";
+			if (key.indexOf("ui2_preset_") === 0)
+				return "ui2_preset_thumbs";
+			if (key.indexOf("ui3_") === 0)
+				return "ui3_settings";
+			if (key.indexOf("ui2_") === 0)
+				return "ui2_settings";
+			return "other";
+		}
+		function serializeAllStorage()
+		{
+			var allStorage = [];
+			allStorage.push(serializeStorage(getLocalStorage(), "Local", 5242880));
+			//allStorage.push(serializeStorage(getSessionStorage(), "Session", 5242880));
+			return allStorage;
+		}
+		function serializeStorage(storageObj, name, capacityCached)
+		{
+			var store = {};
+			var sizes = { total: 0 };
+			var isLocalStorage = false;
+			try
+			{
+				isLocalStorage = storageObj === localStorage;
+			}
+			catch (ex)
+			{
+				console.error(ex);
+			}
+			if (storageObj)
+			{
+				try
+				{
+					for (var key in storageObj)
+					{
+						if (!storageObj.hasOwnProperty(key))
+						{
+							continue;
+						}
+						var value = storageObj[key];
+						store[key] = value;
+						var itemSize = key.length + value.length;
+						sizes.total += itemSize;
+						if (key)
+						{
+							var thisCategory = categorizeSetting(key);
+							if (!sizes[thisCategory])
+								sizes[thisCategory] = 0;
+							sizes[thisCategory] += itemSize;
+						}
+					};
+				}
+				catch (ex)
+				{
+					console.error(ex);
+					storageObj = null;
+				}
+			}
+			var obj = {
+				name: name,
+				store: store,
+				storageObj: storageObj,
+				enabled: !!storageObj,
+				size: sizes.total,
+				capacity: capacityCached,
+				fullness: 0
+			};
+			obj.fullness = obj.size / obj.capacity;
+			if (isLocalStorage)
+			{
+				obj.isLocalStorage = true;
+				obj.sizes = sizes;
+			}
+			return obj;
+		}
+		function restoreStorageData(storageDef)
+		{
+			storageDef.storageObj.clear();
+			for (var key in storageDef.store)
+				storageDef.storageObj.setItem(key, storageDef.store[key]);
+		}
+		function getLocalStorage()
+		{
+			try // May throw exception if local storage is disabled by browser settings!
+			{
+				if (typeof Storage === "undefined" || !window.localStorage)
+					return null;
+				// Access is tested with a read because a write test would fail when Local Storage is full.
+				localStorage.getItem("local_storage_test_item");
+				return localStorage;
+			}
+			catch (e)
+			{
+				return null;
+			}
+		}
+		function getSessionStorage()
+		{
+			try // May throw exception if local storage is disabled by browser settings!
+			{
+				if (typeof Storage === "undefined")
+					return null;
+				var key = "session_storage_test_item";
+				sessionStorage.setItem(key, key);
+				sessionStorage.removeItem(key);
+				return sessionStorage;
+			}
+			catch (e)
+			{
+				return null;
+			}
+		}
+		function getCapacity(storageObj)
+		{
+			var L = 0;
+			var R = 20000001;
+			var M;
+			while (L < R)
+			{
+				M = Math.floor((L + R) / 2);
+				if (!testCapacity(storageObj, M))
+					R = M;
+				else
+					L = M + 1;
+			}
+			return R - 1;
+		}
+		function testCapacity(storageObj, size)
+		{
+			if (size == 0)
+				return true;
+			try
+			{
+				storageObj.setItem("k", repeatChar(size - 1, "v"));
+				storageObj.removeItem("k");
+				return true;
+			}
+			catch (ex)
+			{
+				return false;
+			}
+		}
+		function repeatChar(count, ch)
+		{
+			if (count == 0)
+			{
+				return "";
+			}
+			var count2 = count / 2;
+			var result = ch;
+
+			// double the input until it is long enough.
+			while (result.length <= count2)
+			{
+				result += result;
+			}
+			// use substring to hit the precise length target without
+			// using extra memory
+			return result + result.substring(0, count - result.length);
+		};
+		function downloadDataUri(uri, fileName)
+		{
+			var link = document.createElement("a")
+			link.href = uri;
+			link.download = fileName;
+			link.click();
+			link.remove();
+		}
+		function downloadBlob(blob, fileName)
+		{
+			var objectUrl = URL.createObjectURL(blob);
+			downloadDataUri(objectUrl, fileName);
+			setTimeout(function ()
+			{
+				URL.revokeObjectURL(objectUrl);
+			}, 60000);
+		}
+		function htmlAttributeEncode(value)
+		{
+			if (typeof value !== "string" && typeof value !== "undefined" && typeof value.toString === "function")
+				value = value.toString();
+			var sb = new StringBuilder();
+			for (var i = 0; i < value.length; i++)
+			{
+				var c = value.charAt(i);
+				switch (c)
+				{
+					case '"':
+						sb.Append("&quot;");
+						break;
+					case "'":
+						sb.Append("&#39;");
+						break;
+					case "&":
+						sb.Append("&amp;");
+						break;
+					case "<":
+						sb.Append("&lt;");
+						break;
+					case ">":
+						sb.Append("&gt;");
+						break;
+					default:
+						sb.Append(c);
+						break;
+				}
+			}
+			return sb.ToString();
+		}
+		function EraseAllStorage()
+		{
+			if (!confirm("All Local Storage data for the origin \"" + location.origin + "\" will be lost, along with UI3's IndexedDB data.  Continue?"))
+				return;
+			var errors = [];
+			var storageObj = getLocalStorage();
+			if (storageObj)
+			{
+				try
+				{
+					storageObj.clear();
+				}
+				catch (ex)
+				{
+					errors.push("Local Storage could not be cleared!\n\n" + ex);
+				}
+			}
+			idbDeleteDatabase()
+				.catch(function (ex)
+				{
+					errors.push("IndexedDB could not be cleared!\n\n" + ex);
+				})
+				.then(function ()
+				{
+					if (errors.length)
+						alert("An error occurred.\n\n" + errors.join("\n\n"));
+					else
+						alert("All storage has been cleared.");
+					location.reload();
+				});
+		}
+		function readImportFile(file)
+		{
+			var reader = new FileReader();
+			reader.onload = function (e)
+			{
+				var obj = null;
+				try
+				{
+					var text = e.target.result;
+					obj = JSON.parse(text);
+					if (!obj || typeof obj !== "object" || $.isArray(obj))
+						throw new Error("The file does not contain a JSON object.");
+				}
+				catch (ex)
+				{
+					console.error(ex);
+					alert("Failed to import. The file was not in expected JSON format.");
+					return;
+				}
+				ImportItems(obj)
+					.then(function (errors)
+					{
+						if (errors > 0)
+							alert("Failed to import " + errors + " keys.");
+						else
+							alert("Import completed successfully.");
+						location.reload();
+					});
+			};
+			reader.readAsText(file);
+		}
+		/**
+		 * Imports the items into IndexedDB or Local Storage, returning a promise that resolves with the number of items that failed to import.
+		 * @param {Object} obj Object mapping keys to string values, parsed from an export file.
+		 */
+		function ImportItems(obj)
+		{
+			var manifestIdbKeys = {};
+			try
+			{
+				if (typeof obj[exportManifestKey] === "string")
+				{
+					var manifestIdbKeyList = JSON.parse(obj[exportManifestKey]).indexedDB;
+					if ($.isArray(manifestIdbKeyList))
+						for (var i = 0; i < manifestIdbKeyList.length; i++)
+							manifestIdbKeys[manifestIdbKeyList[i]] = true;
+				}
+			}
+			catch (ex)
+			{
+				console.error("Unable to read " + exportManifestKey, ex);
+			}
+			return getIdb().then(function (db)
+			{
+				var errors = 0;
+				var storageObj = getLocalStorage();
+				var idbItems = {};
+				var idbKeys = [];
+				for (var key in obj)
+				{
+					if (!Object.prototype.hasOwnProperty.call(obj, key) || key === exportManifestKey)
+						continue;
+					if (db && (manifestIdbKeys[key] || IsLargeItemKey(key)))
+					{
+						idbItems[key] = String(obj[key]);
+						idbKeys.push(key);
+					}
+					else
+					{
+						try
+						{
+							if (!storageObj)
+								throw new Error("Local Storage is not available.");
+							storageObj.setItem(key, obj[key]);
+						}
+						catch (ex)
+						{
+							console.log("Failed to import key", key, "value", obj[key], ex);
+							errors++;
+						}
+					}
+				}
+				if (!idbKeys.length)
+					return errors;
+				return idbWrite(idbItems, null)
+					.then(function ()
+					{
+						// Remove any copies of these items from Local Storage, because UI3 would consider them to be newer than the imported items.
+						if (storageObj)
+						{
+							for (var i = 0; i < idbKeys.length; i++)
+							{
+								try
+								{
+									storageObj.removeItem(idbKeys[i]);
+								}
+								catch (ex)
+								{
+									console.error(ex);
+								}
+							}
+						}
+						return errors;
+					}
+						, function (ex)
+						{
+							console.error("Failed to import " + idbKeys.length + " keys into IndexedDB.", ex);
+							return errors + idbKeys.length;
+						});
+			});
+		}
+		function formatBytes2(bytes, decimals)
+		{
+			if (bytes == 0) return '0 B';
+			var negative = bytes < 0;
+			if (negative)
+				bytes = -bytes;
+			var k = 1024,
+				dm = typeof decimals != "undefined" ? decimals : 2,
+				sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
+				i = Math.floor(Math.log(bytes) / Math.log(k));
+			return (negative ? '-' : '') + (bytes / Math.pow(k, i)).toFloat(dm) + ' ' + sizes[i];
+		}
+		String.prototype.toFloat = function (digits)
+		{
+			return parseFloat(this.toFixed(digits));
+		};
+		Number.prototype.toFloat = function (digits)
+		{
+			return parseFloat(this.toFixed(digits));
+		};
+		String.prototype.endsWith = function (suffix)
+		{
+			if (this.length < suffix.length)
+				return false;
+			return this.substr(this.length - suffix.length) === suffix;
+		};
+		///////////////////////////////////////////////////////////////
+		// Object/JSON Visualize //////////////////////////////////////
+		///////////////////////////////////////////////////////////////
+		function VisualizeObject(obj, title)
+		{
+			var $root = $('<div class="ObjectVisualizer"></div>');
+			var $viewer = $('<div class="selectable" style="word-wrap: break-word; background-color: #FFFFFF; color: #000000; padding: 10px;"></div>');
+			$root.append($viewer);
+			if (obj)
+				$viewer.JSONView(obj);
+			else
+				$viewer.find(".selectable").text("null");
+			if (!title)
+				title = "Object Visualizer";
+			$root.dialog({ title: title });
+		}
+		function VisualizeImages(images, title)
+		{
+			var $root = $('<div class="ImageVisualizer"></div>');
+			var $viewer = $('<div class="ImageVisualizerList"></div>');
+			$root.append($viewer);
+			if (images && images.length)
+			{
+				for (var i = 0; i < images.length; i++)
+				{
+					var image = images[i];
+					var $imgContainer = $('<div class="imageContainer">');
+					var $img = $('<img class="imageVisualizerImage">');
+					$img.attr("src", image.dataUri);
+					$imgContainer.append($img);
+					$imgContainer.append($('<div class="imageName">').text(image.key + "\n" + image.dateStr));
+					$viewer.append($imgContainer);
+				}
+			}
+			if (!title)
+				title = "Object Visualizer";
+			var dialog = $root.dialog({ title: title });
+			setTimeout(function ()
+			{
+				dialog.contentChanged(true, true);
+			}, 0);
+		}
+		///////////////////////////////////////////////////////////////
+		// Settings Transfer //////////////////////////////////////////
+		///////////////////////////////////////////////////////////////
+		/**
+		 * Copies UI3's settings from one browser to another through KVStore (https://kv.bp2008.org), a public, short-lived key/value store.
+		 * Export uploads this browser's settings (and optionally its camera list thumbnails), encrypted with a key derived from a random 6-word key phrase, then shows the key phrase along with a link and a QR code that open this page's Import function on another device.
+		 * The link carries the key phrase in the URL's hash ("#settingsImport=..."), which browsers do not send to web servers.
+		 * The KVStore client and the QR code generator are loaded when the dialog opens.  Their unminified sources are in libs-src.
+		 */
+		var settingsTransfer = new (function SettingsTransfer()
+		{
+			var self = this;
+			var kvStoreBaseUrl = "https://kv.bp2008.org";
+			var kvStoreHost = "kv.bp2008.org";
+			var phraseWordCount = 6;
+			var transferTtlSeconds = 3600; // The KVStore server's default bucket keeps items for at most 1 hour.
+			var requestTimeoutMs = 30000;
+			var payloadFormat = "ui3-settings-transfer";
+			var payloadVersion = 1;
+			/**
+			 * Matches Local Storage keys that are never transferred: saved login credentials and login state, the MQTT Instance ID (which must be unique to each UI3 instance), and the export manifest.  The optional prefix matches keys stored for remote servers.
+			 */
+			var excludedKeyRx = /(^|_)(bi_rememberMe|bi_username|bi_password|bi_lastunload|bi_override_disable_auto_login_once|ui3_mqttInstanceId|ui3_export_manifest)$/;
+			var scripts = {
+				kvStore: { url: "kvstore-client-legacy.min.js", globalName: "KVStoreClientLegacy", state: 0, callbacks: [] }
+				, qrCode: { url: "qrcode-generator.min.js", globalName: "qrcode", state: 0, callbacks: [] }
+			};
+			// Material Design icons (Apache License 2.0), as used in UI3's icons.svg.
+			var icons = {
+				upload: { viewBox: "0 0 24 24", path: "M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" }
+				, download: { viewBox: "3 3 18 18", path: "M5,20h14v-2H5V20z M19,9h-4V3H9v6H5l7,7L19,9z" }
+				, copy: { viewBox: "1 1 22 22", path: "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" }
+				, warning: { viewBox: "1 1 22 22", path: "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" }
+				, clock: { viewBox: "2 2 20 20", path: "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zM12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z" }
+				, checkCircle: { viewBox: "2 2 20 20", path: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" }
+			};
+			var dialog = null;
+			var $content = null;
+			var viewId = 0; // Incremented whenever the view changes or the dialog closes, so that callbacks from abandoned operations know to do nothing.
+			var countdownInterval = null;
+			var reloadPageOnClose = false;
+
+			/**
+			 * Opens the dialog at the Export / Import choice.
+			 */
+			this.Open = function ()
+			{
+				OpenDialog(RenderChoice);
+			};
+			/**
+			 * If the URL's hash contains a key phrase ("#settingsImport=..."), removes it from the URL and opens the dialog at Import with the key phrase filled in.
+			 */
+			this.HandleUrlHash = function ()
+			{
+				if (!/[#&]settingsImport=/i.test(location.hash))
+					return;
+				var phrase = "";
+				var keptParams = [];
+				var params = location.hash.replace(/^#/, "").split("&");
+				for (var i = 0; i < params.length; i++)
+				{
+					var idxEquals = params[i].indexOf("=");
+					if (idxEquals > -1 && params[i].substr(0, idxEquals).toLowerCase() === "settingsimport")
+					{
+						try
+						{
+							phrase = decodeURIComponent(params[i].substr(idxEquals + 1));
+						}
+						catch (ex)
+						{
+							phrase = params[i].substr(idxEquals + 1);
+						}
+					}
+					else if (params[i])
+						keptParams.push(params[i]);
+				}
+				try
+				{
+					history.replaceState(history.state, "", location.pathname + location.search + (keptParams.length ? "#" + keptParams.join("&") : ""));
+				}
+				catch (ex)
+				{
+					console.error("Unable to remove the key phrase from the URL.", ex);
+				}
+				OpenDialog(function () { RenderImport(phrase, null); });
+			};
+			var OpenDialog = function (renderFirstView)
+			{
+				if (dialog)
+					dialog.close();
+				$content = $('<div class="settingsTransferDialog"></div>');
+				dialog = $content.dialog({
+					title: "Settings Transfer"
+					, overlayOpacity: 0.3
+					, onClosing: function ()
+					{
+						viewId++;
+						StopCountdown();
+						dialog = null;
+						$content = null;
+						if (reloadPageOnClose)
+							location.reload(); // Refresh this page's storage usage information after an import.
+					}
+				});
+				LoadScriptsThenRender(renderFirstView);
+			};
+			var CloseDialog = function ()
+			{
+				if (dialog)
+					dialog.close();
+			};
+			/**
+			 * Replaces the dialog's content, returning the new view's ID.
+			 * @param {any} content HTML markup or a jQuery object.
+			 */
+			var SetView = function (content)
+			{
+				viewId++;
+				StopCountdown();
+				if ($content)
+				{
+					$content.empty().append(content);
+					dialog.contentChanged(true);
+				}
+				return viewId;
+			};
+			var GetIconHtml = function (name, cssClass)
+			{
+				var icon = icons[name];
+				return '<span class="' + cssClass + '"><svg class="stIcon" viewBox="' + icon.viewBox + '" aria-hidden="true"><path d="' + icon.path + '"/></svg></span>';
+			};
+			/**
+			 * Returns a view with a loading animation, a status message, and an optional progress bar.
+			 */
+			var MakeBusyView = function (statusHtml, progress)
+			{
+				var $view = $('<div class="stStatusView"><div class="stSpinner"></div><div class="stBusyText"></div><div class="stProgress"><div class="stProgressBar"></div></div></div>');
+				SetBusyStatus($view, statusHtml, progress);
+				return $view;
+			};
+			/**
+			 * Updates a view created by MakeBusyView.
+			 * @param {Object} $view The view.
+			 * @param {String} statusHtml Status message HTML.
+			 * @param {Number} progress Progress from 0 to 1, or null to hide the progress bar.
+			 */
+			var SetBusyStatus = function ($view, statusHtml, progress)
+			{
+				$view.find(".stBusyText").html(statusHtml);
+				var $progress = $view.find(".stProgress");
+				if (typeof progress === "number")
+				{
+					$progress.css("visibility", "visible");
+					$progress.find(".stProgressBar").css("width", (Math.min(1, Math.max(0, progress)) * 100).toFixed(1) + "%");
+				}
+				else
+					$progress.css("visibility", "hidden");
+			};
+			/**
+			 * Returns a view with an icon, a title, a message, and buttons.
+			 * @param {String} iconHtml Icon markup.
+			 * @param {String} titleHtml Title HTML.
+			 * @param {String} messageHtml Message HTML.
+			 * @param {Array} buttons Array of { text, primary, onClick }.
+			 */
+			var MakeStatusView = function (iconHtml, titleHtml, messageHtml, buttons)
+			{
+				var $view = $('<div class="stStatusView">'
+					+ iconHtml
+					+ '<div class="stStatusTitle">' + titleHtml + '</div>'
+					+ '<div class="stStatusText">' + messageHtml + '</div>'
+					+ '</div>');
+				if (buttons && buttons.length)
+				{
+					var $buttons = $('<div class="stButtons stButtonsCenter"></div>');
+					for (var i = 0; i < buttons.length; i++)
+						$buttons.append(MakeButton(buttons[i].text, buttons[i].primary, buttons[i].onClick));
+					$view.append($buttons);
+				}
+				return $view;
+			};
+			var MakeButton = function (text, primary, onClick)
+			{
+				var $btn = $('<button type="button" class="stBtn"></button>');
+				$btn.text(text);
+				if (primary)
+					$btn.addClass("stPrimary");
+				$btn.on("click", onClick);
+				return $btn;
+			};
+			///////////////////////////////////////////////////////////////
+			// Script Loading /////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////
+			/**
+			 * Shows a loading animation while the scripts load, then calls renderView, or shows an error.
+			 */
+			var LoadScriptsThenRender = function (renderView)
+			{
+				var myViewId = SetView(MakeBusyView("Loading&hellip;", null));
+				var pending = 2;
+				var errors = [];
+				var onScriptLoaded = function (errorMessage)
+				{
+					if (errorMessage)
+						errors.push(errorMessage);
+					if (--pending > 0 || myViewId !== viewId)
+						return;
+					if (errors.length)
+					{
+						var detailsHtml = "";
+						for (var i = 0; i < errors.length; i++)
+							detailsHtml += '<div class="stErrorColor stStatusDetail">' + htmlEncode(errors[i]) + '</div>';
+						SetView(MakeStatusView(GetIconHtml("warning", "stStatusIcon stErrorColor")
+							, "Settings Transfer is unavailable"
+							, "A script that Settings Transfer needs could not be loaded." + detailsHtml
+							, [{ text: "Try Again", primary: true, onClick: function () { LoadScriptsThenRender(renderView); } }]));
+					}
+					else
+						renderView();
+				};
+				LoadScript(scripts.kvStore, onScriptLoaded);
+				LoadScript(scripts.qrCode, onScriptLoaded);
+			};
+			/**
+			 * Loads the script if it is not already loaded, then calls callback(errorMessage), where errorMessage is null if the script loaded successfully.
+			 */
+			var LoadScript = function (script, callback)
+			{
+				if (script.state === 2)
+				{
+					setTimeout(function () { callback(null); }, 0);
+					return;
+				}
+				script.callbacks.push(callback);
+				if (script.state === 1)
+					return;
+				script.state = 1;
+				var finish = function (errorMessage)
+				{
+					script.state = errorMessage ? 0 : 2; // After a failure, the next attempt starts over.
+					var callbacks = script.callbacks;
+					script.callbacks = [];
+					for (var i = 0; i < callbacks.length; i++)
+						callbacks[i](errorMessage);
+				};
+				$.ajax({
+					url: script.url + "?v=" + combined_version + local_bi_session_arg
+					, dataType: "script"
+					, cache: true
+					, timeout: requestTimeoutMs
+				})
+					.done(function ()
+					{
+						if (typeof window[script.globalName] === "function")
+							finish(null);
+						else
+							finish(script.url + " loaded, but it did not define " + script.globalName + ".");
+					})
+					.fail(function (jqXHR, textStatus, errorThrown)
+					{
+						console.error("Unable to load " + script.url, textStatus, errorThrown);
+						if (textStatus === "timeout")
+							finish("The request for " + script.url + " timed out.");
+						else if (textStatus === "parsererror")
+							finish(script.url + " could not be run. " + errorThrown);
+						else if (jqXHR && jqXHR.status)
+							finish("The server responded to the request for " + script.url + " with " + jqXHR.status + " " + jqXHR.statusText + ".");
+						else
+							finish("The server did not respond to the request for " + script.url + ".");
+					});
+			};
+			var NewClient = function ()
+			{
+				// "fast" key derivation (10,000 PBKDF2 iterations instead of 600,000) is safe here because every phrase is randomly generated with 6 words.  Export and import must use the same mode, because the modes derive different keys.
+				return new KVStoreClientLegacy(kvStoreBaseUrl, { timeout: requestTimeoutMs, keyDerivation: "fast" });
+			};
+			/**
+			 * Returns advice for when the transfer service may be gone or incompatible.  UI3 installations are self-hosted and can outlive the service, or a change to it, so every failure that could have that cause should mention the alternatives.
+			 * @param {Boolean} isImport True if the advice is for the device that imports settings.
+			 */
+			var GetFallbackAdvice = function (isImport)
+			{
+				return "Try updating UI3 on both devices, or transfer your settings with a file instead: use \"Export All Storage\" "
+					+ (isImport ? "on the other device's UI3 Storage Info page, then \"Import\" on this page." : "on this page, then \"Import\" on the other device's UI3 Storage Info page.");
+			};
+			/**
+			 * Returns a user-friendly description of an error from the KVStore client, as { text, advice }, where advice is null or suggests what to do if the error persists.
+			 * @param {Object} err The error.
+			 * @param {Boolean} isImport True if the error occurred while importing.
+			 */
+			var DescribeError = function (err, isImport)
+			{
+				var code = err && err.code ? String(err.code) : "";
+				var mayBeGone = "If this keeps happening, the transfer service may no longer be available. " + GetFallbackAdvice(isImport);
+				if (code === "network_error" || code === "timeout" || code === "xdr_failed" || code === "xdr_scheme_mismatch" || code === "no_transport")
+					return { text: "Unable to reach the transfer service (" + kvStoreHost + "). Please check this device's internet connection, then try again.", advice: mayBeGone };
+				if (code === "rate_limited")
+				{
+					var wait = "later";
+					if (err.retryAfter > 0)
+						wait = "in " + (err.retryAfter < 120 ? err.retryAfter + " seconds" : Math.ceil(err.retryAfter / 60) + " minutes");
+					return { text: "The transfer service has received too many requests from your network. Please try again " + wait + ".", advice: null };
+				}
+				if (code === "too_large")
+					return { text: "Your settings are too large for the transfer service.", advice: null };
+				if (code === "decrypt_failed")
+					return { text: "The settings could not be decrypted. Please check that the key phrase was entered correctly.", advice: "If it was, the two devices may be running incompatible versions of UI3. " + GetFallbackAdvice(isImport) };
+				if (code === "storage_full" || code === "bucket_disabled" || code === "internal_error" || (err && err.status >= 500))
+					return { text: "The transfer service (" + kvStoreHost + ") is not available right now. Please try again later.", advice: mayBeGone };
+				// Anything else, such as an unknown operation, an unexpected error code, or a response that is not from a KVStore server at all, suggests that the service has changed or is gone.
+				var detail = code || (err && err.message ? err.message : String(err));
+				return {
+					text: "The transfer service (" + kvStoreHost + ") gave an unexpected response (" + detail + "). It may no longer be available, or it may have changed in a way that this version of UI3 does not support."
+					, advice: GetFallbackAdvice(isImport)
+				};
+			};
+			/**
+			 * Returns HTML for an error description from DescribeError.
+			 */
+			var ErrorDescriptionHtml = function (description)
+			{
+				return htmlEncode(description.text) + (description.advice ? '<div class="stAdvice">' + htmlEncode(description.advice) + '</div>' : "");
+			};
+			///////////////////////////////////////////////////////////////
+			// Export / Import Choice /////////////////////////////////////
+			///////////////////////////////////////////////////////////////
+			var RenderChoice = function ()
+			{
+				var $view = $('<div>'
+					+ '<div class="stIntro">Copy your UI3 settings to another device or web browser.</div>'
+					+ '<div class="stChoices">'
+					+ '<button type="button" class="stChoice" data-choice="export">'
+					+ GetIconHtml("upload", "stChoiceIcon")
+					+ '<span class="stChoiceTitle">Export</span>'
+					+ '<span class="stChoiceDesc">Send this browser\'s settings to another device</span>'
+					+ '</button>'
+					+ '<button type="button" class="stChoice" data-choice="import">'
+					+ GetIconHtml("download", "stChoiceIcon")
+					+ '<span class="stChoiceTitle">Import</span>'
+					+ '<span class="stChoiceDesc">Receive settings from another device</span>'
+					+ '</button>'
+					+ '</div>'
+					+ '<div class="stNote">Settings are encrypted, then kept for up to one hour by ' + kvStoreHost + ', a service operated by the UI3 developer. Saved login credentials are never included.</div>'
+					+ '</div>');
+				$view.find('[data-choice="export"]').on("click", BeginExport);
+				$view.find('[data-choice="import"]').on("click", function () { RenderImport("", null); });
+				SetView($view);
+			};
+			///////////////////////////////////////////////////////////////
+			// Export /////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////
+			var IsTransferableKey = function (key)
+			{
+				return typeof key === "string" && !excludedKeyRx.test(key);
+			};
+			/**
+			 * Returns true if the key is a camera list thumbnail image, as opposed to the "_date" item that accompanies each one.
+			 */
+			var IsThumbnailImageKey = function (key)
+			{
+				return IsLargeItemKey(key) && !/_date$/.test(key);
+			};
+			/**
+			 * Returns a promise that resolves with the transferable items from Local Storage and IndexedDB, along with the number and total size of the camera list thumbnails among them: { items, thumbnailCount, thumbnailBytes }.
+			 */
+			var ReadExportableItems = function ()
+			{
+				if (!getLocalStorage())
+					return Promise.reject(new Error("Local Storage is disabled or unavailable in this browser, so there are no saved settings to export."));
+				return GetAllItemsInIndividualSettingCategory({ key: "All" }).then(function (result)
+				{
+					var data = { items: {}, thumbnailCount: 0, thumbnailBytes: 0 };
+					for (var key in result.items)
+					{
+						if (!Object.prototype.hasOwnProperty.call(result.items, key) || !IsTransferableKey(key))
+							continue;
+						data.items[key] = result.items[key];
+						if (IsLargeItemKey(key))
+						{
+							data.thumbnailBytes += key.length + result.items[key].length;
+							if (IsThumbnailImageKey(key))
+								data.thumbnailCount++;
+						}
+					}
+					return data;
+				});
+			};
+			/**
+			 * Returns { json, settingsCount, thumbnailCount } for the export.
+			 * @param {Object} data From ReadExportableItems.
+			 * @param {Boolean} includeThumbnails If true, camera list thumbnails are included.
+			 */
+			var BuildExport = function (data, includeThumbnails)
+			{
+				var items = {};
+				var settingsCount = 0;
+				var thumbnailCount = 0;
+				for (var key in data.items)
+				{
+					if (!Object.prototype.hasOwnProperty.call(data.items, key))
+						continue;
+					if (!IsLargeItemKey(key))
+						settingsCount++;
+					else if (!includeThumbnails)
+						continue;
+					else if (IsThumbnailImageKey(key))
+						thumbnailCount++;
+					items[key] = data.items[key];
+				}
+				return {
+					json: JSON.stringify({ format: payloadFormat, version: payloadVersion, created: Date.now(), items: items })
+					, settingsCount: settingsCount
+					, thumbnailCount: thumbnailCount
+				};
+			};
+			/**
+			 * Returns a description such as "370 settings and 12 camera list thumbnails".
+			 */
+			var DescribeContents = function (settingsCount, thumbnailCount)
+			{
+				var s = settingsCount + (settingsCount === 1 ? " setting" : " settings");
+				if (thumbnailCount)
+					s += " and " + thumbnailCount + (thumbnailCount === 1 ? " camera list thumbnail" : " camera list thumbnails");
+				return s;
+			};
+			/**
+			 * Returns the URL of this page with the key phrase in the hash, which opens the Import function.
+			 */
+			var GetImportUrl = function (phrase)
+			{
+				return location.origin + location.pathname + "#settingsImport=" + encodeURIComponent(phrase);
+			};
+			/**
+			 * Returns true if the host name only works on this device (e.g. "localhost" or "127.0.0.1").
+			 */
+			var IsLoopbackHost = function (hostname)
+			{
+				hostname = String(hostname).toLowerCase().replace(/^\[|\]$/g, "");
+				return hostname === "localhost" || /\.localhost$/.test(hostname) || /^127\./.test(hostname) || hostname === "::1";
+			};
+			/**
+			 * Reads the items to export, then offers to include camera list thumbnails if there are any, or starts the export.
+			 */
+			var BeginExport = function ()
+			{
+				var myViewId = SetView(MakeBusyView("Reading settings&hellip;", null));
+				ReadExportableItems()
+					.then(function (data)
+					{
+						if (myViewId !== viewId)
+							return;
+						if (data.thumbnailCount > 0)
+							RenderExportOptions(data);
+						else
+							StartExport(data, false);
+					}, function (ex)
+					{
+						if (myViewId !== viewId)
+							return;
+						console.error(ex);
+						RenderExportFailure(htmlEncode(ex.message || String(ex)), { text: "Try Again", onClick: BeginExport });
+					});
+			};
+			var RenderExportOptions = function (data)
+			{
+				var $view = $('<div>'
+					+ '<div class="stIntro">Your settings will be exported. You can also include the camera list thumbnails saved in this browser.</div>'
+					+ '<label class="stCheckRow"><input type="checkbox" class="stIncludeThumbnails" checked="checked" />'
+					+ '<span><span class="stCheckTitle">Include camera list thumbnails</span><span class="stCheckDesc"></span></span></label>'
+					+ '<div class="stButtons"></div>'
+					+ '</div>');
+				$view.find(".stCheckDesc").text(data.thumbnailCount + (data.thumbnailCount === 1 ? " image, " : " images, ") + formatBytes2(data.thumbnailBytes, 1)
+					+ ". UI3 downloads new thumbnails of enabled cameras by itself when the Full Camera List is opened, so these matter mostly for disabled cameras.");
+				var $checkbox = $view.find(".stIncludeThumbnails");
+				$view.find(".stButtons")
+					.append(MakeButton("Back", false, RenderChoice))
+					.append(MakeButton("Export", true, function () { StartExport(data, $checkbox.is(":checked")); }));
+				SetView($view);
+			};
+			/**
+			 * Exports the items.
+			 * @param {Object} data From ReadExportableItems.
+			 * @param {Boolean} includeThumbnails If true, camera list thumbnails are included.
+			 */
+			var StartExport = function (data, includeThumbnails)
+			{
+				var exp = BuildExport(data, includeThumbnails);
+				var sizeBytes = exp.json.length; // Nearly all of the content is ASCII, so this is very close to the UTF-8 size.
+				var retry = { text: "Try Again", onClick: function () { StartExport(data, includeThumbnails); } };
+				var renderTooLarge = function (limitBytes)
+				{
+					var messageHtml = htmlEncode("The export is " + formatBytes2(sizeBytes, 1) + ", which is more than the transfer service allows"
+						+ (limitBytes ? " (" + formatBytes2(limitBytes, 1) + ")" : "") + "."
+						+ (includeThumbnails ? " Try exporting without camera list thumbnails." : ""));
+					RenderExportFailure(messageHtml, includeThumbnails ? { text: "Export Without Thumbnails", onClick: function () { StartExport(data, false); } } : null);
+				};
+				var $view = MakeBusyView("Preparing&hellip;", null);
+				var myViewId = SetView($view);
+				var kv = NewClient();
+				var upload = function ()
+				{
+					SetBusyStatus($view, "Getting a key phrase&hellip;", null);
+					kv.phrase(phraseWordCount, function (err, phrase)
+					{
+						if (myViewId !== viewId)
+							return;
+						if (!err && (typeof phrase !== "string" || KVStoreClientLegacy.normalizePhrase(phrase).split("-").length < phraseWordCount))
+							err = { code: "invalid_phrase", message: "The key phrase from the server is not valid." };
+						if (err)
+						{
+							console.error("Settings Transfer failed to get a key phrase.", err);
+							RenderExportFailure(ErrorDescriptionHtml(DescribeError(err, false)), retry);
+							return;
+						}
+						SetBusyStatus($view, "Encrypting&hellip;", 0);
+						kv.putEncrypted(phrase, exp.json, transferTtlSeconds, function (err2, result)
+						{
+							if (myViewId !== viewId)
+								return;
+							if (err2 && err2.code === "too_large")
+								renderTooLarge(0);
+							else if (err2)
+							{
+								console.error("Settings Transfer failed to upload settings.", err2);
+								RenderExportFailure(ErrorDescriptionHtml(DescribeError(err2, false)), retry);
+							}
+							else
+								RenderExportResult(phrase, result, DescribeContents(exp.settingsCount, exp.thumbnailCount) + " (" + formatBytes2(sizeBytes, 1) + ")");
+						}, function (fraction)
+						{
+							if (myViewId !== viewId)
+								return;
+							if (fraction >= 1)
+								SetBusyStatus($view, "Uploading " + formatBytes2(sizeBytes, 1) + "&hellip;", null);
+							else
+								SetBusyStatus($view, "Encrypting&hellip;", fraction);
+						});
+					});
+				};
+				if (sizeBytes < 1048576)
+				{
+					upload();
+					return;
+				}
+				// Check a large export against the server's limit first, rather than uploading megabytes only to have them rejected.
+				kv.buckets(function (err, info)
+				{
+					if (myViewId !== viewId)
+						return;
+					var limitBytes = 0;
+					if (!err && info && info.buckets)
+					{
+						for (var i = 0; i < info.buckets.length; i++)
+							if (info.buckets[i].name === info.defaultBucket)
+								limitBytes = info.buckets[i].maxItemSizeBytes;
+					}
+					if (limitBytes && sizeBytes + 28 > limitBytes) // Encryption adds a 12-byte IV and a 16-byte tag.
+						renderTooLarge(limitBytes);
+					else
+						upload(); // If the limit is unknown, the server will reject an upload that is too large.
+				});
+			};
+			/**
+			 * Renders an export error with a Back button and an optional second button.
+			 * @param {String} messageHtml Error message HTML.
+			 * @param {Object} button { text, onClick } or null.
+			 */
+			var RenderExportFailure = function (messageHtml, button)
+			{
+				var buttons = [{ text: "Back", onClick: RenderChoice }];
+				if (button)
+					buttons.push({ text: button.text, primary: true, onClick: button.onClick });
+				SetView(MakeStatusView(GetIconHtml("warning", "stStatusIcon stErrorColor"), "Export failed", messageHtml, buttons));
+			};
+			/**
+			 * Returns markup for a QR code containing the text, sized so that each module is a whole number of device pixels, which keeps its edges sharp.
+			 */
+			var MakeQrCodeHtml = function (text)
+			{
+				qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
+				var qr = qrcode(0, "M"); // 0 selects the smallest QR code version that fits the text.
+				qr.addData(text, "Byte");
+				qr.make();
+				var border = 4; // The QR code specification calls for a light border at least 4 modules wide.
+				var modules = qr.getModuleCount() + border * 2;
+				var dpr = window.devicePixelRatio || 1;
+				var cssPx = Math.max(1, Math.floor(200 * dpr / modules)) * modules / dpr;
+				return '<div class="stQr" role="img" aria-label="QR code" style="width: ' + cssPx + 'px; height: ' + cssPx + 'px;">'
+					+ qr.createSvgTag({ cellSize: 1, margin: border, scalable: true })
+					+ '</div>';
+			};
+			/**
+			 * Renders the QR code, link, and key phrase for an export.
+			 * @param {String} phrase Key phrase.
+			 * @param {Object} result Result of putEncrypted.
+			 * @param {String} contentsText Description of the export's contents.
+			 */
+			var RenderExportResult = function (phrase, result, contentsText)
+			{
+				var url = GetImportUrl(phrase);
+				var ttlSeconds = result && result.ttl > 0 ? result.ttl : transferTtlSeconds;
+				var expiresAt = Date.now() + ttlSeconds * 1000;
+
+				var qrHtml;
+				try
+				{
+					qrHtml = MakeQrCodeHtml(url);
+				}
+				catch (ex)
+				{
+					console.error("Unable to create a QR code for the Settings Transfer link.", ex);
+					qrHtml = '<div class="stQr stQrError">The QR code could not be created. ' + htmlEncode(ex.message || String(ex)) + '</div>';
+				}
+
+				var warningHtml = "";
+				if (IsLoopbackHost(location.hostname))
+					warningHtml = '<div class="stWarning">' + GetIconHtml("warning", "stWarningIcon")
+						+ '<div>This page was opened at <b>' + htmlEncode(location.host) + '</b>, which other devices can not reach, so the QR code and link will not work there. Enter the key phrase on the other device instead.</div></div>';
+
+				var $view = $('<div>'
+					+ '<div class="stReadyHeading">' + GetIconHtml("checkCircle", "stHeadingIcon") + '<span>Your settings are ready to transfer</span></div>'
+					+ '<div class="stContents"></div>'
+					+ warningHtml
+					+ '<div class="stQrBox">' + qrHtml
+					+ '<div class="stQrCaption">Scan this with the other device\'s camera app</div></div>'
+					+ '<div class="stOr"><span>or open this link on the other device</span></div>'
+					+ '<div class="stCopyRow"><a class="stCopyValue stUrl" target="_blank" rel="noopener noreferrer"></a></div>'
+					+ '<div class="stOr"><span>or enter this key phrase on the other device</span></div>'
+					+ '<div class="stCopyRow"><span class="stCopyValue stPhrase"></span></div>'
+					+ '<div class="stHint">in Settings Transfer &rsaquo; Import on its UI3 Storage Info page (modernui3/storageinfo.htm)</div>'
+					+ '<div class="stFooter"><div class="stExpires">' + GetIconHtml("clock", "stExpiresIcon") + '<span class="stExpiresText"></span></div></div>'
+					+ '<div class="stNote">Until then, anyone with this QR code, link, or key phrase can read these settings. Saved login credentials are not included.</div>'
+					+ '</div>');
+				var $url = $view.find(".stUrl");
+				$url.attr("href", url).text(url);
+				var $phrase = $view.find(".stPhrase");
+				$phrase.text(phrase);
+				$view.find(".stContents").text("Contains " + contentsText);
+				AddCopyButton($url, url);
+				AddCopyButton($phrase, phrase);
+				$view.find(".stFooter").append(MakeButton("Done", true, CloseDialog));
+				SetView($view);
+				StartCountdown($view.find(".stExpiresText"), expiresAt);
+			};
+			/**
+			 * Adds a Copy button after the element, which copies the text to the clipboard.
+			 */
+			var AddCopyButton = function ($valueEle, text)
+			{
+				var $btn = $('<button type="button" class="stBtn stCopyBtn">' + GetIconHtml("copy", "stCopyIcon") + '<span class="stCopyLabel">Copy</span></button>');
+				var $failed = $('<div class="stCopyFailed" style="display: none;">Your browser did not allow copying. The text is selected so you can copy it yourself.</div>');
+				var resetTimeout = null;
+				$btn.on("click", function ()
+				{
+					clearTimeout(resetTimeout);
+					if (CopyToClipboard(text))
+					{
+						$failed.hide();
+						$btn.addClass("stCopied").find(".stCopyLabel").text("Copied");
+						resetTimeout = setTimeout(function () { $btn.removeClass("stCopied").find(".stCopyLabel").text("Copy"); }, 2000);
+					}
+					else
+					{
+						$failed.show();
+						try
+						{
+							var range = document.createRange();
+							range.selectNodeContents($valueEle.get(0));
+							var selection = window.getSelection();
+							selection.removeAllRanges();
+							selection.addRange(range);
+						}
+						catch (ex)
+						{
+							console.error(ex);
+						}
+					}
+					$btn.focus();
+				});
+				$valueEle.after($btn);
+				$valueEle.parent().after($failed);
+			};
+			/**
+			 * Copies the text to the clipboard using clipboard.js (from libs-ui3.js), returning true if the browser reported success.  Must be called while handling a click.
+			 */
+			var CopyToClipboard = function (text)
+			{
+				var succeeded = false;
+				var $trigger = $('<div style="display: none;"></div>').appendTo("body");
+				var clipboard = new Clipboard($trigger.get(0), { text: function () { return text; } });
+				clipboard.on("success", function () { succeeded = true; });
+				$trigger.click();
+				clipboard.destroy();
+				$trigger.remove();
+				return succeeded;
+			};
+			var StartCountdown = function ($text, expiresAt)
+			{
+				StopCountdown();
+				var tick = function ()
+				{
+					var remainingSeconds = Math.ceil((expiresAt - Date.now()) / 1000);
+					if (remainingSeconds <= 0)
+					{
+						RenderExportExpired();
+						return;
+					}
+					$text.text("Expires in " + Math.floor(remainingSeconds / 60) + ":" + ("0" + (remainingSeconds % 60)).slice(-2));
+				};
+				tick();
+				countdownInterval = setInterval(tick, 1000);
+			};
+			var StopCountdown = function ()
+			{
+				if (countdownInterval)
+				{
+					clearInterval(countdownInterval);
+					countdownInterval = null;
+				}
+			};
+			var RenderExportExpired = function ()
+			{
+				SetView(MakeStatusView(GetIconHtml("clock", "stStatusIcon")
+					, "This transfer has expired"
+					, "Its QR code, link, and key phrase no longer work. Export again to get new ones."
+					, [{ text: "Back", onClick: RenderChoice }
+						, { text: "Export Again", primary: true, onClick: BeginExport }]));
+			};
+			///////////////////////////////////////////////////////////////
+			// Import /////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////
+			/**
+			 * Renders the Import view.
+			 * @param {String} phrase Text to put in the key phrase field.
+			 * @param {any} error Error message string, or { text, advice } from DescribeError, or null.
+			 */
+			var RenderImport = function (phrase, error)
+			{
+				var $view = $('<div>'
+					+ '<div class="stIntro">Scan the QR code shown on the other device using this device\'s camera app, or copy the key phrase from the other device and enter it here.</div>'
+					+ '<label class="stLabel">Key phrase<input type="text" class="stPhraseInput" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="word-word-word-word-word-word" /></label>'
+					+ '<div class="stError stErrorColor"></div>'
+					+ '<div class="stAdvice"></div>'
+					+ '<div class="stNote">Imported settings replace this browser\'s UI3 settings. Saved login credentials are kept.</div>'
+					+ '<div class="stButtons"></div>'
+					+ '</div>');
+				var $input = $view.find(".stPhraseInput");
+				$input.val(phrase || "");
+				if (typeof error === "string")
+					error = { text: error, advice: null };
+				var $error = $view.find(".stError");
+				var $advice = $view.find(".stAdvice");
+				if (error)
+					$error.text(error.text);
+				else
+					$error.hide();
+				if (error && error.advice)
+					$advice.text(error.advice);
+				else
+					$advice.hide();
+				var doImport = function ()
+				{
+					BeginImport($input.val());
+				};
+				$input.on("keydown", function (e)
+				{
+					if (e.which === 13)
+					{
+						e.preventDefault();
+						doImport();
+					}
+				});
+				var $importBtn = MakeButton("Import", true, doImport);
+				$view.find(".stButtons").append(MakeButton("Back", false, RenderChoice)).append($importBtn);
+				SetView($view);
+				if (phrase && !error)
+					$importBtn.focus();
+				else if (!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches))
+					$input.focus(); // Not on touchscreens, where the on-screen keyboard would open even though the user may intend to scan a QR code.
+			};
+			/**
+			 * Returns the normalized key phrase from user input, which may also be a Settings Transfer link.
+			 */
+			var NormalizeImportPhrase = function (input)
+			{
+				input = String(input || "");
+				var m = /[#&?]settingsImport=([^&#\s]*)/i.exec(input);
+				if (m)
+				{
+					try
+					{
+						input = decodeURIComponent(m[1]);
+					}
+					catch (ex)
+					{
+						input = m[1];
+					}
+				}
+				return KVStoreClientLegacy.normalizePhrase(input);
+			};
+			var BeginImport = function (input)
+			{
+				var phrase = NormalizeImportPhrase(input);
+				if (!phrase)
+				{
+					RenderImport(input, "Please enter the key phrase shown on the other device.");
+					return;
+				}
+				if (phrase.split("-").length < phraseWordCount)
+				{
+					RenderImport(input, "The key phrase should have " + phraseWordCount + " words. Please check that it was entered correctly.");
+					return;
+				}
+				if (!getLocalStorage())
+				{
+					RenderImport(input, "Local Storage is disabled or unavailable in this browser, so settings can not be imported.");
+					return;
+				}
+				var $view = MakeBusyView("Preparing&hellip;", 0);
+				var myViewId = SetView($view);
+				NewClient().getEncryptedText(phrase, function (err, text)
+				{
+					if (myViewId !== viewId)
+						return;
+					if (err)
+					{
+						console.error("Settings Transfer failed to download settings.", err);
+						RenderImport(input, DescribeError(err, true));
+						return;
+					}
+					if (text === null)
+					{
+						RenderImport(input, {
+							text: "No settings were found for this key phrase. Please check that it was entered correctly. Key phrases expire one hour after they are created."
+							, advice: "If the key phrase is correct and less than an hour old, the two devices may be running incompatible versions of UI3. " + GetFallbackAdvice(true)
+						});
+						return;
+					}
+					var items;
+					try
+					{
+						items = ParseImportPayload(text);
+					}
+					catch (ex)
+					{
+						console.error(ex);
+						RenderImport(input, { text: ex.message || String(ex), advice: ex.advice || null });
+						return;
+					}
+					SetBusyStatus($view, "Saving settings&hellip;", null);
+					ImportItems(items)
+						.then(function (errors)
+						{
+							reloadPageOnClose = true;
+							if (myViewId !== viewId)
+								return;
+							var count = 0;
+							var settingsCount = 0;
+							var thumbnailCount = 0;
+							for (var key in items)
+							{
+								if (!Object.prototype.hasOwnProperty.call(items, key))
+									continue;
+								count++;
+								if (!IsLargeItemKey(key))
+									settingsCount++;
+								else if (IsThumbnailImageKey(key))
+									thumbnailCount++;
+							}
+							if (errors > 0)
+							{
+								SetView(MakeStatusView(GetIconHtml("warning", "stStatusIcon stErrorColor")
+									, "Import incomplete"
+									, htmlEncode(errors + " of " + count + " items could not be saved. Storage may be full.")
+									, [{ text: "Close", onClick: CloseDialog }]));
+							}
+							else
+							{
+								SetView(MakeStatusView(GetIconHtml("checkCircle", "stStatusIcon stSuccessColor")
+									, "Settings imported"
+									, htmlEncode(DescribeContents(settingsCount, thumbnailCount) + " were imported into this browser.")
+									, [{ text: "Close", onClick: CloseDialog }
+										, { text: "Open UI3", primary: true, onClick: function () { location.href = "../modernui3.htm"; } }]));
+							}
+						});
+				}, function (fraction)
+				{
+					if (myViewId !== viewId)
+						return;
+					if (fraction >= 1)
+						SetBusyStatus($view, "Downloading settings&hellip;", null);
+					else
+						SetBusyStatus($view, "Preparing&hellip;", fraction);
+				});
+			};
+			/**
+			 * Returns the settings to import from the downloaded text, or throws an Error describing why it is not a valid Settings Transfer export.  The Error's advice property suggests what to do.
+			 */
+			var ParseImportPayload = function (text)
+			{
+				var payload = null;
+				var error = null;
+				try
+				{
+					payload = JSON.parse(text);
+				}
+				catch (ex) { }
+				if (!payload || typeof payload !== "object" || payload.format !== payloadFormat || !payload.items || typeof payload.items !== "object")
+				{
+					error = new Error("The data stored under this key phrase is not a UI3 Settings Transfer export.");
+					error.advice = "The two devices may be running incompatible versions of UI3. " + GetFallbackAdvice(true);
+					throw error;
+				}
+				if (payload.version > payloadVersion)
+				{
+					error = new Error("These settings were exported by a newer version of UI3, in a format that this version does not understand.");
+					error.advice = GetFallbackAdvice(true);
+					throw error;
+				}
+				var items = {};
+				for (var key in payload.items)
+				{
+					if (Object.prototype.hasOwnProperty.call(payload.items, key) && typeof payload.items[key] === "string" && IsTransferableKey(key))
+						items[key] = payload.items[key];
+				}
+				return items;
+			};
+		})();
+		function htmlEncode(value)
+		{
+			return $('<div/>').text(value).html();
+		}
+	</script>
+</body>
+</html>

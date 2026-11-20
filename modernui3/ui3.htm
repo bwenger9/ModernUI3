@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="color-scheme" content="dark" />
+	<title>ModernUI3 - Redirecting...</title>
+	<script type="text/javascript">
+		// Catches stock login.htm's `page.replace(/timeout\.htm.*/i, 'ui3.htm')` redirect when returning from modernui3/timeout.htm after session expiry.
+		(function () {
+			try {
+				localStorage.setItem("ui3_modern_ui", "1");
+				localStorage.removeItem("modernui3_use_stock_ui3");
+			} catch (e) {}
+			location.replace("../modernui3.htm" + (location.search || "") + (location.hash || ""));
+		})();
+	</script>
+	<style type="text/css">
+		html, body {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			background: #090D14;
+			color: #E2E8F0;
+			font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			text-align: center;
+		}
+		a {
+			color: #00E5FF;
+			text-decoration: none;
+			font-weight: 600;
+		}
+		a:hover {
+			text-decoration: underline;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<p>Returning to ModernUI3&hellip;</p>
+		<p><a id="modernui3-fallback-link" href="../modernui3.htm">Continue to ModernUI3</a></p>
+	</div>
+	<script type="text/javascript">
+		(function () {
+			var el = document.getElementById("modernui3-fallback-link");
+			if (el)
+				el.href = "../modernui3.htm" + (location.search || "") + (location.hash || "");
+		})();
+	</script>
+</body>
+</html>
