@@ -989,7 +989,6 @@ function GetStatusAreaBarDescription(itemKey)
 function GetStatusAreaBarOptions()
 {
 	var arr = new Array();
-	arr.push("None");
 	if (statusAreaApi)
 	{
 		var registrations = statusAreaApi.getStatusBarRegistrations();
@@ -998,21 +997,45 @@ function GetStatusAreaBarOptions()
 	}
 	return arr;
 }
-function OnChange_ui3_status_area_bar_count()
+var maxStatusAreaBarCount = 13;
+/** Returns the number of status bars the user has chosen to show in the Status Area. */
+function GetStatusAreaBarCount()
 {
-	if (statusAreaApi)
-		statusAreaApi.loadUserSettings();
-	if (typeof uiSettingsPanel !== "undefined" && uiSettingsPanel && uiSettingsPanel.Refresh)
-		uiSettingsPanel.Refresh();
-	if (typeof resized === "function")
-		resized();
+	var count = parseInt(settings.ui3_status_area_bar_count, 10);
+	if (isNaN(count))
+		count = 4;
+	return Clamp(count, 1, maxStatusAreaBarCount);
 }
-function OnChange_ui3_status_area()
+var defaultStatusAreaBarOrder = ["Server CPU", "Server Memory", "Server Disk", "Stream FPS", "Server Uptime", "Stream Bit Rate", "Stream Delay", "Audio Buffer", "Server GPU", "Client Connections", "Server Ping", "Stream Smoothness", "Cameras Online"];
+/**
+ * Returns the names of all registered status bars, in the order the user has chosen.  The first GetStatusAreaBarCount() of them are shown.
+ * @param {Boolean} useDefault If true, the user's chosen order is ignored and the default order is returned.
+ */
+function GetStatusAreaBarOrder(useDefault)
 {
-	if (statusAreaApi)
-		statusAreaApi.loadUserSettings();
-	if (typeof resized === "function")
-		resized();
+	var chosen = null;
+	if (!useDefault)
+	{
+		try
+		{
+			chosen = JSON.parse(settings.ui3_status_area_bar_order); // Empty (never customized) or invalid values fall back to the default order.
+		}
+		catch (ex) { }
+		if (!Array.isArray(chosen))
+			chosen = null;
+	}
+	var registered = GetStatusAreaBarOptions();
+	var order = [];
+	var add = function (name)
+	{
+		if (name && name !== "None" && registered.indexOf(name) > -1 && order.indexOf(name) === -1)
+			order.push(name);
+	};
+	if (chosen)
+		chosen.forEach(add);
+	defaultStatusAreaBarOrder.forEach(add);
+	registered.forEach(add);
+	return order;
 }
 var Mp4OpenOptions = {
 	AlwaysAsk: "Always Ask",
@@ -2231,179 +2254,27 @@ var defaultSettings =
 		}
 		, {
 			key: "ui3_status_area_bar_count"
-			, value: "4"
-			, inputType: "select"
-			, options: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]
-			, label: 'Number of Status Items<div class="settingDesc">Dynamic number of status area entries (up to 13)</div>'
+			, value: 4
+			, minValue: 1
+			, maxValue: 13 // Matches maxStatusAreaBarCount
+			, step: 1
+			, inputType: "range"
+			, label: 'Number of Status Bars'
+			, hint: 'Choose how many status bars are shown in the Status Area (up to 13).'
+			, changeOnStep: true
 			, onChange: OnChange_ui3_status_area_bar_count
 			, category: "Status Area"
 		}
 		, {
-			key: "ui3_status_area_bar_key_1"
-			, value: "Server CPU"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 1'
-			, hint: 'Choose what is shown in bar 1 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 1; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_2"
-			, value: "Server Memory"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 2'
-			, hint: 'Choose what is shown in bar 2 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 2; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_3"
-			, value: "Server Disk"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 3'
-			, hint: 'Choose what is shown in bar 3 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 3; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_4"
-			, value: "Stream FPS"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 4'
-			, hint: 'Choose what is shown in bar 4 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 4; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_5"
-			, value: "Server Uptime"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 5'
-			, hint: 'Choose what is shown in bar 5 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 5; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_6"
-			, value: "Stream Bit Rate"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 6'
-			, hint: 'Choose what is shown in bar 6 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 6; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_7"
-			, value: "Stream Delay"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 7'
-			, hint: 'Choose what is shown in bar 7 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 7; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_8"
-			, value: "Audio Buffer"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 8'
-			, hint: 'Choose what is shown in bar 8 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 8; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_9"
-			, value: "Server GPU"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 9'
-			, hint: 'Choose what is shown in bar 9 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 9; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_10"
-			, value: "Client Connections"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 10'
-			, hint: 'Choose what is shown in bar 10 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 10; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_11"
-			, value: "Server Ping"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 11'
-			, hint: 'Choose what is shown in bar 11 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 11; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_12"
-			, value: "Stream Smoothness"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 12'
-			, hint: 'Choose what is shown in bar 12 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 12; }
-			, onChange: OnChange_ui3_status_area
-			, category: "Status Area"
-		}
-		, {
-			key: "ui3_status_area_bar_key_13"
-			, value: "Cameras Online"
-			, inputType: "select"
-			, options: []
-			, getOptions: GetStatusAreaBarOptions
-			, label: 'Status Bar 13'
-			, hint: 'Choose what is shown in bar 13 of the Status Area'
-			, dynamicDescFunc: GetStatusAreaBarDescription
-			, preconditionFunc: function () { return parseInt(settings.ui3_status_area_bar_count || "4") >= 13; }
+			key: "ui3_status_area_bar_order"
+			, value: "" // JSON array of status bar names.  Empty means the default order; see GetStatusAreaBarOrder.
+			, inputType: "sortableList"
+			, label: 'Status Bar Order'
+			, hint: 'Choose the order of status bars in the Status Area by dragging the handles or using the arrow buttons. Bars below the "Not shown" line are hidden; use "Number of Status Bars" to show more.'
+			, getItems: GetStatusAreaBarOrder
+			, getDefaultItems: function () { return GetStatusAreaBarOrder(true); }
+			, getSeparatorIndex: GetStatusAreaBarCount
+			, separatorLabel: "Not shown"
 			, onChange: OnChange_ui3_status_area
 			, category: "Status Area"
 		}
@@ -4678,6 +4549,35 @@ $(function ()
 			{
 				// storageinfo.htm export files may contain this key, which older versions of storageinfo.htm will import into Local Storage where it serves no purpose.
 				delete localStorage.ui3_export_manifest;
+			}
+			// UI3-347 replaced the individual "Status Bar N" settings with "Status Bar Order", which orders every status bar.
+			var oldStatusBarValues = {};
+			var highestOldSlot = 0;
+			for (var i = 1; i <= maxStatusAreaBarCount; i++)
+			{
+				var oldStatusBarKey = "ui3_status_area_bar_key_" + i;
+				if (typeof localStorage[oldStatusBarKey] !== "undefined")
+				{
+					oldStatusBarValues[i] = localStorage[oldStatusBarKey];
+					highestOldSlot = i;
+					delete localStorage[oldStatusBarKey];
+				}
+			}
+			if (highestOldSlot > 0 && !localStorage.ui3_status_area_bar_order)
+			{
+				var slotLimit = Math.max(highestOldSlot, GetStatusAreaBarCount());
+				var oldStatusBarNames = [];
+				for (var i = 1; i <= slotLimit; i++)
+				{
+					var oldName = Object.prototype.hasOwnProperty.call(oldStatusBarValues, i)
+						? oldStatusBarValues[i]
+						: defaultStatusAreaBarOrder[i - 1];
+					if (oldName && oldName !== "None" && oldStatusBarNames.indexOf(oldName) === -1)
+						oldStatusBarNames.push(oldName);
+				}
+				// Bars missing from this list are appended by GetStatusAreaBarOrder.  The default choices need no migration.
+				if (oldStatusBarNames.length && oldStatusBarNames.join("\n") !== defaultStatusAreaBarOrder.slice(0, oldStatusBarNames.length).join("\n"))
+					settings.ui3_status_area_bar_order = JSON.stringify(oldStatusBarNames);
 			}
 		}
 	}
@@ -7502,6 +7402,14 @@ function StatusAreaApi()
 					if (typeof resized === "function")
 						resized();
 				});
+			},
+			"userChosenBarNames.length": function ()
+			{
+				this.$nextTick(function ()
+				{
+					if (typeof resized === "function")
+						resized();
+				});
 			}
 		},
 		created: function ()
@@ -7631,18 +7539,7 @@ function StatusAreaApi()
 			{
 				this.panelName = settings.ui3_status_area_name || "Server Status";
 				this.isCollapsed = (settings.getItem("ui3_collapsible_serverStatus") === "0");
-
-				var count = parseInt(settings.getItem("ui3_status_area_bar_count") || "4");
-				if (isNaN(count) || count < 1) count = 1;
-				if (count > 13) count = 13;
-
-				this.userChosenBarNames = [];
-				for (var i = 1; i <= count; i++)
-				{
-					var uniqueName = settings.getItem("ui3_status_area_bar_key_" + i);
-					if (uniqueName && uniqueName !== "None")
-						this.userChosenBarNames.push(uniqueName);
-				}
+				this.userChosenBarNames = GetStatusAreaBarOrder().slice(0, GetStatusAreaBarCount());
 			},
 			setStoplightEnabled: function (enabled)
 			{
@@ -16414,6 +16311,26 @@ function PlaybackControls()
 			|| pointInsideElement(playbackHeader.Get$Ref(), e.mouseX, e.mouseY)
 			|| clipTimeline.pointInsideTimeline(e.mouseX, e.mouseY);
 	}
+	this.MouseInInteractiveControls = function (e)
+	{
+		mouseCoordFixer.fix(e);
+		if (pointInsideElement($playbackSettings, e.mouseX, e.mouseY)
+			|| pointInsideElement(playbackHeader.Get$Ref(), e.mouseX, e.mouseY)
+			|| clipTimeline.pointInsideTimeline(e.mouseX, e.mouseY))
+			return true;
+		if ($pc.css("pointer-events") !== "none")
+			return pointInsideElement($pc, e.mouseX, e.mouseY);
+		var hit = false;
+		$pc.find("#exportOffsetWrapper:visible, #seekBarWrapper:visible, #volumeBar:visible, .pcButton:visible, #playbackSpeedText:visible").each(function ()
+		{
+			if (pointInsideElement($(this), e.mouseX, e.mouseY))
+			{
+				hit = true;
+				return false;
+			}
+		});
+		return hit;
+	}
 	$(document).mouseup(function (e)
 	{
 		if (!self.MouseInSettingsPanel(e))
@@ -23095,7 +23012,7 @@ function VideoPlayerController()
 		mouseHelper = new MouseEventHelper($("#layoutbody,#zoomhint")
 			, $("#playbackHeader,#playbackControls") // Excludes clicks while viewing recordings
 			, $("#playbackControls .pcButton,#volumeBar,#closeClipLeft") // Excludes clicks while viewing live and excludes dragging always
-			, function (e) { return playbackControls.MouseInSettingsPanel(e) || playbackControls.MouseInPlaybackControls(e); } // exclude click if returns true
+			, function (e) { return playbackControls.MouseInSettingsPanel(e) || playbackControls.MouseInInteractiveControls(e); } // exclude click if returns true
 			, function (e, confirmed) // Single Click
 			{
 				videoOverlayHelper.HideFalseLoadingOverlay();
@@ -37383,6 +37300,11 @@ function BiUpdatesDialog()
 	/// 	]
 	/// }
 	///
+	/// Blue Iris's own implementation differs from this in two ways which UI3 tolerates (see
+	/// MergeVersionList): its dates are midnight in the server's time zone rather than UTC, and a
+	/// release which is both the latest and the latest stable is listed twice, once with each
+	/// "stable" value.
+	///
 	/// Until Blue Iris implements the command, an optional third-party service can answer the
 	/// same request.  See ThirdPartyUpdateCheck below.
 	var self = this;
@@ -37638,7 +37560,7 @@ function BiUpdatesDialog()
 		/// <summary>
 		/// The "login" command response carries the support &amp; maintenance expiration as a
 		/// string like "1/1/2030 [Priority]".  Returns the date portion as milliseconds since
-		/// 1970 (UTC midnight, matching how the updatecheck API reports its dates), or 0 if it
+		/// 1970 (UTC midnight, matching how UI3 normalizes updatecheck dates), or 0 if it
 		/// is missing or unparsable.  This is a day-accurate fallback for update check responses
 		/// which omit "maintenance_expire", such as those from the third-party service, which
 		/// has no way to know the user's expiration date.
@@ -37659,7 +37581,48 @@ function BiUpdatesDialog()
 		return date.getTime();
 	}
 	/**
-	 * Formats an updatecheck API date in the user's own date format.  These arrive as UTC, typically midnight, so rendering them in local time would name the previous day for everyone west of Greenwich.
+	 * Returns the UTC midnight nearest to the given time, or the given value unchanged if it is not a positive number.  Blue Iris reports updatecheck dates as midnight in the server's time zone, not UTC midnight, while the third-party service and the login response's support date use UTC midnight.  Rounding any of these to the nearest UTC midnight yields the intended calendar day for any server within 12 hours of UTC, so UI3 can treat every updatecheck date as UTC midnight.
+	 */
+	var RoundToUtcMidnight = function (ms)
+	{
+		if (typeof ms !== "number" || !isFinite(ms) || ms <= 0)
+			return ms;
+		var day = 86400000;
+		return Math.floor((ms + day / 2) / day) * day;
+	}
+	/**
+	 * Returns a new array of version entries copied from an updatecheck "newversions" list, with dates rounded to UTC midnight and with no version number listed twice.  Blue Iris lists a release once more for each role it plays, so a release which is both the latest and the latest stable arrives as two entries which differ only in their "stable" flag.  Duplicates are merged into one entry which is stable if any of them was, and which keeps the first date and notes found among them.
+	 * @param {Array} newversions The "newversions" array from the update check response.  Anything else yields an empty array.
+	 */
+	var MergeVersionList = function (newversions)
+	{
+		var merged = [];
+		var byVersion = {};
+		if (!$.isArray(newversions))
+			return merged;
+		for (var i = 0; i < newversions.length; i++)
+		{
+			var v = newversions[i];
+			if (!v || typeof v.version !== "string")
+				continue;
+			var entry = byVersion.hasOwnProperty(v.version) ? byVersion[v.version] : null;
+			if (!entry)
+			{
+				entry = { version: v.version };
+				byVersion[v.version] = entry;
+				merged.push(entry);
+			}
+			if (!entry.date && v.date)
+				entry.date = RoundToUtcMidnight(v.date);
+			if (v.stable === true)
+				entry.stable = true;
+			if (typeof entry.notes !== "string" && typeof v.notes === "string")
+				entry.notes = v.notes;
+		}
+		return merged;
+	}
+	/**
+	 * Formats an updatecheck API date in the user's own date format.  Render rounds these to UTC midnight first (see RoundToUtcMidnight), so they are rendered in UTC; rendering them in local time would name the previous day for everyone west of Greenwich.
 	 */
 	var FormatDateMs = function (ms)
 	{
@@ -37685,7 +37648,7 @@ function BiUpdatesDialog()
 	var GetSampleUpdateCheckData = function (mode)
 	{
 		var day = 86400000;
-		// Blue Iris reports dates as UTC midnight, so the sample does too.
+		// The sample uses UTC midnight, which is what Render normalizes every date to.
 		var now = new Date();
 		now = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 		mode = parseInt(mode, 10);
@@ -37831,7 +37794,9 @@ function BiUpdatesDialog()
 			return;
 		if (!data)
 			data = {};
-		if (!data.maintenance_expire)
+		if (data.maintenance_expire)
+			data.maintenance_expire = RoundToUtcMidnight(data.maintenance_expire);
+		else
 		{
 			// The update check response did not include the support & maintenance expiration
 			// date, so fall back to the day-accurate date from the login response.
@@ -37844,11 +37809,7 @@ function BiUpdatesDialog()
 		var currentVersion = GetCurrentVersion();
 		var expire = data.maintenance_expire;
 
-		var versions = [];
-		if (data.newversions && data.newversions.length)
-			for (i = 0; i < data.newversions.length; i++)
-				if (data.newversions[i] && typeof data.newversions[i].version === "string")
-					versions.push(data.newversions[i]);
+		var versions = MergeVersionList(data.newversions);
 		versions.sort(function (a, b) { return compareVersions(b.version, a.version); });
 
 		// The "Latest" and "Latest stable" badges describe what Blue Iris reported, so they are
@@ -45545,6 +45506,7 @@ function UISettingsPanel()
 			return;
 
 		BI_CustomEvent.Invoke("UI_Settings_Refreshing");
+		var focusState = CaptureFocusState();
 		$content.empty();
 		sections = [];
 		var loadedAny = false;
@@ -45556,6 +45518,49 @@ function UISettingsPanel()
 
 		modal_dialog.contentChanged(true);
 		BI_CustomEvent.Invoke("UI_Settings_Refreshed");
+		RestoreFocusState(focusState);
+	}
+	var focusableSelector = 'input,select,textarea,button,a[href],[tabindex]:not([tabindex="-1"])';
+	/**
+	 * Many setting changes cause the panel to be re-rendered, which would otherwise lose keyboard focus.
+	 * Returns an object describing the focused element within the panel content, or null.
+	 */
+	var CaptureFocusState = function ()
+	{
+		var el = document.activeElement;
+		if (!el || !$content || !$.contains($content.get(0), el))
+			return null;
+		var $row = $(el).closest(".uiSettingsRow[data-settings-key]");
+		if ($row.length)
+			return { key: $row.attr("data-settings-key"), index: $row.find(focusableSelector).index(el) };
+		// Fallback for rows that aren't backed by a setting: position among all focusable elements.
+		return { key: null, index: $content.find(focusableSelector).index(el) };
+	}
+	var RestoreFocusState = function (state)
+	{
+		if (!state || state.index < 0)
+			return;
+		var $target = null;
+		if (state.key !== null)
+		{
+			var $row = $content.find('.uiSettingsRow[data-settings-key="' + state.key + '"]');
+			$target = $row.find(focusableSelector).eq(state.index);
+			if (!$target.length)
+				$target = $row.find(focusableSelector).first();
+		}
+		else
+			$target = $content.find(focusableSelector).eq(state.index);
+		if ($target && $target.length && $target.is(":visible"))
+		{
+			try
+			{
+				$target.get(0).focus({ preventScroll: true });
+			}
+			catch (ex)
+			{
+				$target.get(0).focus();
+			}
+		}
 	}
 	var LoadCategory = function (category)
 	{
@@ -45637,6 +45642,15 @@ function UISettingsPanel()
 				else if (s.inputType === "threeState")
 				{
 					formFields.onChange = ThreeStateChanged;
+					$row.append(UIFormField(formFields));
+				}
+				else if (s.inputType === "sortableList")
+				{
+					formFields.value = s.getItems();
+					formFields.defaultValue = s.getDefaultItems;
+					formFields.separatorIndex = typeof s.getSeparatorIndex === "function" ? s.getSeparatorIndex() : -1;
+					formFields.separatorLabel = s.separatorLabel;
+					formFields.onChange = SortableListChanged;
 					$row.append(UIFormField(formFields));
 				}
 				else if (s.inputType === "comment")
@@ -46053,6 +46067,11 @@ function UISettingsPanel()
 	var ThreeStateChanged = function (s, value, $input)
 	{
 		settings.setItem(s.key, value.toString());
+		CallOnChangeCallback(s);
+	}
+	var SortableListChanged = function (e, s, order)
+	{
+		settings.setItem(s.key, JSON.stringify(order));
 		CallOnChangeCallback(s);
 	}
 	var HandleHotkeyChange = function (e, s, $input, textValue, hotkeyValue)
@@ -46717,7 +46736,21 @@ function OnChange_ui3_icons_extraVisibility()
 }
 function OnChange_ui3_status_area()
 {
-	statusAreaApi.loadUserSettings();
+	if (statusAreaApi)
+		statusAreaApi.loadUserSettings();
+	if (typeof resized === "function")
+		resized();
+}
+function OnChange_ui3_status_area_bar_count()
+{
+	if (statusAreaApi)
+		statusAreaApi.loadUserSettings();
+	// Move the "Not shown" separator in the Status Bar Order list without refreshing the whole settings panel (which would interrupt a slider drag).
+	var sortableList = $('#uiSettingsPanel .uiSettingsRow[data-settings-key="ui3_status_area_bar_order"] .sortableList').data("sortableList");
+	if (sortableList)
+		sortableList.setSeparatorIndex(GetStatusAreaBarCount());
+	if (typeof resized === "function")
+		resized();
 }
 function OnChange_ui3_fullscreen_videoonly()
 {
@@ -46882,6 +46915,355 @@ function OnChange_ui3_video_loading_animation()
 	}
 }
 ///////////////////////////////////////////////////////////////
+// Sortable List Control //////////////////////////////////////
+///////////////////////////////////////////////////////////////
+/**
+ * A list of items which the user can reorder by dragging each item's handle, or with each item's up/down buttons.
+ * Touchscreen users must hold a handle briefly before its item is picked up, so that scrolling past the list does not reorder it.
+ * @param {Object} options Options object.
+ * @param {String[]} options.items Item names, in their current order.  Names are also the displayed labels.
+ * @param {Number} [options.separatorIndex] If greater than 0 and less than the number of items, a separator is drawn after this many items.
+ * @param {String} [options.separatorLabel] Text shown on the separator, describing the items below it.
+ * @param {Function} options.onChange Called with the new array of item names after the user changes the order.
+ */
+function SortableListControl(options)
+{
+	var self = this;
+	var items = options.items.slice();
+	var separatorIndex = typeof options.separatorIndex === "number" ? options.separatorIndex : -1;
+	var separatorLabel = options.separatorLabel || "";
+	var touchHoldMs = 500; // Matches DragAndDropHelper
+	var touchMoveTolerance = 8; // A touch which moves this far before the hold time elapses is a scroll, not a pick up.
+	var autoScrollMargin = 32;
+	var drag = null;
+
+	this.$el = $('<div class="sortableList"></div>');
+	var $list = $('<div class="sortableListItems" role="list"></div>');
+	var $live = $('<div class="visuallyHidden" aria-live="polite"></div>');
+	this.$el.append($list).append($live);
+	this.$el.data("sortableList", this);
+
+	this.getItems = function () { return items.slice(); };
+	this.setItems = function (newItems)
+	{
+		CancelDrag();
+		items = newItems.slice();
+		Render();
+	};
+	this.setSeparatorIndex = function (index)
+	{
+		CancelDrag();
+		separatorIndex = index;
+		Render();
+	};
+
+	var HasSeparator = function ()
+	{
+		return separatorIndex > 0 && separatorIndex < items.length;
+	};
+	var IsShown = function (index)
+	{
+		return !HasSeparator() || index < separatorIndex;
+	};
+	/** Returns the focused move button as { name, direction }, or null. */
+	var GetFocusedButton = function ()
+	{
+		var $btn = $(document.activeElement).filter(".sortableListMoveBtn");
+		if ($btn.length && $.contains($list.get(0), $btn.get(0)))
+			return { name: $btn.closest(".sortableListItem").attr("data-name"), direction: $btn.attr("data-direction") };
+		return null;
+	};
+	var FocusButton = function (focus)
+	{
+		if (!focus)
+			return;
+		var $item = $list.children(".sortableListItem").filter(function () { return $(this).attr("data-name") === focus.name; });
+		var $btn = $item.find('.sortableListMoveBtn[data-direction="' + focus.direction + '"]');
+		if ($btn.prop("disabled")) // Item reached the end of the list; the other button remains useful.
+			$btn = $item.find(".sortableListMoveBtn").not($btn);
+		if ($btn.length)
+			$btn.get(0).focus();
+	};
+	var MakeMoveButton = function (name, direction, disabled)
+	{
+		var $btn = $('<button type="button" class="sortableListMoveBtn"><svg class="icon"><use xlink:href="#svg_x5F_PTZcardinal' + (direction === "up" ? "Up" : "Down") + '"></use></svg></button>');
+		$btn.attr("data-direction", direction);
+		$btn.attr("title", "Move " + direction);
+		$btn.attr("aria-label", "Move " + name + " " + direction);
+		$btn.prop("disabled", disabled);
+		return $btn;
+	};
+	var Render = function ()
+	{
+		var focus = GetFocusedButton();
+		$list.empty();
+		for (var i = 0; i < items.length; i++)
+		{
+			var name = items[i];
+			var shown = IsShown(i);
+			var $item = $('<div class="sortableListItem" role="listitem"></div>');
+			$item.attr("data-name", name);
+			if (!shown)
+				$item.addClass("sortableListItemNotShown");
+			$item.append('<div class="sortableListHandle" title="Drag to reorder" aria-hidden="true"></div>');
+			$item.append('<div class="sortableListNumber" aria-hidden="true"></div>'); // Text is set by PlaceSeparator
+			var $label = $('<div class="sortableListLabel"></div>').text(name);
+			if (typeof STATUS_BAR_DESCRIPTIONS !== "undefined" && STATUS_BAR_DESCRIPTIONS[name])
+				$label.attr("title", STATUS_BAR_DESCRIPTIONS[name]);
+			if (HasSeparator())
+				$label.append($('<span class="visuallyHidden"></span>').text(shown ? ", shown" : ", " + separatorLabel.toLowerCase()));
+			$item.append($label);
+			$item.append(MakeMoveButton(name, "up", i === 0));
+			$item.append(MakeMoveButton(name, "down", i === items.length - 1));
+			$list.append($item);
+		}
+		PlaceSeparator();
+		FocusButton(focus);
+	};
+	/** Positions the separator after the separatorIndex'th item.  During a drag, this follows the dragged item's current position. */
+	var PlaceSeparator = function ()
+	{
+		var $sep = $list.children(".sortableListSeparator");
+		if (!HasSeparator())
+			$sep.remove();
+		else
+		{
+			if (!$sep.length)
+				$sep = $('<div class="sortableListSeparator" role="separator"></div>').append($('<span></span>').text(separatorLabel));
+			$list.children(".sortableListItem").eq(separatorIndex - 1).after($sep);
+		}
+		// Update item numbers and styling to match their current position.
+		$list.children(".sortableListItem").each(function (i, ele)
+		{
+			var shown = IsShown(i);
+			$(ele).toggleClass("sortableListItemNotShown", !shown);
+			$(ele).children(".sortableListNumber").text(shown ? (i + 1) : "");
+		});
+	};
+	var Announce = function (name, index, wasShown)
+	{
+		var msg = name + " moved to position " + (index + 1) + " of " + items.length;
+		var shown = IsShown(index);
+		if (shown !== wasShown)
+			msg += shown ? ", now shown" : ", now " + separatorLabel.toLowerCase();
+		$live.text(msg);
+	};
+	var CommitOrder = function (newItems, movedName, wasShown)
+	{
+		var changed = newItems.join("\n") !== items.join("\n");
+		items = newItems;
+		Render();
+		if (changed)
+		{
+			Announce(movedName, items.indexOf(movedName), wasShown);
+			options.onChange(items.slice());
+		}
+	};
+
+	// Up/Down buttons
+	$list.on("click", ".sortableListMoveBtn", function (e)
+	{
+		var $btn = $(this);
+		var name = $btn.closest(".sortableListItem").attr("data-name");
+		var from = items.indexOf(name);
+		var to = from + ($btn.attr("data-direction") === "up" ? -1 : 1);
+		if (from < 0 || to < 0 || to >= items.length)
+			return;
+		var newItems = items.slice();
+		newItems.splice(from, 1);
+		newItems.splice(to, 0, name);
+		CommitOrder(newItems, name, IsShown(from));
+	});
+
+	// Dragging
+	$list.on("pointerdown", ".sortableListHandle", function (e)
+	{
+		var oe = e.originalEvent;
+		if (drag || (oe.pointerType === "mouse" && oe.button !== 0))
+			return;
+		var $item = $(this).closest(".sortableListItem");
+		drag = {
+			pointerId: oe.pointerId
+			, isTouch: oe.pointerType === "touch"
+			, $item: $item
+			, name: $item.attr("data-name")
+			, startX: oe.clientX
+			, startY: oe.clientY
+			, lastY: oe.clientY
+			, picked: false
+			, holdTimeout: null
+			, raf: null
+		};
+		$(document).on("pointermove.sortableList", OnPointerMove);
+		$(document).on("pointerup.sortableList", function (e) { OnPointerEnd(e, true); });
+		$(document).on("pointercancel.sortableList", function (e) { OnPointerEnd(e, false); });
+		if (drag.isTouch)
+		{
+			// Don't prevent default here, so a swipe that starts on the handle still scrolls.
+			$item.addClass("sortableListItemPressing");
+			drag.holdTimeout = setTimeout(PickUp, touchHoldMs);
+		}
+		else
+		{
+			e.preventDefault(); // Prevents text selection
+			PickUp();
+		}
+	});
+	$list.on("contextmenu", ".sortableListHandle", function (e)
+	{
+		return false; // Long press on touchscreens would open a context menu.
+	});
+	var PreventTouchScroll = function (e)
+	{
+		if (drag && drag.picked)
+			e.preventDefault();
+	};
+	// Once an item is picked up, touch movement must drag the item instead of scrolling.  This listener must be non-passive and
+	// must already exist when the touch begins, otherwise browsers may make the touchmove events uncancelable.
+	$list.get(0).addEventListener("touchmove", PreventTouchScroll, { passive: false });
+	var OnKeyDown = function (e)
+	{
+		if (e.key === "Escape" || e.keyCode === 27)
+		{
+			e.preventDefault();
+			e.stopPropagation();
+			CancelDrag();
+		}
+	};
+	var PickUp = function ()
+	{
+		if (!drag)
+			return;
+		drag.holdTimeout = null;
+		drag.picked = true;
+		drag.originalItems = items.slice();
+		drag.wasShown = IsShown(items.indexOf(drag.name));
+		if (drag.isTouch && vibrate_supported)
+			navigator.vibrate(25);
+		var rect = drag.$item.get(0).getBoundingClientRect();
+		drag.grabOffsetY = drag.lastY - rect.top;
+		drag.$scrollParent = FindScrollParent();
+		drag.$item.removeClass("sortableListItemPressing").addClass("sortableListItemDragging");
+		$list.addClass("sortableListDragActive");
+		document.addEventListener("keydown", OnKeyDown, true);
+		drag.raf = requestAnimationFrame(AutoScrollLoop);
+	};
+	var OnPointerMove = function (e)
+	{
+		var oe = e.originalEvent;
+		if (!drag || oe.pointerId !== drag.pointerId)
+			return;
+		drag.lastY = oe.clientY;
+		if (!drag.picked)
+		{
+			if (Math.max(Math.abs(oe.clientX - drag.startX), Math.abs(oe.clientY - drag.startY)) > touchMoveTolerance)
+				EndDrag(false); // The user is scrolling.
+			return;
+		}
+		e.preventDefault();
+		UpdateDragPosition();
+	};
+	var OnPointerEnd = function (e, commit)
+	{
+		if (drag && e.originalEvent.pointerId === drag.pointerId)
+			EndDrag(commit);
+	};
+	var UpdateDragPosition = function ()
+	{
+		var el = drag.$item.get(0);
+		el.style.transform = "";
+		var height = el.offsetHeight;
+		var listRect = $list.get(0).getBoundingClientRect();
+		var desiredTop = Clamp(drag.lastY - drag.grabOffsetY, listRect.top, listRect.bottom - height);
+		var center = desiredTop + (height / 2);
+		var $others = $list.children(".sortableListItem").not(el);
+		var newIndex = 0;
+		$others.each(function (i, other)
+		{
+			var r = other.getBoundingClientRect();
+			if (r.top + (r.height / 2) < center)
+				newIndex++;
+		});
+		if (newIndex !== $list.children(".sortableListItem").index(el))
+		{
+			if (newIndex >= $others.length)
+				$others.last().after(el);
+			else
+				$others.eq(newIndex).before(el);
+			PlaceSeparator();
+		}
+		el.style.transform = "translateY(" + (desiredTop - el.getBoundingClientRect().top) + "px)";
+	};
+	var FindScrollParent = function ()
+	{
+		var el = $list.get(0).parentElement;
+		while (el && el !== document.body)
+		{
+			var overflowY = window.getComputedStyle(el).overflowY;
+			if ((overflowY === "auto" || overflowY === "scroll") && el.scrollHeight > el.clientHeight)
+				return $(el);
+			el = el.parentElement;
+		}
+		return null;
+	};
+	/** While dragging near the top or bottom edge of a scrollable container, scroll it. */
+	var AutoScrollLoop = function ()
+	{
+		if (!drag || !drag.picked)
+			return;
+		if (drag.$scrollParent)
+		{
+			var sp = drag.$scrollParent.get(0);
+			var r = sp.getBoundingClientRect();
+			var delta = 0;
+			if (drag.lastY < r.top + autoScrollMargin)
+				delta = -Math.ceil((r.top + autoScrollMargin - drag.lastY) / 4);
+			else if (drag.lastY > r.bottom - autoScrollMargin)
+				delta = Math.ceil((drag.lastY - (r.bottom - autoScrollMargin)) / 4);
+			if (delta !== 0)
+			{
+				var before = sp.scrollTop;
+				sp.scrollTop += delta;
+				if (sp.scrollTop !== before)
+					UpdateDragPosition();
+			}
+		}
+		drag.raf = requestAnimationFrame(AutoScrollLoop);
+	};
+	var EndDrag = function (commit)
+	{
+		if (!drag)
+			return;
+		var d = drag;
+		drag = null;
+		clearTimeout(d.holdTimeout);
+		cancelAnimationFrame(d.raf);
+		$(document).off(".sortableList");
+		document.removeEventListener("keydown", OnKeyDown, true);
+		d.$item.removeClass("sortableListItemPressing sortableListItemDragging");
+		d.$item.get(0).style.transform = "";
+		$list.removeClass("sortableListDragActive");
+		if (!d.picked)
+			return;
+		if (commit)
+		{
+			var newItems = $list.children(".sortableListItem").map(function () { return $(this).attr("data-name"); }).get();
+			CommitOrder(newItems, d.name, d.wasShown);
+		}
+		else
+		{
+			items = d.originalItems;
+			Render();
+		}
+	};
+	var CancelDrag = function ()
+	{
+		EndDrag(false);
+	};
+
+	Render();
+}
+///////////////////////////////////////////////////////////////
 // Form Field Helpers /////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 function UIFormField(args)
@@ -46899,6 +47281,8 @@ function UIFormField(args)
 		, disabled: false
 		, compact: false
 		, defaultValue: undefined // default value.  If defined, this will cause a "reset to default" button to exist.
+		, separatorIndex: -1 // sortableList type: the separator is drawn after this many items (-1 for no separator)
+		, separatorLabel: "" // sortableList type
 		, class: undefined
 	}, args);
 
@@ -46910,6 +47294,13 @@ function UIFormField(args)
 		var $defaultButton = $('<div class="uiFormFieldDefaultBtn" title="Reset value to default"><svg class="icon"><use xlink:href="#svg_x5F_Restart"></use></svg></div>');
 		$defaultButton.on('click', function ()
 		{
+			if (o.inputType === "sortableList")
+			{
+				var defaultItems = typeof o.defaultValue === "function" ? o.defaultValue() : o.defaultValue;
+				ff.find(".sortableList").data("sortableList").setItems(defaultItems);
+				o.onChange(null, o.tag, defaultItems);
+				return;
+			}
 			var $input = ff.find('input,select');
 			if (o.inputType === "checkbox")
 				$input.prop('checked', o.defaultValue === "1");
@@ -47068,6 +47459,17 @@ function UIFormFieldInternal(o)
 		}
 		else
 			return $('<div class="' + classes + '"></div>').append($input).append($label);
+	}
+	else if (o.inputType === "sortableList")
+	{
+		var $label = $(GetDialogOptionLabel(o.label));
+		var list = new SortableListControl({
+			items: o.value
+			, separatorIndex: o.separatorIndex
+			, separatorLabel: o.separatorLabel
+			, onChange: function (order) { return o.onChange(null, o.tag, order); }
+		});
+		return $('<div class="dialogOption_item dialogOption_item_info dialogOption_item_sortableList' + disabledClass + compactClass + '"></div>').append($label).append(list.$el);
 	}
 	else if (o.inputType === "text" || o.inputType === "color" || o.inputType === "password")
 	{

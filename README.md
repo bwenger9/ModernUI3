@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v0.348.1-00E5FF.svg" alt="Version v0.348.1" />
+  <img src="https://img.shields.io/badge/version-v0.348.2-00E5FF.svg" alt="Version v0.348.2" />
   <img src="https://img.shields.io/badge/license-LGPL--3.0-2563EB.svg" alt="License LGPL-3.0" />
   <img src="https://img.shields.io/badge/base%20UI3-348-1E293B.svg" alt="Base UI3 348" />
   <img src="https://img.shields.io/badge/Blue%20Iris-v5.x%20%7C%20v6.x-2563EB.svg" alt="Blue Iris v5 / v6" />
@@ -91,7 +91,7 @@ ModernUI3 tracks both its own release maturity and the upstream `bp2008/ui3` bas
 * **Presets & Optical Controls:** 5-column glassmorphic preset tiles highlighting configured presets (`.hasPreset`), compact 5-preset toggle option, Home button, IR / Brightness / Contrast row, and universal Zoom/Focus visibility toggle across desktop and mobile.
 
 ### Expanded Telemetry & Status Bar
-* **Up to 13 Selectable Status Metrics:** Monitor Server **CPU**, **Memory**, **Disk**, **GPU Decode (NVDEC / QuickSync)**, **Active Connections**, **Network Ping (ms)**, **Stream FPS / Smoothness**, **Cameras Online**, and **Server Uptime**, with live multi-line setting descriptions beneath each dropdown.
+* **Up to 13 Selectable Status Metrics:** Monitor Server **CPU**, **Memory**, **Disk**, **GPU Decode (NVDEC / QuickSync)**, **Active Connections**, **Network Ping (ms)**, **Stream FPS / Smoothness**, **Cameras Online**, and **Server Uptime**, configured via a live item-count slider, drag-and-drop / keyboard-accessible sortable list with a live "Not shown" divider, hover descriptions, and built-in metrics reference guide.
 * **Flexible Placement:** Renders inside the expanded landscape sidebar (when enabled) or as a bottom-docked multi-column grid in portrait and collapsed sidebar modes, with optional `"None"` header label, left-aligned expand/collapse chevron, and stoplight/profile shield control.
 * **Stats for Nerds Parity:** Fixed-width sparkline telemetry graphs themed for both Obsidian Dark and Daylight Light modes.
 

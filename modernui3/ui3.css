@@ -8864,6 +8864,188 @@ div::-webkit-scrollbar-corner
 				color: var(--text-active-color);
 			}
 
+	.uiSettingsRow.withDefaultBtn:has(> .dialogOption_item_sortableList)
+	{
+		align-items: flex-start;
+	}
+/* Sortable List Control */
+.visuallyHidden
+{
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+
+.dialogOption_item_sortableList > .dialogOption_label
+{
+	display: block;
+}
+
+.sortableList
+{
+	position: relative;
+	margin: 4px 10px 0px 10px;
+}
+
+.sortableListItems
+{
+	position: relative;
+	border: 1px solid var(--progress-bar-outer-color);
+}
+
+.sortableListItem
+{
+	display: flex;
+	align-items: center;
+	position: relative;
+	height: 32px;
+	background-color: var(--dialog-bg-color);
+	border-bottom: 1px solid var(--progress-bar-outer-color);
+	font-size: 14px;
+}
+
+	.sortableListItem:last-child
+	{
+		border-bottom: none;
+	}
+
+	.sortableListItem.sortableListItemNotShown .sortableListLabel,
+	.sortableListItem.sortableListItemNotShown .sortableListHandle
+	{
+		opacity: 0.5;
+	}
+
+	.sortableListItem.sortableListItemPressing
+	{
+		background-color: var(--uicontrol-hover-bg-color);
+	}
+
+	.sortableListItem.sortableListItemDragging
+	{
+		z-index: 2;
+		background-color: var(--dialog-bg-color);
+		outline: 2px solid var(--dialog-link-color);
+		box-shadow: 0px 4px 12px rgba(0,0,0,0.7);
+	}
+
+		.sortableListItem.sortableListItemDragging .sortableListLabel,
+		.sortableListItem.sortableListItemDragging .sortableListHandle
+		{
+			opacity: 1;
+		}
+
+.sortableListDragActive,
+.sortableListDragActive *
+{
+	cursor: grabbing !important;
+}
+/* Drag handle: a grid of dots.  Touch scrolling is deliberately allowed (no touch-action: none); touch users hold briefly to pick up an item. */
+.sortableListHandle
+{
+	flex: 0 0 auto;
+	align-self: stretch;
+	width: 28px;
+	cursor: grab;
+	color: var(--text-color);
+	background-image: radial-gradient(circle, currentColor 1.5px, transparent 2px);
+	background-size: 6px 6px;
+	background-repeat: repeat;
+	background-position: center;
+	background-clip: content-box;
+	padding: 8px 8px 8px 8px;
+	box-sizing: border-box;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+	.sortableListHandle:hover
+	{
+		color: var(--text-hover-color);
+	}
+
+.sortableListNumber
+{
+	flex: 0 0 auto;
+	width: 18px;
+	text-align: right;
+	padding-right: 8px;
+	color: var(--text-color);
+	font-size: 12px;
+}
+
+.sortableListLabel
+{
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sortableListMoveBtn
+{
+	flex: 0 0 auto;
+	width: 30px;
+	height: 30px;
+	padding: 6px;
+	margin: 0px;
+	border: none;
+	background-color: transparent;
+	color: var(--text-color);
+	cursor: pointer;
+}
+
+	.sortableListMoveBtn .icon
+	{
+		width: 18px !important;
+		height: 18px !important;
+		vertical-align: middle !important;
+	}
+
+	.sortableListMoveBtn:hover
+	{
+		color: var(--text-hover-color);
+		background-color: var(--uicontrol-hover-bg-color);
+	}
+
+	.sortableListMoveBtn:active
+	{
+		color: var(--text-active-color);
+		background-color: var(--uicontrol-active-bg-color);
+	}
+
+	.sortableListMoveBtn:disabled
+	{
+		opacity: 0.2;
+		cursor: default;
+		background-color: transparent;
+	}
+
+	.sortableListMoveBtn:focus-visible
+	{
+		outline: 2px solid var(--dialog-link-color);
+		outline-offset: -2px;
+	}
+/* Separator between shown and not shown items */
+.sortableListSeparator
+{
+	display: flex;
+	align-items: center;
+	padding: 3px 8px;
+	font-size: 12px;
+	color: var(--dialog-link-color);
+	background-color: var(--zebra-stripe-bg-color);
+	border-top: 2px dashed var(--dialog-link-color);
+	border-bottom: 1px solid var(--progress-bar-outer-color);
+}
+
 #volumeBar.audioTemporarilyUnavailable,
 #volumeBar.audioNoPermission,
 .fullscreenButtonHidden,
@@ -9266,9 +9448,11 @@ body.modern-ui3 .modern-live-badge.not-live .modern-live-dot {
 }
 html.modern-ui3 .modern-live-badge.not-live:hover,
 body.modern-ui3 .modern-live-badge.not-live:hover {
-	opacity: 0.85 !important;
+	opacity: 1 !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
 	border-color: var(--modern-accent-primary, #00E5FF) !important;
-	color: var(--modern-text-primary) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.48), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18) !important;
 }
 html.modern-ui3 .modern-live-dot,
 body.modern-ui3 .modern-live-dot {
@@ -9373,8 +9557,13 @@ body.modern-ui3 .modern-brand-pill {
 }
 html.modern-ui3 .modern-brand-pill:hover,
 body.modern-ui3 .modern-brand-pill:hover {
-	border-color: var(--modern-card-border-hover) !important;
-	box-shadow: 0 0 12px rgba(0, 229, 255, 0.2) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.48), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18) !important;
+}
+html.modern-ui3 .modern-brand-pill:hover .modern-brand-icon,
+body.modern-ui3 .modern-brand-pill:hover .modern-brand-icon {
+	filter: drop-shadow(0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.75)) !important;
 }
 html.modern-ui3 .modern-brand-icon,
 body.modern-ui3 .modern-brand-icon {
@@ -9480,9 +9669,9 @@ body.modern-ui3 .modern-search-bar {
 }
 html.modern-ui3 .modern-search-bar:focus-within,
 body.modern-ui3 .modern-search-bar:focus-within {
-	border-color: var(--modern-accent-cyan);
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
 	background: rgba(19, 29, 53, 0.95);
-	box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
 }
 html.modern-ui3 .modern-search-icon,
 body.modern-ui3 .modern-search-icon {
@@ -9559,13 +9748,23 @@ body.modern-ui3 .modern-density-btn {
 }
 html.modern-ui3 .modern-density-btn:hover,
 body.modern-ui3 .modern-density-btn:hover {
-	color: var(--modern-text-primary) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	box-shadow: 0 0 10px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.42), inset 0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
 }
 html.modern-ui3 .modern-density-btn.active,
 body.modern-ui3 .modern-density-btn.active {
-	background: var(--modern-accent-blue) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.24) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.65) !important;
 	color: #FFFFFF !important;
-	box-shadow: 0 0 10px rgba(37, 99, 235, 0.5) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
+}
+html.modern-ui3 .modern-density-btn.active:hover,
+body.modern-ui3 .modern-density-btn.active:hover {
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.32) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.60) !important;
 }
 
 /* Tools Group */
@@ -9608,12 +9807,20 @@ body.modern-ui3 .modern-tool-btn svg {
 	flex-shrink: 0 !important;
 	overflow: visible !important;
 }
+html.modern-ui3 .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover,
+body.modern-ui3 .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover,
 html.modern-ui3 .modern-tool-btn:hover,
 body.modern-ui3 .modern-tool-btn:hover {
-	color: var(--modern-accent-cyan) !important;
-	border-color: var(--modern-card-border-hover) !important;
-	background: rgba(19, 29, 53, 0.9) !important;
-	box-shadow: 0 0 10px rgba(0, 229, 255, 0.25) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.50), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.20) !important;
+}
+html.modern-ui3 .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover svg,
+body.modern-ui3 .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover svg,
+html.modern-ui3 .modern-tool-btn:hover svg,
+body.modern-ui3 .modern-tool-btn:hover svg {
+	filter: drop-shadow(0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.75)) !important;
 }
 html.modern-ui3 #modern-btn-settings,
 body.modern-ui3 #modern-btn-settings {
@@ -9662,8 +9869,13 @@ body.modern-ui3 .modern-profile-pill {
 }
 html.modern-ui3 .modern-profile-pill:hover,
 body.modern-ui3 .modern-profile-pill:hover {
-	border-color: var(--modern-card-border-hover) !important;
-	background: rgba(19, 29, 53, 0.9) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.48), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18) !important;
+}
+html.modern-ui3 .modern-profile-pill:hover .modern-profile-arrow,
+body.modern-ui3 .modern-profile-pill:hover .modern-profile-arrow {
+	color: var(--modern-accent-primary, #00E5FF) !important;
 }
 html.modern-ui3 .modern-profile-indicator,
 body.modern-ui3 .modern-profile-indicator {
@@ -9702,8 +9914,13 @@ body.modern-ui3 .modern-toggle-switch-wrapper {
 }
 html.modern-ui3 .modern-toggle-switch-wrapper:hover,
 body.modern-ui3 .modern-toggle-switch-wrapper:hover {
-	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18) !important;
-	box-shadow: 0 0 12px var(--modern-accent-glow, rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35)) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.22) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.52), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.20) !important;
+}
+html.modern-ui3 .modern-classic-link-btn:hover .modern-classic-link-icon,
+body.modern-ui3 .modern-classic-link-btn:hover .modern-classic-link-icon {
+	filter: drop-shadow(0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.75)) !important;
 }
 html.modern-ui3 .modern-toggle-title,
 body.modern-ui3 .modern-toggle-title {
@@ -9776,9 +9993,15 @@ body.modern-ui3 .modern-nav-item {
 }
 html.modern-ui3 .modern-nav-item:hover,
 body.modern-ui3 .modern-nav-item:hover {
-	color: var(--modern-text-primary);
-	background: rgba(255, 255, 255, 0.04);
-	border-color: rgba(255, 255, 255, 0.06);
+	color: #FFFFFF;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14);
+	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.65);
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 10px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18);
+}
+html.modern-ui3 .modern-nav-item:hover .modern-nav-icon,
+body.modern-ui3 .modern-nav-item:hover .modern-nav-icon {
+	color: var(--modern-accent-primary, #00E5FF);
+	filter: drop-shadow(0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.8));
 }
 html.modern-ui3 .modern-nav-item.active,
 body.modern-ui3 .modern-nav-item.active {
@@ -9786,6 +10009,12 @@ body.modern-ui3 .modern-nav-item.active {
 	background: var(--modern-bg-card);
 	border-color: var(--modern-card-border-hover);
 	box-shadow: 0 4px 16px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.15), inset 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.06);
+}
+html.modern-ui3 .modern-nav-item.active:hover,
+body.modern-ui3 .modern-nav-item.active:hover {
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.20);
+	border-color: var(--modern-accent-primary, #00E5FF);
+	box-shadow: 0 0 18px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55), inset 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.22);
 }
 html.modern-ui3 .modern-nav-item.active::before,
 body.modern-ui3 .modern-nav-item.active::before {
@@ -9991,8 +10220,8 @@ body.modern-ui3 .dropdownBox {
 html.modern-ui3 #modern-sidebar-controls .dropdownBox:hover,
 html.modern-ui3 .dropdownBox:hover,
 body.modern-ui3 .dropdownBox:hover {
-	border-color: var(--modern-accent-cyan) !important;
-	box-shadow: 0 0 8px rgba(0, 229, 255, 0.25) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
 }
 html.modern-ui3 #modern-sidebar-controls .dropdownLabel,
 html.modern-ui3 .dropdownLabel,
@@ -10075,8 +10304,9 @@ html.modern-ui3 #modern-sidebar-controls #schedule_lock_button {
 	transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 html.modern-ui3 #modern-sidebar-controls #schedule_lock_button:hover {
-	border-color: var(--modern-accent-cyan) !important;
-	box-shadow: 0 0 8px rgba(0, 229, 255, 0.25) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
 }
 /* Modern Sidebar Status Area Card */
 html.modern-ui3 #modern-sidebar-controls #statusArea,
@@ -10375,9 +10605,14 @@ body.modern-ui3 .modern-sidebar-collapse-btn {
 }
 html.modern-ui3 .modern-sidebar-collapse-btn:hover,
 body.modern-ui3 .modern-sidebar-collapse-btn:hover {
-	color: var(--modern-accent-cyan);
-	background: rgba(0, 229, 255, 0.08);
-	border-color: rgba(0, 229, 255, 0.3);
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.48), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18) !important;
+}
+html.modern-ui3 .modern-sidebar-collapse-btn:hover svg,
+body.modern-ui3 .modern-sidebar-collapse-btn:hover svg {
+	filter: drop-shadow(0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.75)) !important;
 }
 html.modern-ui3 .modern-sidebar-collapse-btn svg,
 body.modern-ui3 .modern-sidebar-collapse-btn svg {
@@ -10647,8 +10882,8 @@ body.modern-ui3 .dropdownBox {
 }
 html.modern-ui3 .dropdownBox:hover,
 body.modern-ui3 .dropdownBox:hover {
-	border-color: var(--modern-accent-cyan) !important;
-	box-shadow: 0 0 8px rgba(0, 229, 255, 0.2) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 6px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
 }
 
 /* Scoped Styling for #layoutbody (Canvas & Streams) */
@@ -10700,9 +10935,9 @@ body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_modern_ui"] label {
 /* Scoped Focus-Visible & Keyboard Navigation Accessibility */
 html.modern-ui3 :focus-visible,
 body.modern-ui3 :focus-visible {
-	outline: 2px solid var(--modern-accent-cyan) !important;
+	outline: 2px solid var(--modern-accent-primary, #00E5FF) !important;
 	outline-offset: 2px !important;
-	box-shadow: 0 0 10px rgba(0, 229, 255, 0.5) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
 }
 html.modern-ui3 .modern-brand-pill:focus-visible,
 body.modern-ui3 .modern-brand-pill:focus-visible,
@@ -10718,9 +10953,9 @@ html.modern-ui3 .modern-nav-item:focus-visible,
 body.modern-ui3 .modern-nav-item:focus-visible,
 html.modern-ui3 .modern-sidebar-collapse-btn:focus-visible,
 body.modern-ui3 .modern-sidebar-collapse-btn:focus-visible {
-	outline: 2px solid var(--modern-accent-cyan) !important;
+	outline: 2px solid var(--modern-accent-primary, #00E5FF) !important;
 	outline-offset: 2px !important;
-	box-shadow: 0 0 12px rgba(0, 229, 255, 0.6) !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.60) !important;
 }
 
 /* ==============================================================
@@ -13191,41 +13426,41 @@ html.modern-ui3 .diskUsageSeparator
 
 /* ==========================================================================
    Modern Update Blue Iris Dialog Styles (.biUpdModernDialog, .biUpdatesDialog)
-   Ultra-High Contrast Text on Colored Backgrounds
+   Dynamic Accent Theming & High-Contrast Card Highlighting
    ========================================================================== */
 html.modern-ui3 .dialog_wrapper.darkTheme.biUpdModernDialog
 {
 	--biupd-chrome-bg-color: rgba(19, 29, 53, 0.98);
-	--biupd-chrome-border-color: rgba(0, 229, 255, 0.3);
-	--biupd-chrome-bottom-border-color: rgba(0, 229, 255, 0.2);
+	--biupd-chrome-border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.30);
+	--biupd-chrome-bottom-border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.20);
 	--biupd-list-border-color: rgba(255, 255, 255, 0.08);
 	--biupd-separator-color: rgba(255, 255, 255, 0.06);
 	--biupd-note-color: #94A3B8;
 	--biupd-changes-color: #CBD5E1;
 	--biupd-status-ok-color: #10B981;
-	--biupd-status-update-color: #00E5FF;
+	--biupd-status-update-color: var(--modern-accent-primary, #00E5FF);
 	--biupd-status-warn-color: #FACC15;
 	--biupd-status-error-color: #EF4444;
 	--biupd-badge-bg-color: rgba(18, 26, 43, 0.9);
 	--biupd-badge-color: #F1F5F9;
-	--biupd-badge-latest-border-color: rgba(0, 229, 255, 0.5);
-	--biupd-installed-badge-bg-color: rgba(14, 116, 144, 0.85);
-	--biupd-installed-rule-color: #06B6D4;
+	--biupd-badge-latest-border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.50);
+	--biupd-installed-badge-bg-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.24);
+	--biupd-installed-rule-color: var(--modern-accent-primary, #00E5FF);
 	--biupd-newer-color: #10B981;
-	--biupd-newer-hover-color: rgba(16, 185, 129, 0.16);
-	--biupd-newer-selected-hover-color: rgba(16, 185, 129, 0.32);
-	--biupd-newer-tint-color: rgba(16, 185, 129, 0.12);
+	--biupd-newer-hover-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.10);
+	--biupd-newer-selected-hover-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.22);
+	--biupd-newer-tint-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.12);
 	--biupd-warn-color: #FACC15;
-	--biupd-warn-hover-color: rgba(250, 204, 21, 0.16);
-	--biupd-warn-selected-hover-color: rgba(250, 204, 21, 0.32);
-	--biupd-warn-tint-color: rgba(250, 204, 21, 0.12);
+	--biupd-warn-hover-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.10);
+	--biupd-warn-selected-hover-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.22);
+	--biupd-warn-tint-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.12);
 	--biupd-gray-color: #64748B;
-	--biupd-gray-hover-color: rgba(100, 116, 139, 0.16);
-	--biupd-gray-selected-hover-color: rgba(100, 116, 139, 0.32);
-	--biupd-gray-tint-color: rgba(100, 116, 139, 0.12);
-	border: 1px solid rgba(0, 229, 255, 0.3) !important;
+	--biupd-gray-hover-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.10);
+	--biupd-gray-selected-hover-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.22);
+	--biupd-gray-tint-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.12);
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.32) !important;
 	border-radius: 12px !important;
-	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.78), 0 0 20px rgba(0, 229, 255, 0.2) !important;
+	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.78), 0 0 20px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
 }
 
 html.modern-ui3 .biUpdModernDialog .dialog_title
@@ -13260,7 +13495,7 @@ html.modern-ui3 .biUpdatesDialog.biUpdModern .biUpdList
 	-webkit-overflow-scrolling: touch !important;
 }
 
-/* Group Headers with Ultra-Crisp High-Contrast Text */
+/* Group Headers */
 html.modern-ui3 .biUpdGroup
 {
 	display: flex !important;
@@ -13272,9 +13507,10 @@ html.modern-ui3 .biUpdGroup
 	text-transform: uppercase !important;
 	padding: 8px 12px !important;
 	margin: 10px 0 !important;
-	border-radius: 4px !important;
-	background-color: #1E293B !important;
-	color: #F8FAFC !important;
+	border-radius: 6px !important;
+	background-color: rgba(30, 41, 59, 0.85) !important;
+	border: 1px solid rgba(255, 255, 255, 0.08) !important;
+	color: #E2E8F0 !important;
 }
 
 html.modern-ui3 .biUpdGroup:first-child
@@ -13282,54 +13518,71 @@ html.modern-ui3 .biUpdGroup:first-child
 	margin-top: 0 !important;
 }
 
-/* Green Background Group Header -> Bold Deep Black-Emerald Text */
 html.modern-ui3 .biUpdGroup.biUpdGroupNewer
 {
-	background-color: #10B981 !important;
-	color: #022013 !important;
+	background-color: rgba(16, 185, 129, 0.18) !important;
+	border: 1px solid rgba(16, 185, 129, 0.45) !important;
+	color: #34D399 !important;
 	font-weight: 800 !important;
 	text-shadow: none !important;
 }
 
-/* Blue/Cyan Background Group Header -> Bold Deep Black-Navy Text */
 html.modern-ui3 .biUpdGroup.biUpdGroupInstalled
 {
-	background-color: #06B6D4 !important;
-	color: #021B24 !important;
+	background-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
 	font-weight: 800 !important;
 	text-shadow: none !important;
 }
 
-/* Amber/Warn Background Group Header -> Bold Deep Black-Amber Text */
 html.modern-ui3 .biUpdGroup.biUpdGroupWarn
 {
-	background-color: #F59E0B !important;
-	color: #241400 !important;
+	background-color: rgba(245, 158, 11, 0.18) !important;
+	border: 1px solid rgba(245, 158, 11, 0.45) !important;
+	color: #FBBF24 !important;
 	font-weight: 800 !important;
 	text-shadow: none !important;
 }
 
-/* Version Blocks */
+/* Unified Version Block Hover & Selection Highlighting */
 html.modern-ui3 .biUpdBlock
 {
-	background: rgba(18, 26, 43, 0.6) !important;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+	background: rgba(18, 26, 43, 0.65) !important;
+	border: 1px solid rgba(255, 255, 255, 0.06) !important;
+	border-radius: 6px !important;
+	margin-bottom: 5px !important;
+	overflow: hidden !important;
+	outline: none !important;
 	padding: 0 !important;
-	transition: all 0.15s ease !important;
+	transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
 	cursor: pointer !important;
 }
 
 html.modern-ui3 .biUpdBlock:hover
 {
-	background: rgba(0, 229, 255, 0.08) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.10) !important;
+	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
+	outline: none !important;
 }
 
 html.modern-ui3 .biUpdBlock.selected
 {
-	background: rgba(0, 229, 255, 0.16) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: inset 3px 0 0 var(--modern-accent-primary, #00E5FF), 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	outline: none !important;
 }
 
-html.modern-ui3 .biUpdBlockRow
+html.modern-ui3 .biUpdBlock.selected:hover
+{
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.22) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	outline: none !important;
+}
+
+html.modern-ui3 .biUpdBlockRow,
+html.modern-ui3 .biUpdBlockInstalled .biUpdBlockRow
 {
 	display: flex !important;
 	flex-wrap: wrap !important;
@@ -13339,6 +13592,30 @@ html.modern-ui3 .biUpdBlockRow
 	min-height: 42px !important;
 	height: auto !important;
 	box-sizing: border-box !important;
+	background-color: transparent !important;
+	color: #E2E8F0 !important;
+}
+
+html.modern-ui3 .biUpdBlock:hover .biUpdBlockRow
+{
+	background-color: transparent !important;
+}
+
+html.modern-ui3 .biUpdBlock.selected .biUpdBlockRow,
+html.modern-ui3 .biUpdBlockNewer.selected .biUpdBlockRow,
+html.modern-ui3 .biUpdBlockInstalled.selected .biUpdBlockRow,
+html.modern-ui3 .biUpdBlockWarn.selected .biUpdBlockRow
+{
+	background-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.12) !important;
+	color: #F8FAFC !important;
+}
+
+html.modern-ui3 .biUpdBlock.selected:hover .biUpdBlockRow,
+html.modern-ui3 .biUpdBlockNewer.selected:hover .biUpdBlockRow,
+html.modern-ui3 .biUpdBlockInstalled.selected:hover .biUpdBlockRow,
+html.modern-ui3 .biUpdBlockWarn.selected:hover .biUpdBlockRow
+{
+	background-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
 }
 
 html.modern-ui3 .biUpdRowSpacer
@@ -13349,7 +13626,8 @@ html.modern-ui3 .biUpdRowSpacer
 	gap: 6px !important;
 }
 
-html.modern-ui3 .biUpdVer
+html.modern-ui3 .biUpdVer,
+html.modern-ui3 .biUpdBlock.selected .biUpdVer
 {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
 	font-weight: 700 !important;
@@ -13358,7 +13636,13 @@ html.modern-ui3 .biUpdVer
 	flex-shrink: 0 !important;
 }
 
-html.modern-ui3 .biUpdDate
+html.modern-ui3 .biUpdBlock.selected .biUpdVer
+{
+	color: #FFFFFF !important;
+}
+
+html.modern-ui3 .biUpdDate,
+html.modern-ui3 .biUpdBlockInstalled .biUpdDate
 {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
 	font-size: 12px !important;
@@ -13368,6 +13652,18 @@ html.modern-ui3 .biUpdDate
 	flex-shrink: 0 !important;
 }
 
+html.modern-ui3 .biUpdBlock.selected .biUpdDate,
+html.modern-ui3 .biUpdBlockNewer.selected .biUpdDate,
+html.modern-ui3 .biUpdBlockWarn.selected .biUpdDate
+{
+	color: #CBD5E1 !important;
+}
+
+html.modern-ui3 .biUpdBlockWarn.selected .biUpdWarnBtn
+{
+	color: #FACC15 !important;
+}
+
 html.modern-ui3 .biUpdBadge
 {
 	border-radius: 12px !important;
@@ -13375,117 +13671,34 @@ html.modern-ui3 .biUpdBadge
 	font-weight: 700 !important;
 	padding: 2px 8px !important;
 	letter-spacing: 0.04em !important;
-	border: 1px solid rgba(0, 229, 255, 0.4) !important;
-	background: rgba(18, 26, 43, 0.9) !important;
-	color: #00E5FF !important;
-	box-shadow: 0 0 8px rgba(0, 229, 255, 0.25) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: none !important;
 }
 
 html.modern-ui3 .biUpdBadge.biUpdBadgeStable
 {
-	border-color: rgba(16, 185, 129, 0.5) !important;
-	background: rgba(16, 185, 129, 0.15) !important;
-	color: #10B981 !important;
-	box-shadow: 0 0 8px rgba(16, 185, 129, 0.3) !important;
+	border-color: rgba(16, 185, 129, 0.50) !important;
+	background: rgba(16, 185, 129, 0.16) !important;
+	color: #34D399 !important;
+	box-shadow: none !important;
 }
 
 html.modern-ui3 .biUpdBadge.biUpdBadgeInstalled
 {
-	border-color: rgba(6, 182, 212, 0.6) !important;
-	background: rgba(6, 182, 212, 0.2) !important;
-	color: #06B6D4 !important;
-	box-shadow: 0 0 8px rgba(6, 182, 212, 0.3) !important;
-}
-
-/* ==========================================================================
-   SELECTED VERSION BLOCKS: HIGH CONTRAST ON SOLID COLORED BACKGROUNDS
-   ========================================================================== */
-
-/* Selected Newer (Green Background) */
-html.modern-ui3 .biUpdBlockNewer.selected .biUpdBlockRow
-{
-	background-color: #10B981 !important;
-	color: #022013 !important;
-}
-
-html.modern-ui3 .biUpdBlockNewer.selected .biUpdBlockRow .biUpdVer
-{
-	color: #022013 !important;
-	font-weight: 800 !important;
-}
-
-html.modern-ui3 .biUpdBlockNewer.selected .biUpdBlockRow .biUpdDate
-{
-	color: #063822 !important;
-	font-weight: 700 !important;
-}
-
-html.modern-ui3 .biUpdBlockNewer.selected .biUpdBlockRow .biUpdBadge
-{
-	background: #022013 !important;
-	color: #A7F3D0 !important;
-	border: 1px solid #064E3B !important;
-	font-weight: 800 !important;
-}
-
-/* Selected Installed (Blue/Cyan Background) */
-html.modern-ui3 .biUpdBlockInstalled.selected .biUpdBlockRow
-{
-	background-color: #06B6D4 !important;
-	color: #021B24 !important;
-}
-
-html.modern-ui3 .biUpdBlockInstalled.selected .biUpdBlockRow .biUpdVer
-{
-	color: #021B24 !important;
-	font-weight: 800 !important;
-}
-
-html.modern-ui3 .biUpdBlockInstalled.selected .biUpdBlockRow .biUpdDate
-{
-	color: #053344 !important;
-	font-weight: 700 !important;
-}
-
-html.modern-ui3 .biUpdBlockInstalled.selected .biUpdBlockRow .biUpdBadge
-{
-	background: #021B24 !important;
-	color: #CFFAFE !important;
-	border: 1px solid #0E7490 !important;
-	font-weight: 800 !important;
-}
-
-/* Selected Warn (Amber Background) */
-html.modern-ui3 .biUpdBlockWarn.selected .biUpdBlockRow
-{
-	background-color: #F59E0B !important;
-	color: #241400 !important;
-}
-
-html.modern-ui3 .biUpdBlockWarn.selected .biUpdBlockRow .biUpdVer
-{
-	color: #241400 !important;
-	font-weight: 800 !important;
-}
-
-html.modern-ui3 .biUpdBlockWarn.selected .biUpdBlockRow .biUpdDate
-{
-	color: #451A03 !important;
-	font-weight: 700 !important;
-}
-
-html.modern-ui3 .biUpdBlockWarn.selected .biUpdBlockRow .biUpdBadge
-{
-	background: #241400 !important;
-	color: #FEF3C7 !important;
-	border: 1px solid #78350F !important;
-	font-weight: 800 !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.60) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.24) !important;
+	color: #FFFFFF !important;
+	box-shadow: none !important;
 }
 
 /* Changelog / Notes */
-html.modern-ui3 .biUpdChanges
+html.modern-ui3 .biUpdChanges,
+html.modern-ui3 .biUpdBlock.selected .biUpdChanges
 {
-	background: rgba(11, 16, 29, 0.9) !important;
+	background: rgba(11, 16, 29, 0.72) !important;
+	background-image: none !important;
 	color: #CBD5E1 !important;
 	border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 	padding: 8px 14px 10px 14px !important;
@@ -13493,46 +13706,64 @@ html.modern-ui3 .biUpdChanges
 	line-height: 1.45 !important;
 }
 
+html.modern-ui3 .biUpdBlock.selected .biUpdChanges
+{
+	border-top-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.24) !important;
+}
+
+/* Footer Buttons (Specificity > .dialog_content input[type="button"]) */
+html.modern-ui3 .dialog_content input[type="button"].biUpdBtn,
+body.modern-ui3 .dialog_content input[type="button"].biUpdBtn,
 html.modern-ui3 .biUpdBtn
 {
-	background: rgba(18, 26, 43, 0.85) !important;
-	border: 1px solid rgba(255, 255, 255, 0.15) !important;
+	background: rgba(30, 41, 59, 0.72) !important;
+	border: 1px solid rgba(255, 255, 255, 0.16) !important;
 	color: #E2E8F0 !important;
 	border-radius: 6px !important;
-	padding: 8px 18px !important;
+	height: 32px !important;
+	padding: 0 16px !important;
 	font-size: 12px !important;
 	font-weight: 600 !important;
+	box-shadow: none !important;
 	cursor: pointer !important;
 	transition: all 0.2s ease !important;
 }
 
+html.modern-ui3 .dialog_content input[type="button"].biUpdBtn:hover,
+body.modern-ui3 .dialog_content input[type="button"].biUpdBtn:hover,
 html.modern-ui3 .biUpdBtn:hover
 {
-	background: rgba(255, 255, 255, 0.1) !important;
-	border-color: rgba(255, 255, 255, 0.3) !important;
+	background: rgba(51, 65, 85, 0.85) !important;
+	border-color: rgba(255, 255, 255, 0.30) !important;
 	color: #FFFFFF !important;
+	box-shadow: none !important;
 }
 
-html.modern-ui3 .biUpdBtnPrimary
+html.modern-ui3 .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary,
+body.modern-ui3 .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary,
+html.modern-ui3 .biUpdBtn.biUpdBtnPrimary
 {
-	background: linear-gradient(135deg, #0284C7, #00E5FF) !important;
-	border: none !important;
-	color: #021B24 !important;
-	font-weight: 800 !important;
-	box-shadow: 0 0 16px rgba(0, 229, 255, 0.45) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	font-weight: 700 !important;
+	box-shadow: none !important;
 }
 
-html.modern-ui3 .biUpdBtnPrimary:hover
+html.modern-ui3 .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary:hover,
+body.modern-ui3 .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary:hover,
+html.modern-ui3 .biUpdBtn.biUpdBtnPrimary:hover
 {
-	background: linear-gradient(135deg, #0369A1, #38BDF8) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.30) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
 	color: #FFFFFF !important;
-	box-shadow: 0 0 22px rgba(0, 229, 255, 0.65) !important;
+	box-shadow: 0 0 12px var(--modern-accent-glow, rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35)) !important;
 }
 
 html.modern-ui3 .biUpdNewsBody
 {
-	background: rgba(0, 229, 255, 0.08) !important;
-	border: 1px solid rgba(0, 229, 255, 0.25) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.07) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.25) !important;
 	border-radius: 8px !important;
 	padding: 10px 14px !important;
 	color: #E2E8F0 !important;
@@ -13541,43 +13772,75 @@ html.modern-ui3 .biUpdNewsBody
 	margin-bottom: 12px !important;
 }
 
+html.modern-ui3 .biUpdNewsBody a,
+html.modern-ui3 .biUpdFootNotes a,
+html.modern-ui3 .biUpdLearnMore a
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	text-decoration: underline !important;
+}
+
+html.modern-ui3 .biUpdNewsBody a:hover,
+html.modern-ui3 .biUpdFootNotes a:hover,
+html.modern-ui3 .biUpdLearnMore a:hover
+{
+	color: var(--modern-accent-light, var(--modern-accent-primary, #00E5FF)) !important;
+}
+
+html.modern-ui3 .biUpdManualLinkRow a
+{
+	color: #94A3B8 !important;
+}
+
+html.modern-ui3 .biUpdManualLinkRow a:hover
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+}
+
+html.modern-ui3 .dialog_content .biUpdManualRow input[type="text"],
 html.modern-ui3 .biUpdManualRow input[type="text"]
 {
 	background: rgba(13, 20, 36, 0.85) !important;
-	border: 1px solid rgba(0, 229, 255, 0.35) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35) !important;
 	color: #F8FAFC !important;
 	border-radius: 6px !important;
 	padding: 7px 12px !important;
 	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
 	font-size: 13px !important;
 	outline: none !important;
+	box-shadow: none !important;
 	transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
+html.modern-ui3 .dialog_content .biUpdManualRow input[type="text"]:focus,
 html.modern-ui3 .biUpdManualRow input[type="text"]:focus
 {
-	border-color: #00E5FF !important;
-	box-shadow: 0 0 12px rgba(0, 229, 255, 0.35) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 10px var(--modern-accent-glow, rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35)) !important;
 }
 
+html.modern-ui3 .dialog_content .biUpdManualRow input[type="button"],
 html.modern-ui3 .biUpdManualRow input[type="button"]
 {
-	background: rgba(18, 26, 43, 0.85) !important;
-	border: 1px solid rgba(0, 229, 255, 0.35) !important;
-	color: #00E5FF !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
 	border-radius: 6px !important;
 	padding: 7px 16px !important;
 	font-size: 12px !important;
 	font-weight: 600 !important;
+	box-shadow: none !important;
 	cursor: pointer !important;
 	transition: all 0.2s ease !important;
 }
 
+html.modern-ui3 .dialog_content .biUpdManualRow input[type="button"]:hover,
 html.modern-ui3 .biUpdManualRow input[type="button"]:hover
 {
-	background: rgba(0, 229, 255, 0.15) !important;
-	border-color: #00E5FF !important;
-	box-shadow: 0 0 12px rgba(0, 229, 255, 0.35) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.28) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 0 12px var(--modern-accent-glow, rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35)) !important;
 }
 
 html.modern-ui3 .biUpdFoot
@@ -13594,15 +13857,9 @@ html.modern-ui3 .biUpdFootNotes
 	line-height: 1.6 !important;
 }
 
-html.modern-ui3 .biUpdFootNotes a
-{
-	color: #00E5FF !important;
-	text-decoration: underline !important;
-}
-
 html.modern-ui3 .biUpdChangelogLink
 {
-	color: #38BDF8 !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
 	text-decoration: none !important;
 	font-size: 12px !important;
 	font-weight: 600 !important;
@@ -13613,7 +13870,7 @@ html.modern-ui3 .biUpdChangelogLink
 
 html.modern-ui3 .biUpdChangelogLink:hover
 {
-	color: #00E5FF !important;
+	color: var(--modern-accent-light, var(--modern-accent-primary, #00E5FF)) !important;
 	text-decoration: underline !important;
 }
 
@@ -18207,6 +18464,13 @@ body.modern-ui3 #playbackControls
 	background: linear-gradient(0deg, rgba(10, 15, 29, 0.88) 0%, rgba(10, 15, 29, 0.5) 60%, rgba(10, 15, 29, 0) 100%) !important;
 	backdrop-filter: none !important;
 	-webkit-backdrop-filter: none !important;
+	overflow: visible !important;
+}
+
+html.modern-ui3 #pcButtonContainer,
+body.modern-ui3 #pcButtonContainer
+{
+	overflow: visible !important;
 }
 
 html.modern-ui3 #seekBarWrapper,
@@ -18300,7 +18564,7 @@ body.modern-ui3 .pcButton svg
 {
 	fill: currentColor !important;
 	color: inherit !important;
-	filter: drop-shadow(0 0 6px var(--modern-accent-glow)) !important;
+	filter: none !important;
 }
 
 html.modern-ui3 .pcButton:hover,
@@ -18308,7 +18572,13 @@ body.modern-ui3 .pcButton:hover
 {
 	color: #FFFFFF !important;
 	transform: scale(1.1) !important;
-	filter: drop-shadow(0 0 10px var(--modern-accent-glow)) !important;
+	filter: none !important;
+}
+
+html.modern-ui3 .pcButton:hover svg,
+body.modern-ui3 .pcButton:hover svg
+{
+	filter: none !important;
 }
 
 html.modern-ui3 #pcPlay,
@@ -18339,12 +18609,37 @@ body.modern-ui3 #volumeBar .statusBarLabel
 	color: var(--modern-accent-primary, #00E5FF) !important;
 }
 
+html.modern-ui3 #pcVolume,
+body.modern-ui3 #pcVolume
+{
+	transition: all 0.15s ease !important;
+}
+
 html.modern-ui3 #volumeBar svg,
 body.modern-ui3 #volumeBar svg
 {
 	fill: currentColor !important;
 	color: inherit !important;
-	filter: drop-shadow(0 0 6px var(--modern-accent-glow)) !important;
+	filter: none !important;
+}
+
+html.modern-ui3 #volumeBar .statusBarLabel:hover #pcVolume,
+body.modern-ui3 #volumeBar .statusBarLabel:hover #pcVolume,
+html.modern-ui3 #pcVolume:hover,
+body.modern-ui3 #pcVolume:hover
+{
+	color: #FFFFFF !important;
+	transform: scale(1.1) !important;
+}
+
+html.modern-ui3 #volumeBar .statusBarLabel:hover svg,
+body.modern-ui3 #volumeBar .statusBarLabel:hover svg,
+html.modern-ui3 #pcVolume:hover svg,
+body.modern-ui3 #pcVolume:hover svg
+{
+	fill: currentColor !important;
+	color: #FFFFFF !important;
+	filter: none !important;
 }
 
 html.modern-ui3 #volumeBar .progressBarOuter,
@@ -18371,7 +18666,7 @@ body.modern-ui3 .pcText
 	font-size: 13px !important;
 }
 
-/* Playback Speed Button (Matches adjacent .pcButton icons: no rounded rectangle, matching height/margin/glow) */
+/* Playback Speed Button (Matches adjacent .pcButton icons: no rounded rectangle, matching height/padding/glow) */
 html.modern-ui3 #playbackSpeedText,
 body.modern-ui3 #playbackSpeedText
 {
@@ -18379,23 +18674,23 @@ body.modern-ui3 #playbackSpeedText
 	border: none !important;
 	border-radius: 0 !important;
 	box-shadow: none !important;
-	padding: 0 2px !important;
+	padding: 8px 4px !important;
 	min-width: 26px !important;
-	height: 26px !important;
-	min-height: 26px !important;
+	height: 42px !important;
+	min-height: 42px !important;
 	box-sizing: border-box !important;
 	color: var(--modern-accent-primary, #00E5FF) !important;
 	font-weight: 700 !important;
-	font-size: 16px !important;
+	font-size: 21px !important;
 	display: inline-flex !important;
 	align-items: center !important;
 	justify-content: center !important;
-	margin: 8px !important;
+	margin: 0 2px !important;
 	vertical-align: top !important;
 	transition: all 0.15s ease !important;
 	cursor: pointer !important;
 	line-height: 1 !important;
-	filter: drop-shadow(0 0 6px var(--modern-accent-glow)) !important;
+	filter: none !important;
 }
 
 html.modern-ui3.sizeMedium #playbackSpeedText,
@@ -18404,11 +18699,11 @@ html.modern-ui3 .sizeMedium #playbackSpeedText,
 body.modern-ui3 .sizeMedium #playbackSpeedText
 {
 	min-width: 21px !important;
-	height: 21px !important;
-	min-height: 21px !important;
-	margin: 6px !important;
-	padding: 0 2px !important;
-	font-size: 13px !important;
+	height: 33px !important;
+	min-height: 33px !important;
+	margin: 0 2px !important;
+	padding: 6px 3px !important;
+	font-size: 17px !important;
 }
 
 html.modern-ui3.sizeSmall #playbackSpeedText,
@@ -18417,11 +18712,11 @@ html.modern-ui3 .sizeSmall #playbackSpeedText,
 body.modern-ui3 .sizeSmall #playbackSpeedText
 {
 	min-width: 16px !important;
-	height: 16px !important;
-	min-height: 16px !important;
-	margin: 4px !important;
-	padding: 0 1px !important;
-	font-size: 11px !important;
+	height: 24px !important;
+	min-height: 24px !important;
+	margin: 0 1px !important;
+	padding: 4px 2px !important;
+	font-size: 13px !important;
 }
 
 html.modern-ui3 #playbackSpeedText:hover,
@@ -18432,7 +18727,7 @@ body.modern-ui3 #playbackSpeedText:hover
 	box-shadow: none !important;
 	color: #FFFFFF !important;
 	transform: scale(1.1) !important;
-	filter: drop-shadow(0 0 10px var(--modern-accent-glow)) !important;
+	filter: none !important;
 }
 
 
@@ -20451,16 +20746,50 @@ html.modern-ui3[data-modern-theme="light"] .modern-header-title
 	color: #334155 !important;
 }
 
-html.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item:hover
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item:hover,
+body.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item:hover
 {
-	background: rgba(15, 23, 42, 0.06) !important;
-	color: #0F172A !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.55) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.32), inset 0 0 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
 }
 
-html.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item.active
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item:hover .modern-nav-icon,
+body.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item:hover .modern-nav-icon
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	filter: drop-shadow(0 0 5px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45)) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item.active,
+body.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item.active
 {
 	background: var(--modern-accent-bg-subtle, rgba(2, 132, 199, 0.12)) !important;
 	color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item.active:hover,
+body.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item.active:hover
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.18) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.40), inset 0 0 10px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.16) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-sidebar-collapse-btn:hover,
+body.modern-ui3[data-modern-theme="light"] .modern-sidebar-collapse-btn:hover
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.34), inset 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-sidebar-collapse-btn:hover svg,
+body.modern-ui3[data-modern-theme="light"] .modern-sidebar-collapse-btn:hover svg
+{
+	filter: drop-shadow(0 0 5px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45)) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-search-bar,
@@ -20518,12 +20847,52 @@ html.modern-ui3[data-modern-theme="light"] .modern-tool-btn:hover,
 html.modern-ui3[data-modern-theme="light"] .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover,
 body.modern-ui3[data-modern-theme="light"] .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover,
 html.modern-ui3[data-modern-theme="light"] #modern-topbar .modern-icon-btn:hover,
-html.modern-ui3[data-modern-theme="light"] #modern-btn-mainmenu:hover
+html.modern-ui3[data-modern-theme="light"] #modern-btn-mainmenu:hover,
+html.modern-ui3[data-modern-theme="light"] .modern-profile-pill:hover,
+body.modern-ui3[data-modern-theme="light"] .modern-profile-pill:hover,
+html.modern-ui3[data-modern-theme="light"] .modern-toggle-switch-wrapper:hover,
+body.modern-ui3[data-modern-theme="light"] .modern-toggle-switch-wrapper:hover,
+html.modern-ui3[data-modern-theme="light"] .modern-density-btn:hover,
+body.modern-ui3[data-modern-theme="light"] .modern-density-btn:hover
 {
-	background: #F8FAFC !important;
-	border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45) !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
 	color: var(--modern-accent-primary, #0284C7) !important;
-	box-shadow: 0 2px 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.15) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35), inset 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover svg,
+body.modern-ui3[data-modern-theme="light"] .modern-tool-btn:not(.disabledBySetting):not([style*="display: none"]):hover svg,
+html.modern-ui3[data-modern-theme="light"] .modern-tool-btn:hover svg,
+html.modern-ui3[data-modern-theme="light"] #modern-btn-mainmenu:hover svg,
+html.modern-ui3[data-modern-theme="light"] .modern-classic-link-btn:hover .modern-classic-link-icon,
+body.modern-ui3[data-modern-theme="light"] .modern-classic-link-btn:hover .modern-classic-link-icon
+{
+	filter: drop-shadow(0 0 5px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45)) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-profile-pill:hover .modern-profile-arrow,
+body.modern-ui3[data-modern-theme="light"] .modern-profile-pill:hover .modern-profile-arrow
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-density-btn.active,
+body.modern-ui3[data-modern-theme="light"] .modern-density-btn.active
+{
+	background: var(--modern-accent-primary, #0284C7) !important;
+	border: 1px solid var(--modern-accent-primary, #0284C7) !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 0 10px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-density-btn.active:hover,
+body.modern-ui3[data-modern-theme="light"] .modern-density-btn.active:hover
+{
+	background: var(--modern-accent-primary, #0284C7) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.50) !important;
 }
 
 /* Keep Status Area at the bottom of #modern-sidebar-controls in landscape expanded mode */
@@ -20571,6 +20940,13 @@ html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #schedule_lo
 {
 	background: #FFFFFF !important;
 	border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #schedule_lock_button:hover
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.10) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35), inset 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .ptzGraphic.ptzBackground,
@@ -21409,37 +21785,128 @@ html.modern-ui3[data-modern-theme="light"] .modern-tl-pill.active
 	color: var(--modern-accent-primary, #0284C7) !important;
 }
 
-html.modern-ui3[data-modern-theme="light"] #playbackControls
+html.modern-ui3[data-modern-theme="light"] #playbackControls,
+body.modern-ui3[data-modern-theme="light"] #playbackControls
 {
-	background: linear-gradient(0deg, rgba(10, 15, 29, 0.72) 0%, rgba(10, 15, 29, 0.35) 60%, rgba(10, 15, 29, 0) 100%) !important;
+	background: linear-gradient(0deg, rgba(10, 15, 29, 0.34) 0%, rgba(10, 15, 29, 0.16) 28px, rgba(10, 15, 29, 0) 46px) !important;
+	background-color: transparent !important;
 	border-top: none !important;
 	color: #F8FAFC !important;
+	pointer-events: none !important;
 }
 
-html.modern-ui3[data-modern-theme="light"] #playbackHeader
+html.modern-ui3[data-modern-theme="light"] #playbackControls *,
+body.modern-ui3[data-modern-theme="light"] #playbackControls *
+{
+	pointer-events: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #playbackControls #exportOffsetWrapper,
+html.modern-ui3[data-modern-theme="light"] #playbackControls #exportOffsetWrapper *,
+html.modern-ui3[data-modern-theme="light"] #playbackControls #seekBarWrapper,
+html.modern-ui3[data-modern-theme="light"] #playbackControls #seekBarWrapper *,
+html.modern-ui3[data-modern-theme="light"] #playbackControls #volumeBar,
+html.modern-ui3[data-modern-theme="light"] #playbackControls #volumeBar *,
+html.modern-ui3[data-modern-theme="light"] #playbackControls .pcButton,
+html.modern-ui3[data-modern-theme="light"] #playbackControls .pcButton *,
+html.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText,
+html.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText *
+{
+	pointer-events: auto !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #playbackHeader,
+body.modern-ui3[data-modern-theme="light"] #playbackHeader
 {
 	background: transparent !important;
 	color: #F8FAFC !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] #playbackProgressText,
-html.modern-ui3[data-modern-theme="light"] #playbackFrameTimestamp
+html.modern-ui3[data-modern-theme="light"] #playbackFrameTimestamp,
+html.modern-ui3[data-modern-theme="light"] #playbackControls .pcText:not(#playbackSpeedText)
 {
-	color: #F8FAFC !important;
-	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.6) !important;
+	color: #FFFFFF !important;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.98), 0 0 6px rgba(0, 0, 0, 0.92), 0 0 14px rgba(0, 0, 0, 0.78), 0 0 22px rgba(0, 0, 0, 0.55) !important;
 }
 
-html.modern-ui3[data-modern-theme="light"] .pcButton
+html.modern-ui3[data-modern-theme="light"] #pcVolume,
+body.modern-ui3[data-modern-theme="light"] #pcVolume
 {
-	color: var(--modern-accent-primary, #00E5FF) !important;
+	transition: all 0.15s ease !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #volumeBar svg,
+body.modern-ui3[data-modern-theme="light"] #volumeBar svg
+{
+	filter: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #volumeBar .statusBarLabel:hover #pcVolume,
+body.modern-ui3[data-modern-theme="light"] #volumeBar .statusBarLabel:hover #pcVolume,
+html.modern-ui3[data-modern-theme="light"] #pcVolume:hover,
+body.modern-ui3[data-modern-theme="light"] #pcVolume:hover
+{
+	color: #FFFFFF !important;
+	transform: scale(1.1) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #volumeBar .statusBarLabel:hover svg,
+body.modern-ui3[data-modern-theme="light"] #volumeBar .statusBarLabel:hover svg,
+html.modern-ui3[data-modern-theme="light"] #pcVolume:hover svg,
+body.modern-ui3[data-modern-theme="light"] #pcVolume:hover svg
+{
+	fill: currentColor !important;
+	color: #FFFFFF !important;
+	filter: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText,
+body.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	text-shadow: none !important;
+	filter: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText:hover,
+body.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText:hover
+{
+	color: #FFFFFF !important;
+	text-shadow: none !important;
+	transform: scale(1.1) !important;
+	filter: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .pcButton,
+body.modern-ui3[data-modern-theme="light"] .pcButton
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
 	background: transparent !important;
 	border: none !important;
 }
 
-html.modern-ui3[data-modern-theme="light"] .pcButton:hover
+html.modern-ui3[data-modern-theme="light"] .pcButton svg,
+body.modern-ui3[data-modern-theme="light"] .pcButton svg
 {
-	background: rgba(255, 255, 255, 0.14) !important;
+	filter: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .pcButton:hover,
+body.modern-ui3[data-modern-theme="light"] .pcButton:hover
+{
+	background: transparent !important;
 	color: #FFFFFF !important;
+	transform: scale(1.1) !important;
+	filter: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .pcButton:hover svg,
+body.modern-ui3[data-modern-theme="light"] .pcButton:hover svg
+{
+	fill: currentColor !important;
+	color: #FFFFFF !important;
+	filter: none !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-tl-speed-popover,
@@ -21536,6 +22003,20 @@ body.modern-ui3[data-modern-theme="light"] .modern-brand-pill
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
 }
 
+html.modern-ui3[data-modern-theme="light"] .modern-brand-pill:hover,
+body.modern-ui3[data-modern-theme="light"] .modern-brand-pill:hover
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35), inset 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-brand-pill:hover .modern-brand-icon,
+body.modern-ui3[data-modern-theme="light"] .modern-brand-pill:hover .modern-brand-icon
+{
+	filter: drop-shadow(0 0 5px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45)) !important;
+}
+
 html.modern-ui3[data-modern-theme="light"] .modern-brand-title,
 body.modern-ui3[data-modern-theme="light"] .modern-brand-title
 {
@@ -21554,9 +22035,10 @@ body.modern-ui3[data-modern-theme="light"] .modern-live-badge.not-live
 html.modern-ui3[data-modern-theme="light"] .modern-live-badge.not-live:hover,
 body.modern-ui3[data-modern-theme="light"] .modern-live-badge.not-live:hover
 {
-	background: #E2E8F0 !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
 	border-color: var(--modern-accent-primary, #0284C7) !important;
-	color: #0F172A !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35), inset 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
 	opacity: 1 !important;
 }
 
@@ -21708,25 +22190,7 @@ body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_auto_maximize_on"] .clipic
 	color: var(--modern-accent-primary, #00E5FF) !important;
 }
 
-/* Light Mode: Video Overlay Playback Speed Button & Expanded Speed/Quality/Settings Menu */
-html.modern-ui3[data-modern-theme="light"] #playbackSpeedText,
-body.modern-ui3[data-modern-theme="light"] #playbackSpeedText
-{
-	background: transparent !important;
-	border: none !important;
-	box-shadow: none !important;
-	color: var(--modern-accent-primary, #00E5FF) !important;
-}
-
-html.modern-ui3[data-modern-theme="light"] #playbackSpeedText:hover,
-body.modern-ui3[data-modern-theme="light"] #playbackSpeedText:hover
-{
-	background: transparent !important;
-	border: none !important;
-	box-shadow: none !important;
-	color: #FFFFFF !important;
-}
-
+/* Light Mode: Video Overlay Expanded Speed/Quality/Settings Menu */
 html.modern-ui3[data-modern-theme="light"] .playbackSettings,
 body.modern-ui3[data-modern-theme="light"] .playbackSettings
 {
@@ -22376,6 +22840,24 @@ body.modern-ui3[data-modern-theme="light"] .dialog_wrapper.darkTheme.biUpdModern
 	--biupd-separator-color: rgba(15, 23, 42, 0.08);
 	--biupd-note-color: #475569;
 	--biupd-changes-color: #1E293B;
+	--biupd-status-ok-color: #059669;
+	--biupd-status-update-color: var(--modern-accent-primary, #0284C7);
+	--biupd-status-warn-color: #D97706;
+	--biupd-status-error-color: #DC2626;
+	--biupd-badge-bg-color: #F1F5F9;
+	--biupd-badge-color: #0F172A;
+	--biupd-badge-latest-border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45);
+	--biupd-installed-badge-bg-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.14);
+	--biupd-installed-rule-color: var(--modern-accent-primary, #0284C7);
+	--biupd-newer-hover-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.08);
+	--biupd-newer-selected-hover-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.17);
+	--biupd-newer-tint-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.10);
+	--biupd-warn-hover-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.08);
+	--biupd-warn-selected-hover-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.17);
+	--biupd-warn-tint-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.10);
+	--biupd-gray-hover-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.08);
+	--biupd-gray-selected-hover-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.17);
+	--biupd-gray-tint-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.10);
 	border: 1px solid rgba(15, 23, 42, 0.16) !important;
 	box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18) !important;
 }
@@ -22391,74 +22873,148 @@ html.modern-ui3[data-modern-theme="light"] .biUpdGroup,
 body.modern-ui3[data-modern-theme="light"] .biUpdGroup
 {
 	background-color: #E2E8F0 !important;
+	border: 1px solid rgba(15, 23, 42, 0.10) !important;
 	color: #0F172A !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdGroup.biUpdGroupNewer,
 body.modern-ui3[data-modern-theme="light"] .biUpdGroup.biUpdGroupNewer
 {
-	background-color: #10B981 !important;
-	color: #022013 !important;
+	background-color: rgba(16, 185, 129, 0.14) !important;
+	border: 1px solid rgba(16, 185, 129, 0.40) !important;
+	color: #047857 !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdGroup.biUpdGroupInstalled,
 body.modern-ui3[data-modern-theme="light"] .biUpdGroup.biUpdGroupInstalled
 {
-	background-color: #06B6D4 !important;
-	color: #021B24 !important;
+	background-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.38) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdGroup.biUpdGroupWarn,
 body.modern-ui3[data-modern-theme="light"] .biUpdGroup.biUpdGroupWarn
 {
-	background-color: #F59E0B !important;
-	color: #241400 !important;
+	background-color: rgba(245, 158, 11, 0.16) !important;
+	border: 1px solid rgba(245, 158, 11, 0.42) !important;
+	color: #B45309 !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdNewsBody,
 body.modern-ui3[data-modern-theme="light"] .biUpdNewsBody
 {
-	background: #F1F5F9 !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.06) !important;
 	color: #1E293B !important;
-	border: 1px solid rgba(15, 23, 42, 0.12) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.22) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdBlock,
 body.modern-ui3[data-modern-theme="light"] .biUpdBlock
 {
 	background: #FFFFFF !important;
-	border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+	border: 1px solid rgba(15, 23, 42, 0.10) !important;
+	outline: none !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdBlock:hover,
 body.modern-ui3[data-modern-theme="light"] .biUpdBlock:hover
 {
 	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.08) !important;
+	border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.40) !important;
+	outline: none !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected,
 body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected
 {
 	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: inset 3px 0 0 var(--modern-accent-primary, #0284C7), 0 2px 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	outline: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected:hover,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected:hover
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.17) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	outline: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockRow,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled .biUpdBlockRow
+{
+	background-color: transparent !important;
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock:hover .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock:hover .biUpdBlockRow
+{
+	background-color: transparent !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdBlockRow,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockNewer.selected .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockNewer.selected .biUpdBlockRow,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled.selected .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled.selected .biUpdBlockRow,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected .biUpdBlockRow
+{
+	background-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.08) !important;
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected:hover .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected:hover .biUpdBlockRow,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockNewer.selected:hover .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockNewer.selected:hover .biUpdBlockRow,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled.selected:hover .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled.selected:hover .biUpdBlockRow,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected:hover .biUpdBlockRow,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected:hover .biUpdBlockRow
+{
+	background-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdVer,
-body.modern-ui3[data-modern-theme="light"] .biUpdVer
+body.modern-ui3[data-modern-theme="light"] .biUpdVer,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdVer,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdVer
 {
 	color: #0F172A !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdDate,
-body.modern-ui3[data-modern-theme="light"] .biUpdDate
+body.modern-ui3[data-modern-theme="light"] .biUpdDate,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled .biUpdDate,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockInstalled .biUpdDate,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdDate,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdDate,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockNewer.selected .biUpdDate,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockNewer.selected .biUpdDate,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected .biUpdDate,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected .biUpdDate
 {
-	color: #64748B !important;
+	color: #475569 !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected .biUpdWarnBtn,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlockWarn.selected .biUpdWarnBtn
+{
+	color: #D97706 !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdBadge,
 body.modern-ui3[data-modern-theme="light"] .biUpdBadge
 {
-	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.4) !important;
-	background: #F1F5F9 !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.42) !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.10) !important;
 	color: var(--modern-accent-primary, #0284C7) !important;
 	box-shadow: none !important;
 }
@@ -22466,7 +23022,7 @@ body.modern-ui3[data-modern-theme="light"] .biUpdBadge
 html.modern-ui3[data-modern-theme="light"] .biUpdBadge.biUpdBadgeStable,
 body.modern-ui3[data-modern-theme="light"] .biUpdBadge.biUpdBadgeStable
 {
-	border-color: rgba(22, 163, 74, 0.4) !important;
+	border-color: rgba(22, 163, 74, 0.42) !important;
 	background: #DCFCE7 !important;
 	color: #15803D !important;
 	box-shadow: none !important;
@@ -22475,18 +23031,141 @@ body.modern-ui3[data-modern-theme="light"] .biUpdBadge.biUpdBadgeStable
 html.modern-ui3[data-modern-theme="light"] .biUpdBadge.biUpdBadgeInstalled,
 body.modern-ui3[data-modern-theme="light"] .biUpdBadge.biUpdBadgeInstalled
 {
-	border-color: rgba(2, 132, 199, 0.4) !important;
-	background: #E0F2FE !important;
-	color: #0369A1 !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45) !important;
+	background: var(--modern-accent-primary, #0284C7) !important;
+	color: #FFFFFF !important;
 	box-shadow: none !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdChanges,
-body.modern-ui3[data-modern-theme="light"] .biUpdChanges
+body.modern-ui3[data-modern-theme="light"] .biUpdChanges,
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdChanges,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdChanges
+{
+	background: #F8FAFC !important;
+	background-image: none !important;
+	color: #1E293B !important;
+	border-top: 1px solid rgba(15, 23, 42, 0.10) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdChanges,
+body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdChanges
+{
+	border-top-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.25) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn,
+body.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn,
+html.modern-ui3[data-modern-theme="light"] .biUpdBtn,
+body.modern-ui3[data-modern-theme="light"] .biUpdBtn
 {
 	background: #F1F5F9 !important;
-	color: #1E293B !important;
-	border-top: 1px solid rgba(15, 23, 42, 0.1) !important;
+	border: 1px solid rgba(15, 23, 42, 0.18) !important;
+	color: #334155 !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn:hover,
+html.modern-ui3[data-modern-theme="light"] .biUpdBtn:hover,
+body.modern-ui3[data-modern-theme="light"] .biUpdBtn:hover
+{
+	background: #E2E8F0 !important;
+	border-color: rgba(15, 23, 42, 0.28) !important;
+	color: #0F172A !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary,
+body.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary,
+html.modern-ui3[data-modern-theme="light"] .biUpdBtn.biUpdBtnPrimary,
+body.modern-ui3[data-modern-theme="light"] .biUpdBtn.biUpdBtnPrimary
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.50) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn.biUpdBtnPrimary:hover,
+html.modern-ui3[data-modern-theme="light"] .biUpdBtn.biUpdBtnPrimary:hover,
+body.modern-ui3[data-modern-theme="light"] .biUpdBtn.biUpdBtnPrimary:hover
+{
+	background: var(--modern-accent-primary, #0284C7) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 2px 10px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.28) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="text"],
+body.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="text"]
+{
+	background: #FFFFFF !important;
+	border: 1px solid rgba(15, 23, 42, 0.18) !important;
+	color: #0F172A !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="text"]:focus,
+body.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="text"]:focus
+{
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 0 2px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.18) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="button"],
+body.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="button"]
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.10) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="button"]:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_content .biUpdManualRow input[type="button"]:hover
+{
+	background: var(--modern-accent-primary, #0284C7) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 2px 10px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.25) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdFoot,
+body.modern-ui3[data-modern-theme="light"] .biUpdFoot
+{
+	border-top: 1px solid rgba(15, 23, 42, 0.10) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdFootNotes,
+body.modern-ui3[data-modern-theme="light"] .biUpdFootNotes
+{
+	color: #475569 !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdNewsBody a,
+body.modern-ui3[data-modern-theme="light"] .biUpdNewsBody a,
+html.modern-ui3[data-modern-theme="light"] .biUpdFootNotes a,
+body.modern-ui3[data-modern-theme="light"] .biUpdFootNotes a,
+html.modern-ui3[data-modern-theme="light"] .biUpdChangelogLink,
+body.modern-ui3[data-modern-theme="light"] .biUpdChangelogLink,
+html.modern-ui3[data-modern-theme="light"] .biUpdLearnMore a,
+body.modern-ui3[data-modern-theme="light"] .biUpdLearnMore a
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdManualLinkRow a,
+body.modern-ui3[data-modern-theme="light"] .biUpdManualLinkRow a
+{
+	color: #64748B !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdManualLinkRow a:hover,
+body.modern-ui3[data-modern-theme="light"] .biUpdManualLinkRow a:hover
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
 }
 
 /* Light Mode: Portrait Controls Resize Bar (#sidebarPortraitDragbar) */
@@ -22698,4 +23377,362 @@ html.modern-ui3[data-modern-theme="light"] .toast-login-meta-row .val,
 body.modern-ui3[data-modern-theme="light"] .toast-login-meta-row .val
 {
 	color: #0F172A !important;
+}
+
+/* ==========================================================================
+   UI3 347 Sortable List & Range Slider (UI Settings) — Cyber-Slate Dark, Light & Accents
+   ========================================================================== */
+html.modern-ui3 .uiSettingsRow .dialogOption_item_range,
+body.modern-ui3 .uiSettingsRow .dialogOption_item_range
+{
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 6px !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+}
+
+html.modern-ui3 .uiSettingsRow .dialogOption_item_range input[type="range"],
+body.modern-ui3 .uiSettingsRow .dialogOption_item_range input[type="range"]
+{
+	width: 100% !important;
+	margin: 2px 0 0 0 !important;
+	display: block !important;
+	box-sizing: border-box !important;
+	accent-color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	cursor: pointer !important;
+}
+
+html.modern-ui3 .uiSettingsRow.withDefaultBtn:has(> .dialogOption_item_sortableList),
+body.modern-ui3 .uiSettingsRow.withDefaultBtn:has(> .dialogOption_item_sortableList)
+{
+	align-items: flex-start !important;
+}
+
+html.modern-ui3 .uiSettingsRow.withDefaultBtn > .dialogOption_item_sortableList,
+body.modern-ui3 .uiSettingsRow.withDefaultBtn > .dialogOption_item_sortableList
+{
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+html.modern-ui3 .sortableList,
+body.modern-ui3 .sortableList
+{
+	margin: 8px 0 2px 0 !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+html.modern-ui3 .sortableListItems,
+body.modern-ui3 .sortableListItems
+{
+	background: rgba(10, 16, 30, 0.72) !important;
+	border: 1px solid var(--modern-card-border, rgba(255, 255, 255, 0.12)) !important;
+	border-radius: 8px !important;
+	overflow: hidden !important;
+}
+
+html.modern-ui3 .sortableListItem,
+body.modern-ui3 .sortableListItem
+{
+	height: 34px !important;
+	background: rgba(15, 23, 42, 0.72) !important;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+	color: var(--modern-text-primary, #E2E8F0) !important;
+	font-size: 13px !important;
+	transition: background-color 0.15s ease !important;
+}
+
+html.modern-ui3 .sortableListItem:hover,
+body.modern-ui3 .sortableListItem:hover
+{
+	background: rgba(30, 41, 59, 0.85) !important;
+}
+
+html.modern-ui3 .sortableListItem:last-child,
+body.modern-ui3 .sortableListItem:last-child
+{
+	border-bottom: none !important;
+}
+
+html.modern-ui3 .sortableListItem.sortableListItemNotShown,
+body.modern-ui3 .sortableListItem.sortableListItemNotShown
+{
+	background: rgba(10, 16, 30, 0.45) !important;
+}
+
+html.modern-ui3 .sortableListItem.sortableListItemNotShown .sortableListLabel,
+body.modern-ui3 .sortableListItem.sortableListItemNotShown .sortableListLabel,
+html.modern-ui3 .sortableListItem.sortableListItemNotShown .sortableListHandle,
+body.modern-ui3 .sortableListItem.sortableListItemNotShown .sortableListHandle
+{
+	opacity: 0.48 !important;
+}
+
+html.modern-ui3 .sortableListItem.sortableListItemPressing,
+body.modern-ui3 .sortableListItem.sortableListItemPressing
+{
+	background: var(--modern-accent-bg-subtle, rgba(0, 229, 255, 0.14)) !important;
+}
+
+html.modern-ui3 .sortableListItem.sortableListItemDragging,
+body.modern-ui3 .sortableListItem.sortableListItemDragging
+{
+	background: rgba(17, 26, 46, 0.96) !important;
+	outline: 2px solid var(--modern-accent-primary, #00E5FF) !important;
+	outline-offset: -2px !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), 0 0 14px var(--modern-accent-glow, rgba(0, 229, 255, 0.28)) !important;
+	border-radius: 4px !important;
+}
+
+html.modern-ui3 .sortableListHandle,
+body.modern-ui3 .sortableListHandle
+{
+	color: var(--modern-text-secondary, #94A3B8) !important;
+}
+
+html.modern-ui3 .sortableListHandle:hover,
+body.modern-ui3 .sortableListHandle:hover
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+}
+
+html.modern-ui3 .sortableListNumber,
+body.modern-ui3 .sortableListNumber
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	font-weight: 600 !important;
+	font-variant-numeric: tabular-nums !important;
+	width: 22px !important;
+}
+
+html.modern-ui3 .sortableListLabel,
+body.modern-ui3 .sortableListLabel
+{
+	color: var(--modern-text-primary, #E2E8F0) !important;
+	font-weight: 500 !important;
+}
+
+html.modern-ui3 .sortableListMoveBtn,
+body.modern-ui3 .sortableListMoveBtn
+{
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 30px !important;
+	height: 30px !important;
+	padding: 0 !important;
+	border-radius: 6px !important;
+	color: var(--modern-text-secondary, #94A3B8) !important;
+	background: transparent !important;
+	transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+html.modern-ui3 .sortableListMoveBtn:hover:not(:disabled),
+body.modern-ui3 .sortableListMoveBtn:hover:not(:disabled)
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	background: var(--modern-accent-bg-subtle, rgba(0, 229, 255, 0.14)) !important;
+}
+
+html.modern-ui3 .sortableListMoveBtn:active:not(:disabled),
+body.modern-ui3 .sortableListMoveBtn:active:not(:disabled)
+{
+	color: #FFFFFF !important;
+	background: var(--modern-accent-bg-hover, rgba(0, 229, 255, 0.26)) !important;
+}
+
+html.modern-ui3 .sortableListMoveBtn:disabled,
+body.modern-ui3 .sortableListMoveBtn:disabled
+{
+	opacity: 0.22 !important;
+}
+
+html.modern-ui3 .sortableListMoveBtn:focus-visible,
+body.modern-ui3 .sortableListMoveBtn:focus-visible
+{
+	outline: 2px solid var(--modern-accent-primary, #00E5FF) !important;
+	outline-offset: -2px !important;
+}
+
+html.modern-ui3 .sortableListSeparator,
+body.modern-ui3 .sortableListSeparator
+{
+	padding: 5px 10px !important;
+	font-size: 11px !important;
+	font-weight: 600 !important;
+	letter-spacing: 0.04em !important;
+	text-transform: uppercase !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	background: var(--modern-accent-bg-subtle, rgba(0, 229, 255, 0.08)) !important;
+	border-top: 1px dashed var(--modern-accent-primary, #00E5FF) !important;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListItems,
+body.modern-ui3[data-modern-theme="light"] .sortableListItems
+{
+	background: #FFFFFF !important;
+	border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListItem,
+body.modern-ui3[data-modern-theme="light"] .sortableListItem
+{
+	background: #FFFFFF !important;
+	border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListItem:hover,
+body.modern-ui3[data-modern-theme="light"] .sortableListItem:hover
+{
+	background: #F1F5F9 !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListItem.sortableListItemNotShown,
+body.modern-ui3[data-modern-theme="light"] .sortableListItem.sortableListItemNotShown
+{
+	background: #F8FAFC !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListItem.sortableListItemDragging,
+body.modern-ui3[data-modern-theme="light"] .sortableListItem.sortableListItemDragging
+{
+	background: #FFFFFF !important;
+	outline-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18), 0 0 0 1px var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListLabel,
+body.modern-ui3[data-modern-theme="light"] .sortableListLabel
+{
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListHandle,
+body.modern-ui3[data-modern-theme="light"] .sortableListHandle,
+html.modern-ui3[data-modern-theme="light"] .sortableListMoveBtn,
+body.modern-ui3[data-modern-theme="light"] .sortableListMoveBtn
+{
+	color: #64748B !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListMoveBtn:hover:not(:disabled),
+body.modern-ui3[data-modern-theme="light"] .sortableListMoveBtn:hover:not(:disabled)
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	background: var(--modern-accent-bg-subtle, rgba(2, 132, 199, 0.10)) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListMoveBtn:active:not(:disabled),
+body.modern-ui3[data-modern-theme="light"] .sortableListMoveBtn:active:not(:disabled)
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	background: var(--modern-accent-bg-hover, rgba(2, 132, 199, 0.20)) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .sortableListSeparator,
+body.modern-ui3[data-modern-theme="light"] .sortableListSeparator
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	background: var(--modern-accent-bg-subtle, rgba(2, 132, 199, 0.08)) !important;
+	border-top-color: var(--modern-accent-primary, #0284C7) !important;
+	border-bottom-color: rgba(15, 23, 42, 0.10) !important;
+}
+
+/* ==========================================================================
+   Inline Help Popups (.UIHelp) — Cyber-Slate Dark, Light & Dynamic Accents
+   ========================================================================== */
+html.modern-ui3 .UIHelp,
+body.modern-ui3 .UIHelp
+{
+	padding: 12px 14px !important;
+	font-size: 13px !important;
+	line-height: 1.55 !important;
+	color: var(--modern-text-primary, #E2E8F0) !important;
+	max-width: min(520px, 100%);
+	box-sizing: border-box !important;
+}
+
+html.modern-ui3 .UIHelp b,
+body.modern-ui3 .UIHelp b,
+html.modern-ui3 .UIHelp strong,
+body.modern-ui3 .UIHelp strong
+{
+	color: #F8FAFC !important;
+}
+
+html.modern-ui3 .UIHelp a,
+body.modern-ui3 .UIHelp a
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	text-decoration: underline !important;
+}
+
+html.modern-ui3 .UIHelp a:hover,
+body.modern-ui3 .UIHelp a:hover
+{
+	color: var(--modern-accent-light, var(--modern-accent-primary, #00E5FF)) !important;
+}
+
+html.modern-ui3 .UIHelp code,
+body.modern-ui3 .UIHelp code
+{
+	background: rgba(10, 16, 30, 0.85) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.25) !important;
+	border-radius: 4px !important;
+	padding: 1px 5px !important;
+}
+
+html.modern-ui3 .UIHelp img,
+body.modern-ui3 .UIHelp img
+{
+	border-radius: 8px !important;
+	border: 1px solid var(--modern-card-border, rgba(255, 255, 255, 0.12)) !important;
+	max-width: 100% !important;
+	height: auto !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .UIHelp,
+body.modern-ui3[data-modern-theme="light"] .UIHelp
+{
+	color: #1E293B !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .UIHelp b,
+body.modern-ui3[data-modern-theme="light"] .UIHelp b,
+html.modern-ui3[data-modern-theme="light"] .UIHelp strong,
+body.modern-ui3[data-modern-theme="light"] .UIHelp strong
+{
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .UIHelp a,
+body.modern-ui3[data-modern-theme="light"] .UIHelp a,
+html.modern-ui3[data-modern-theme="light"] .UIHelp a:hover,
+body.modern-ui3[data-modern-theme="light"] .UIHelp a:hover
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .UIHelp code,
+body.modern-ui3[data-modern-theme="light"] .UIHelp code
+{
+	background: #F1F5F9 !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.25) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .UIHelp img,
+body.modern-ui3[data-modern-theme="light"] .UIHelp img
+{
+	border-color: rgba(15, 23, 42, 0.14) !important;
 }
