@@ -10,6 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-v0.348.1-00E5FF.svg" alt="Version v0.348.1" />
+  <img src="https://img.shields.io/badge/license-LGPL--3.0-2563EB.svg" alt="License LGPL-3.0" />
   <img src="https://img.shields.io/badge/base%20UI3-348-1E293B.svg" alt="Base UI3 348" />
   <img src="https://img.shields.io/badge/Blue%20Iris-v5.x%20%7C%20v6.x-2563EB.svg" alt="Blue Iris v5 / v6" />
   <img src="https://img.shields.io/badge/install-update--proof%20sideload-10B981.svg" alt="Update-Proof Sideload" />
@@ -21,9 +22,9 @@
 
 ## Overview
 
-**ModernUI3** transforms Blue Iris's stock UI3 web client into a modern, responsive, high-contrast monitoring interface with obsidian dark and crisp light themes, a unified multi-track timeline, drag-resizable panels, radar PTZ controls, expanded server telemetry, opt-in WebGPU hardware decoding with Contrast Adaptive Sharpening (CAS), and Web Push fleet management.
+**ModernUI3** transforms Blue Iris's stock UI3 web client into a modern, responsive, high-contrast monitoring interface with obsidian dark and crisp light themes, a unified multi-track timeline, drag-resizable panels, radar PTZ controls, expanded server telemetry, and opt-in WebGPU hardware decoding with Contrast Adaptive Sharpening (CAS).
 
-Under the hood, the proven Blue Iris video decoding and streaming engines remain unified and intact, while `install.ps1` deploys ModernUI3 side-by-side in its own namespaced paths (`modernui3.htm`, `modernui3/`, `applet/modernui3/`) so Blue Iris program updates never overwrite your UI. The repository contains **zero Blue Iris proprietary files** — only upstream open-source `bp2008/ui3` (GNU LGPL v3) and original ModernUI3 source code and assets.
+Under the hood, the proven Blue Iris video decoding and streaming engines remain unified and intact, while `install.ps1` deploys ModernUI3 side-by-side in its own namespaced paths (`modernui3.htm`, `modernui3/`, `applet/modernui3/`) so Blue Iris program updates never overwrite your UI. ModernUI3 is built upon open-source `bp2008/ui3` and licensed under the **GNU Lesser General Public License v3.0 (LGPL-3.0)**.
 
 ### Versioning Scheme
 
@@ -38,46 +39,24 @@ ModernUI3 tracks both its own release maturity and the upstream `bp2008/ui3` bas
 
 ## Screenshots
 
-> [!NOTE]
-> The images below are Cyber-Slate **placeholders** in `docs/screenshots/` ready to be overwritten with live captures before the `v1.348.0` release (same filenames, zero README edits required).
-
 <table>
   <tr>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/dashboard-dark.png" alt="Live Dashboard — Cyber-Slate Dark Mode" />
-      <br /><strong>Live Dashboard (Obsidian Dark Mode)</strong>
-    </td>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/dashboard-light.png" alt="Live Dashboard — Daylight Light Mode" />
-      <br /><strong>Live Dashboard (Daylight Light Mode)</strong>
-    </td>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-1.png" alt="Screenshot 1" /></td>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-2.png" alt="Screenshot 2" /></td>
   </tr>
   <tr>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/timeline.png" alt="Multi-Track Timeline &amp; Export Studio" />
-      <br /><strong>Multi-Track Timeline &amp; Export Studio</strong>
-    </td>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/clips-alerts.png" alt="Clips, Alerts &amp; Resizable Sidebar" />
-      <br /><strong>Clips, Alerts &amp; Resizable Sidebar</strong>
-    </td>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-3.png" alt="Screenshot 3" /></td>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-4.png" alt="Screenshot 4" /></td>
   </tr>
   <tr>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/ptz-controls.png" alt="PTZ Controls Studio" />
-      <br /><strong>PTZ Controls Studio (Radar Virtual Joystick)</strong>
-    </td>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/login-cyber-lens.png" alt="Cyber-Lens Login Theme" />
-      <br /><strong>Cyber-Lens Login Page (Optional <code>-ThemeLogin</code>)</strong>
-    </td>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-5.png" alt="Screenshot 5" /></td>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-6.png" alt="Screenshot 6" /></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-7.png" alt="Screenshot 7" /></td>
+    <td align="center" width="50%"><img src="docs/screenshots/screenshot-8.png" alt="Screenshot 8" /></td>
   </tr>
 </table>
-
-<p align="center">
-  <img src="docs/screenshots/mobile-portrait.png" alt="Mobile &amp; Tablet Portrait Mode" width="320" />
-  <br /><strong>Mobile &amp; Tablet Portrait Mode (Bottom Navigation Dock &amp; Two-Column Drawer)</strong>
-</p>
 
 ---
 
@@ -121,14 +100,10 @@ ModernUI3 tracks both its own release maturity and the upstream `bp2008/ui3` bas
 * **Zero-Copy Texture Binding & WGSL CAS:** Imports decoded `VideoFrame` objects directly via `importExternalTexture`, applies real-time Contrast Adaptive Sharpening (CAS), paces frames with a target jitter buffer (`RenderScheduler`), reports accurate live source-to-client latency, and automatically falls back to Canvas 2D on context loss.
 * **Security & Stability Fixes:** XSS/HTML encoding and same-origin redirect validation across login/timeout flows, single-camera `?cam=` reload reliability, and removal of obsolete PNaCl dead code.
 
-### Web Push Notifications & Mobile Device Fleet Manager
-* **Push Notification Engine:** Supports both direct HTTPS (VAPID) `PushManager` subscriptions and HTTP relay mode (`ui3-push.bp2008.org`), live connection status pills, test alerts, main-menu status badges, and notification click routing directly into the alert clip or camera.
-* **Interactive Fleet Console:** Manage registered Blue Iris mobile devices with platform badges, geofence indicators, timed push pause presets (`15m`, `1h`, `4h`, `8h`, `1d`, `1w`) with live 15-second countdown tickers, and stats reset.
-
 ### Update-Proof Side-by-Side Architecture & Optional Cyber-Lens Login
 * **Safe Across Blue Iris Updates:** ModernUI3 files (`modernui3.htm`, `modernui3/`, `applet/modernui3/`) live alongside stock `ui3.htm` and `ui3/` without replacing them. A fenced redirect shim inside `ui3/ui3-local-overrides.js` forwards `/` and `/ui3.htm` into `/modernui3.htm`, while stock `/ui3.htm?classic=1` remains instantly accessible (with an injected **Modern UI3** pill button to return).
 * **Auth-Exempt PWA & Dedicated Timeout:** Manifest, 21 custom Cyber Eye icons, and optional login theme assets sit in `/applet/modernui3/` so browsers/PWAs fetch them before authentication. Session timeouts land on ModernUI3's own clean-room [timeout.htm](modernui3/timeout.htm) and seamlessly return via [modernui3/ui3.htm](modernui3/ui3.htm) after re-authentication.
-* **Zero-BI-Source Fenced Login Theme (`-ThemeLogin`):** Instead of distributing modified Blue Iris `login.htm` source, `install.ps1 -ThemeLogin` injects fenced `<head>` and `<body>` hooks into your existing stock `login.htm` that load [login-theme.css](applet/modernui3/login-theme.css) and [login-theme.js](applet/modernui3/login-theme.js), preserving Blue Iris's native authentication code across updates.
+* **Fenced Login Theme (`-ThemeLogin`):** Instead of distributing modified Blue Iris `login.htm` source, `install.ps1 -ThemeLogin` injects fenced `<head>` and `<body>` hooks into your existing stock `login.htm` that load [login-theme.css](applet/modernui3/login-theme.css) and [login-theme.js](applet/modernui3/login-theme.js), preserving Blue Iris's native authentication code across updates.
 
 ---
 
@@ -141,6 +116,8 @@ ModernUI3 tracks both its own release maturity and the upstream `bp2008/ui3` bas
 
 ### Fresh Install (Side-by-Side)
 
+Run the following in **PowerShell as Administrator**:
+
 ```powershell
 git clone https://github.com/bwenger9/ModernUI3.git
 cd ModernUI3
@@ -151,16 +128,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -TargetPath "C
 
 ### Optional: Enable Cyber-Lens Login Page & Custom Icons (`-ThemeLogin`)
 
-Backs up local stock `login.htm`, `favicon.ico`, and `BlueIris.png` to `*.modernui3.bak`, installs the Cyber Eye icons, and injects fenced Cyber-Lens theme hooks into stock `login.htm`:
+Backs up local stock `login.htm`, `favicon.ico`, and `BlueIris.png` to `*.modernui3.bak`, installs the Cyber Eye icons, and injects fenced Cyber-Lens theme hooks into stock `login.htm`. Run in **PowerShell as Administrator**:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -TargetPath "C:\Program Files\Blue Iris\www" -ThemeLogin
 ```
 
-> [!TIP]
-> You can create a desktop `.cmd` shortcut that elevates via UAC and runs `powershell -NoProfile -ExecutionPolicy Bypass -File "C:\path\to\ModernUI3\install.ps1" -TargetPath "C:\Program Files\Blue Iris\www" -ThemeLogin`.
-
 ### Upgrading After Pulling Updates
+
+Run in **PowerShell as Administrator**:
 
 ```powershell
 cd ModernUI3
@@ -172,11 +148,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -TargetPath "C
 
 ### After a Blue Iris Program Update
 * Your main ModernUI3 installation (`modernui3.htm`, `modernui3\`, `applet\modernui3\`, and `ui3\ui3-local-overrides.js`) survives Blue Iris updates automatically — `/` continues routing straight to ModernUI3 while stock `ui3.htm` and `ui3\` receive Blue Iris's updates cleanly.
-* If you use `-ThemeLogin`, Blue Iris installers overwrite `login.htm` and root icons, so re-run `install.ps1 ... -ThemeLogin` once after updating Blue Iris to re-inject the theme onto the updated `login.htm`.
+* If you use `-ThemeLogin`, Blue Iris installers overwrite `login.htm` and root icons, so re-run `install.ps1 ... -ThemeLogin` in **PowerShell as Administrator** once after updating Blue Iris to re-inject the theme onto the updated `login.htm`.
 
 ### Clean Uninstall
 
-Removes `modernui3.htm`, `modernui3\`, `applet\modernui3\`, strips only the fenced ModernUI3 block from `ui3\ui3-local-overrides.js` (preserving any custom user overrides), and restores all `*.modernui3.bak` backups:
+Removes `modernui3.htm`, `modernui3\`, `applet\modernui3\`, strips only the fenced ModernUI3 block from `ui3\ui3-local-overrides.js` (preserving any custom user overrides), and restores all `*.modernui3.bak` backups. Run in **PowerShell as Administrator**:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -TargetPath "C:\Program Files\Blue Iris\www" -Uninstall
@@ -191,9 +167,9 @@ ModernUI3/
 ├── applet/
 │   └── modernui3/             # Auth-exempt PWA manifest, 21 Cyber Eye logos, icons, login-theme.css & login-theme.js
 ├── docs/
-│   └── screenshots/           # 7 README showcase images (placeholders ready to overwrite before v1.348.0)
+│   └── screenshots/           # 8 screenshot placeholders (screenshot-1.png .. screenshot-8.png)
 ├── modernui3/
-│   ├── ui3.js                 # Core UI3 application, ModernUIController, Web Push, Device Fleet, WebGPU player
+│   ├── ui3.js                 # Core UI3 application, ModernUIController, and WebGPU player
 │   ├── ui3.css                # Cyber-Slate dark/light scoped styles & design tokens
 │   ├── modernui3.htm          # Direct subfolder entry stub -> ../modernui3.htm
 │   ├── ui3.htm                # Post-login return stub -> ../modernui3.htm
@@ -205,7 +181,8 @@ ModernUI3/
 │   ├── icons.svg              # Vector icon definitions
 │   ├── libs-ui3.js / .css     # Core UI3 runtime libraries & dialog/toast styling
 │   └── help/                  # UI3 help pages & assets
-├── install.ps1                # Side-by-side installer, fenced login injector, and uninstaller
+├── install.ps1                # Side-by-side installer, fenced login injector, and uninstaller (run as Administrator)
+├── LICENSE                    # GNU Lesser General Public License v3.0 (LGPL-3.0)
 ├── modernui3.htm              # Main ModernUI3 application entry (Blue Iris server tokens)
 └── README.md
 ```
@@ -243,6 +220,6 @@ Open **Main Menu → UI Settings**:
 
 ## License & Credits
 
-* Built upon **UI3** for Blue Iris — originally created by **bp2008** ([github.com/bp2008/ui3](https://github.com/bp2008/ui3)) and licensed under the **GNU Lesser General Public License v3.0 (LGPLv3)**.
-* **ModernUI3** design system, Cyber-Slate themes, clean-room timeout/login injectors, timeline/PTZ/WebGPU enhancements, and Cyber Eye artwork by **Darkstyle** / **bwenger9**.
-* This repository contains zero Blue Iris proprietary software or copyrighted Blue Iris web assets.
+* **ModernUI3** is licensed under the **GNU Lesser General Public License v3.0 (LGPL-3.0)** — the same license used by upstream UI3. See [LICENSE](LICENSE) for the full license text.
+* Built upon **UI3** for Blue Iris — originally created by **bp2008** ([github.com/bp2008/ui3](https://github.com/bp2008/ui3)) and licensed under **LGPL-3.0**.
+* ModernUI3 design system, Cyber-Slate themes, clean-room timeout/login injectors, timeline/PTZ/WebGPU enhancements, and Cyber Eye artwork by **Darkstyle** / **bwenger9**.
