@@ -16297,8 +16297,8 @@ html.modern-ui3 .modern-tl-transport-btn,
 body.modern-ui3 .modern-tl-transport-btn
 {
 	background: rgba(13, 21, 39, 0.8) !important;
-	border: 1px solid rgba(255, 255, 255, 0.08) !important;
-	color: #CBD5E1 !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
 	width: 28px !important;
 	height: 28px !important;
 	border-radius: 8px !important;
@@ -16314,10 +16314,18 @@ body.modern-ui3 .modern-tl-transport-btn
 html.modern-ui3 .modern-tl-transport-btn:hover,
 body.modern-ui3 .modern-tl-transport-btn:hover
 {
-	color: var(--modern-accent-primary, #00E5FF) !important;
-	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35) !important;
-	background: rgba(255, 255, 255, 0.08) !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	border-color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.75)) !important;
 	transform: translateY(-1px) !important;
+}
+
+html.modern-ui3 .modern-tl-transport-btn:hover svg,
+body.modern-ui3 .modern-tl-transport-btn:hover svg
+{
+	filter: drop-shadow(0 0 5px var(--modern-accent-glow, rgba(0, 229, 255, 0.85))) !important;
 }
 
 html.modern-ui3 .modern-tl-transport-btn svg,
@@ -16729,9 +16737,9 @@ body.modern-ui3 .modern-tl-speed-btn
 	padding: 3px 8px !important;
 	font-weight: 700 !important;
 	font-size: 11px !important;
-	color: #CBD5E1 !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
 	background: rgba(13, 21, 39, 0.8) !important;
-	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
 	border-radius: 6px !important;
 	cursor: pointer !important;
 	transition: all 0.15s ease !important;
@@ -16741,9 +16749,11 @@ body.modern-ui3 .modern-tl-speed-btn
 html.modern-ui3 .modern-tl-speed-btn:hover,
 body.modern-ui3 .modern-tl-speed-btn:hover
 {
-	background: rgba(255, 255, 255, 0.1) !important;
-	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.4) !important;
-	color: #FFFFFF !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	border-color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.75)) !important;
 }
 
 html.modern-ui3 .modern-tl-speed-chevron,
@@ -19639,7 +19649,7 @@ body.modern-ui3 .modern-tl-export-toggle-btn
 	border-radius: 6px !important;
 	background: rgba(13, 21, 39, 0.8) !important;
 	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
-	color: #CBD5E1 !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
 	font-size: 13px !important;
 	font-weight: 700 !important;
 	cursor: pointer !important;
@@ -19652,10 +19662,11 @@ body.modern-ui3 .modern-tl-export-toggle-btn
 html.modern-ui3 .modern-tl-export-toggle-btn:hover,
 body.modern-ui3 .modern-tl-export-toggle-btn:hover
 {
-	background: rgba(255, 255, 255, 0.1) !important;
-	color: #FFFFFF !important;
-	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.5) !important;
-	box-shadow: 0 0 10px var(--modern-accent-glow, rgba(0, 229, 255, 0.3)) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	border-color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.75)) !important;
 }
 
 html.modern-ui3 .modern-tl-export-toggle-btn.active,
@@ -22425,19 +22436,30 @@ html.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn,
 body.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn
 {
 	background: #FFFFFF !important;
-	border-color: var(--modern-accent-primary, #0284C7) !important;
-	color: #0F172A !important;
+	border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.55) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn:hover,
 body.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn:hover,
 html.modern-ui3[data-modern-theme="light"] .modern-tl-transport-btn:hover,
+body.modern-ui3[data-modern-theme="light"] .modern-tl-transport-btn:hover,
 html.modern-ui3[data-modern-theme="light"] .modern-tl-icon-btn:hover,
 html.modern-ui3[data-modern-theme="light"] .modern-tl-pill:hover
 {
-	background: #E2E8F0 !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.14) !important;
 	border-color: var(--modern-accent-primary, #0284C7) !important;
-	color: #0F172A !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35), inset 0 0 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	text-shadow: 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-tl-transport-btn:hover svg,
+body.modern-ui3[data-modern-theme="light"] .modern-tl-transport-btn:hover svg,
+html.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn:hover svg,
+body.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn:hover svg
+{
+	filter: drop-shadow(0 0 5px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45)) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-tl-play-btn,
@@ -23035,17 +23057,18 @@ html.modern-ui3[data-modern-theme="light"] .modern-tl-export-toggle-btn,
 body.modern-ui3[data-modern-theme="light"] .modern-tl-export-toggle-btn
 {
 	background: #FFFFFF !important;
-	border: 1px solid var(--modern-accent-primary, #0284C7) !important;
-	color: #0F172A !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.55) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-tl-export-toggle-btn:hover,
 body.modern-ui3[data-modern-theme="light"] .modern-tl-export-toggle-btn:hover
 {
-	background: #E2E8F0 !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.14) !important;
 	border-color: var(--modern-accent-primary, #0284C7) !important;
-	color: #0F172A !important;
-	box-shadow: 0 0 8px var(--modern-accent-glow, rgba(2, 132, 199, 0.28)) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35), inset 0 0 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	text-shadow: 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-tl-export-toggle-btn.active,
