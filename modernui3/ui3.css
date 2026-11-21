@@ -18817,7 +18817,7 @@ body.modern-ui3 #pcButtonContainer #volumeBar,
 html.modern-ui3 #pcButtonContainer #playbackSpeedText,
 body.modern-ui3 #pcButtonContainer #playbackSpeedText
 {
-	opacity: 0.65 !important;
+	opacity: 1 !important;
 	transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease !important;
 }
 
