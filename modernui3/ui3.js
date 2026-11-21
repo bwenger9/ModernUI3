@@ -749,6 +749,7 @@ var pcmPlayer = null;
 var diskUsageGUI = null;
 var serverControl = null;
 var biUpdatesDialog = null;
+var modernUi3UpdateChecker = null;
 var updateInstallWatcher = null;
 var cameraListDialog = null;
 var exportListDialog = null;
@@ -1483,7 +1484,8 @@ var defaultSettings =
 			, label: 'Modern UI Accent Color<div class="settingDesc">Select the cyber glow and primary accent color for Modern UI.</div>'
 			, onChange: OnChange_ui3_modern_accent
 			, category: "General Settings"
-		}		, {
+		}
+		, {
 			key: "ui3_startup_page"
 			, value: "dashboard"
 			, inputType: "select"
@@ -1979,6 +1981,18 @@ var defaultSettings =
 			, value: "1"
 			, inputType: "checkbox"
 			, label: 'Alert Track Markers<div class="settingDesc">Marks timeline color bars wherever they were alerted.</div>'
+			, category: "Timeline"
+		}
+		, {
+			key: "ui3_modern_timeline_row_color"
+			, value: "accent"
+			, inputType: "select"
+			, options: [
+				{ value: "accent", name: "Active Theme Accent Color" },
+				{ value: "camera", name: "Configured Blue Iris Camera Color" }
+			]
+			, label: 'Multi-Camera Timeline Row Color<div class="settingDesc">Choose whether individual camera rows in the ModernUI3 multi-camera timeline use the active theme accent color or each camera\'s configured Blue Iris color.</div>'
+			, onChange: OnChange_ui3_timeline_alertBarColor
 			, category: "Timeline"
 		}
 		, {
@@ -4747,6 +4761,8 @@ $(function ()
 	diskUsageGUI = new DiskUsageGUI();
 
 	serverControl = new ServerControl();
+
+	modernUi3UpdateChecker = new ModernUi3UpdateChecker();
 
 	biUpdatesDialog = new BiUpdatesDialog();
 
@@ -8396,7 +8412,7 @@ function DropdownBoxes()
 		, new DropdownListItem({ cmd: "export_list", text: "Convert/Export Queue", icon: "#svg_mio_launch", cssClass: "blueLarger" })
 		, new DropdownListItem({ cmd: "disk_usage", text: "Disk Usage", icon: "#svg_x5F_Information", cssClass: "blueLarger" })
 		, new DropdownListItem({ cmd: "server_control", text: "Server Control", icon: "#svg_x5F_SystemConfiguration", cssClass: "blueLarger", tooltip: "Control Blue Iris Server" })
-		, new DropdownListItem({ cmd: "bi_updates", text: "Update Blue Iris", icon: "#svg_mio_update", cssClass: "blueLarger", tooltip: "Check for Blue Iris news and updates", visibleFn: function () { return sessionManager.IsAdministratorSession(); }, updateAvailableFn: function () { return sessionManager.UpdateAvailable(); } })
+		, new DropdownListItem({ cmd: "bi_updates", text: "Update Blue Iris", icon: "#svg_mio_update", cssClass: "blueLarger", tooltip: "Check for Blue Iris and ModernUI3 updates", visibleFn: function () { return sessionManager.IsAdministratorSession(); }, updateAvailableFn: function () { return sessionManager.UpdateAvailable(); } })
 		, new DropdownListItem({ cmd: "help", text: "Help", icon: "#svg_mio_help", cssClass: "goldenLarger" })
 		, new DropdownListItem({ cmd: "logout", text: "Log Out", icon: "#svg_x5F_Logout", cssClass: "goldenLarger" })
 	];
@@ -11897,6 +11913,11 @@ function TimelineDataLoader(callbackStartedLoading, callbackGotData, callbackErr
 		parameters.zoomScaler = zoomScaler;
 		Update();
 	}
+	this.ForceReload = function ()
+	{
+		loadedState = { camera: null, left: 0, right: 0, zoomScaler: 0, loadedAt: -99999 };
+		Update();
+	}
 	function Update()
 	{
 		if (documentIsHidden() || currentPrimaryTab !== "timeline")
@@ -12038,11 +12059,78 @@ function TimelineDataLoader(callbackStartedLoading, callbackGotData, callbackErr
 			? ExecJSONPromise({ cmd: "alertlist", camera: camera, startdate: args.startdate, enddate: args.enddate }).catch(function () { return { result: "fail", data: [] }; })
 			: Promise.resolve({ result: "fail", data: [] });
 
-		return Promise.all([timelinePromise, alertListPromise]).then(function (results)
+		// Resolve per-camera timeline availability when ModernUI3 is displaying Individual Camera Rows for a group
+		var perCamPromise = Promise.resolve(null);
+		if (isModern && camera && typeof cameraListLoader !== "undefined" && cameraListLoader)
+		{
+			var trackMode = null;
+			try
+			{
+				trackMode = typeof settings !== "undefined" && settings.getItem ? settings.getItem("ui3_modern_timeline_track_mode") : null;
+				if (trackMode !== "cameras" && trackMode !== "color" && trackMode !== "unified")
+					trackMode = (typeof settings !== "undefined" && settings.getItem && settings.getItem("ui3_modern_timeline_unified_alerts") === "1") ? "unified" : "cameras";
+			}
+			catch (ex) { trackMode = "cameras"; }
+
+			var camObj = cameraListLoader.GetCameraWithId(camera);
+			var groupCams = null;
+			if (camObj && cameraListLoader.CameraIsGroupOrCycle && cameraListLoader.CameraIsGroupOrCycle(camObj))
+			{
+				groupCams = cameraListLoader.GetGroupCams ? cameraListLoader.GetGroupCams(camera) : null;
+				if ((!groupCams || !groupCams.length) && camObj.group && camObj.group.length)
+					groupCams = camObj.group;
+			}
+			if (trackMode === "cameras" && groupCams && groupCams.length > 1)
+			{
+				perCamPromise = (function (cams)
+				{
+					var resultsMap = {};
+					var nextIdx = 0;
+					var concurrency = Math.min(5, cams.length);
+					function RunNext()
+					{
+						if (nextIdx >= cams.length)
+							return Promise.resolve();
+						var cid = cams[nextIdx++];
+						return ExecJSONPromise({ cmd: "timeline", startdate: args.startdate, enddate: args.enddate, msecpp: msecpp, camera: cid })
+							.then(function (camRes)
+							{
+								var arr = [];
+								if (camRes && camRes.data && camRes.data.clips)
+								{
+									var tOffset = args.startdate * 1000;
+									for (var ci = 0; ci < camRes.data.clips.length; ci++)
+									{
+										var cc = camRes.data.clips[ci];
+										arr.push({
+											time: tOffset + (cc.x1 * msecpp),
+											len: (cc.x2 - cc.x1) * msecpp,
+											track: 0
+										});
+									}
+								}
+								resultsMap[cid.toLowerCase()] = arr;
+							})
+							.catch(function ()
+							{
+								resultsMap[cid.toLowerCase()] = [];
+							})
+							.then(RunNext);
+					}
+					var workers = [];
+					for (var w = 0; w < concurrency; w++)
+						workers.push(RunNext());
+					return Promise.all(workers).then(function () { return resultsMap; });
+				})(groupCams);
+			}
+		}
+
+		return Promise.all([timelinePromise, alertListPromise, perCamPromise]).then(function (results)
 		{
 			var response = results[0];
 			var alertListRes = results[1];
-			var processed = { colors: [], alerts: [], clips: [] };
+			var clipsByCamera = results[2];
+			var processed = { colors: [], alerts: [], clips: [], clipsByCamera: clipsByCamera };
 
 			var pathToCam = {};
 			var recIdToCam = {};
@@ -12309,10 +12397,18 @@ function ClipTimeline()
 				+ ' </div>'
 				+ ' <div v-if="isModernUI" class="modern-timeline-transport" @mousedown.stop @touchstart.stop>'
 				+ '   <div class="modern-tl-left">'
-				+ '     <button v-if="canToggleUnifiedAlerts" type="button" class="modern-tl-transport-btn modern-tl-alert-mode-btn" :class="{ active: isUnifiedAlerts }" @click.stop="toggleUnifiedAlerts" :title="isUnifiedAlerts ? \'Show Individual Camera Rows\' : \'Show Unified Alert Timeline\'">'
-				+ '       <svg v-if="isUnifiedAlerts" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+				+ '     <button v-if="canToggleUnifiedAlerts" type="button" class="modern-tl-transport-btn modern-tl-alert-mode-btn" :class="{ active: timelineTrackMode !== \'cameras\' }" @click.stop="cycleTimelineTrackMode" :title="timelineTrackModeTitle">'
+				+ '       <svg v-if="timelineTrackMode === \'unified\'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
 				+ '         <rect x="3" y="6" width="18" height="12" rx="2"/>'
 				+ '         <line x1="3" y1="12" x2="21" y2="12"/>'
+				+ '       </svg>'
+				+ '       <svg v-else-if="timelineTrackMode === \'color\'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+				+ '         <circle cx="5.5" cy="7" r="2" fill="#00E5FF" stroke="none"/>'
+				+ '         <line x1="10" y1="7" x2="21" y2="7"/>'
+				+ '         <circle cx="5.5" cy="12" r="2" fill="#10B981" stroke="none"/>'
+				+ '         <line x1="10" y1="12" x2="21" y2="12"/>'
+				+ '         <circle cx="5.5" cy="17" r="2" fill="#F59E0B" stroke="none"/>'
+				+ '         <line x1="10" y1="17" x2="21" y2="17"/>'
 				+ '       </svg>'
 				+ '       <svg v-else viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
 				+ '         <rect x="3" y="4" width="18" height="4" rx="1"/>'
@@ -12434,6 +12530,13 @@ function ClipTimeline()
 						hasError: false
 					},
 					canToggleUnifiedAlerts: false,
+					timelineTrackMode: (function ()
+					{
+						var m = (typeof settings !== "undefined" && settings.getItem) ? settings.getItem("ui3_modern_timeline_track_mode") : null;
+						if (m === "cameras" || m === "color" || m === "unified")
+							return m;
+						return (typeof settings !== "undefined" && settings.getItem && settings.getItem("ui3_modern_timeline_unified_alerts") === "1") ? "unified" : "cameras";
+					})(),
 					isUnifiedAlerts: (typeof settings !== "undefined" && settings.getItem && settings.getItem("ui3_modern_timeline_unified_alerts") === "1"),
 					isModernUI: true,
 					isTimelineExportActive: false,
@@ -13083,23 +13186,20 @@ function ClipTimeline()
 							this.canToggleUnifiedAlerts = canToggle;
 						}
 
+						var trackMode = (canToggle && this.timelineTrackMode) ? this.timelineTrackMode : "cameras";
 						var numTracks = 1;
-						if (canToggle && !this.isUnifiedAlerts)
+						if (canToggle)
 						{
-							numTracks = groupCams.length;
+							if (trackMode === "cameras")
+								numTracks = groupCams.length;
+							else if (trackMode === "color")
+								numTracks = Math.max(1, (canvasData.colors && canvasData.colors.length) ? canvasData.colors.length : 1);
+							else
+								numTracks = 1;
 						}
-
-						var modernTrackPalette = [
-							"#00E5FF", "#10B981", "#F59E0B", "#8B5CF6",
-							"#EC4899", "#3B82F6", "#14B8A6", "#F97316",
-							"#A855F7", "#06B6D4", "#84CC16", "#E11D48",
-							"#6366F1", "#EAB308"
-						];
-						if (!canvasData.colors)
-							canvasData.colors = [];
-						for (var ci = canvasData.colors.length; ci < numTracks; ci++)
+						else if (!isModern && canvasData.colors && canvasData.colors.length > 0)
 						{
-							canvasData.colors.push(modernTrackPalette[ci % modernTrackPalette.length]);
+							numTracks = canvasData.colors.length;
 						}
 
 						var timelineColorbarHeight = clipDrawRegionHeight / numTracks;
@@ -13155,43 +13255,103 @@ function ClipTimeline()
 							? modernUI3.getAccentPalette().primary
 							: "#0284C7";
 
-						// Draw clip rectangles (continuous recording bars)
-						for (var n = 0; n < canvasData.clips.length; n++)
+						var useCameraColorsForRows = (typeof settings !== "undefined" && settings.ui3_modern_timeline_row_color === "camera");
+						var GetRowCameraColor = function (camId)
 						{
-							var clip = canvasData.clips[n];
-							var x = (clip.time - left) / zoomFactor;
-							var w = Math.max(isModern ? (2 * dpr) : 1, clip.len / zoomFactor);
-							if (x < canvas.width && x + w > 0)
+							if (!camId || typeof cameraListLoader === "undefined" || !cameraListLoader)
+								return commonClipColor;
+							var co = cameraListLoader.GetCameraWithId(camId);
+							if (co && typeof co.color !== "undefined" && co.color !== null)
+								return "#" + BlueIrisColorToCssColor(co.color);
+							return commonClipColor;
+						};
+
+						// Draw clip rectangles (continuous recording bars)
+						if (isModern && canToggle && trackMode === "cameras" && numTracks > 1)
+						{
+							// Individual Camera Rows mode: render each camera's own availability intervals independently
+							// so periods with unavailable video for a specific camera remain blank on that camera's row.
+							var byCam = canvasData.clipsByCamera || null;
+							var groupLiveTip = 0;
+							if (byCam)
 							{
-								if (isModern && numTracks > 1)
+								for (var gt = 0; gt < numTracks; gt++)
 								{
-									// In multi-track group view, draw recording bar across ALL visible camera tracks
-									// using common cohesive recording color
-									for (var t = 0; t < numTracks; t++)
+									var gCamId = groupCams[gt];
+									var gClips = gCamId ? (byCam[gCamId.toLowerCase()] || []) : [];
+									for (var gi = 0; gi < gClips.length; gi++)
 									{
-										var ty1 = Math.round(t * timelineColorbarHeight);
-										var ty2 = Math.round((t + 1) * timelineColorbarHeight);
-										var cLaneH = ty2 - ty1;
-										var cPad = Math.min(2 * dpr, cLaneH * 0.1);
-										ctx.fillStyle = commonClipColor;
-										roundRect(ctx, x, alertIconSpace + ty1 + cPad, w, Math.max(1, cLaneH - (cPad * 2)));
+										var gEnd = gClips[gi].time + gClips[gi].len;
+										if (gEnd <= now + 5000 && gEnd >= now - 25000 && gEnd > groupLiveTip)
+											groupLiveTip = gEnd;
 									}
 								}
-								else
+							}
+							for (var t = 0; t < numTracks; t++)
+							{
+								var rowCamId = groupCams[t];
+								var camClips = (byCam && rowCamId) ? (byCam[rowCamId.toLowerCase()] || []) : [];
+								if (!camClips.length)
+									continue;
+								var ty1 = Math.round(t * timelineColorbarHeight);
+								var ty2 = Math.round((t + 1) * timelineColorbarHeight);
+								var cLaneH = ty2 - ty1;
+								var cPad = Math.min(2 * dpr, cLaneH * 0.1);
+								ctx.fillStyle = useCameraColorsForRows ? GetRowCameraColor(rowCamId) : commonClipColor;
+								for (var ci = 0; ci < camClips.length; ci++)
 								{
-									var targetTrack = (typeof clip.track === "number" && clip.track < numTracks) ? clip.track : 0;
+									var cClip = camClips[ci];
+									var cEnd = cClip.time + cClip.len;
+									// Align actively-recording camera bars at the live edge to absorb per-camera .bvr flush jitter
+									// without hiding genuine missing-video gaps (>20s behind the live tip).
+									if (groupLiveTip > 0 && cEnd < groupLiveTip && cEnd >= groupLiveTip - 20000)
+										cEnd = groupLiveTip;
+									var cx = (cClip.time - left) / zoomFactor;
+									var cw = Math.max(2 * dpr, (cEnd - cClip.time) / zoomFactor);
+									if (cx < canvas.width && cx + cw > 0)
+										roundRect(ctx, cx, alertIconSpace + ty1 + cPad, cw, Math.max(1, cLaneH - (cPad * 2)));
+								}
+							}
+						}
+						else
+						{
+							var colorGroupLiveTip = 0;
+							if (isModern && canToggle && trackMode === "color")
+							{
+								for (var cn = 0; cn < canvasData.clips.length; cn++)
+								{
+									var cc = canvasData.clips[cn];
+									var ccEnd = cc.time + cc.len;
+									if (ccEnd <= now + 5000 && ccEnd >= now - 25000 && ccEnd > colorGroupLiveTip)
+										colorGroupLiveTip = ccEnd;
+								}
+							}
+							for (var n = 0; n < canvasData.clips.length; n++)
+							{
+								var clip = canvasData.clips[n];
+								var clipEnd = clip.time + clip.len;
+								if (colorGroupLiveTip > 0 && clipEnd < colorGroupLiveTip && clipEnd >= colorGroupLiveTip - 20000)
+									clipEnd = colorGroupLiveTip;
+								var x = (clip.time - left) / zoomFactor;
+								var w = Math.max(isModern ? (2 * dpr) : 1, (clipEnd - clip.time) / zoomFactor);
+								if (x < canvas.width && x + w > 0)
+								{
+									var targetTrack = (typeof clip.track === "number" && clip.track >= 0 && clip.track < numTracks) ? clip.track : 0;
 									var y1 = Math.round(targetTrack * timelineColorbarHeight);
 									var y2 = Math.round((targetTrack + 1) * timelineColorbarHeight);
 									var cLaneH = y2 - y1;
 									var cPad = isModern ? Math.min(2 * dpr, cLaneH * 0.1) : 0;
 
-									ctx.fillStyle = isModern ? commonClipColor : (canvasData.colors[targetTrack] || "#38BDF8");
 									if (isModern)
 									{
+										ctx.fillStyle = (canToggle && trackMode === "color" && canvasData.colors && canvasData.colors[targetTrack])
+											? canvasData.colors[targetTrack]
+											: commonClipColor;
 										roundRect(ctx, x, alertIconSpace + y1 + cPad, w, Math.max(1, cLaneH - (cPad * 2)));
 									}
 									else
 									{
+										ctx.fillStyle = canvasData.colors[targetTrack] || "#38BDF8";
 										if (drawRoundedRectangles)
 											roundRect(ctx, x, alertIconSpace + y1, w, y2 - y1);
 										else
@@ -13266,6 +13426,10 @@ function ClipTimeline()
 										{
 											trackMatches = true;
 										}
+										else if (trackMode === "color")
+										{
+											trackMatches = (alert.tracks && (alert.tracks & (1 << t)) > 0) || (!alert.tracks && t === 0);
+										}
 										else
 										{
 											if (groupCams && groupCams[t] && alert.camera && iEquals(groupCams[t], alert.camera))
@@ -13318,7 +13482,18 @@ function ClipTimeline()
 												if (timelineColorbarHeight < 24 * dpr)
 													continue; // Don't block compact multi-track lanes on mobile
 												var alertTrack = 0;
-												if (alert.camera && groupCams)
+												if (trackMode === "color")
+												{
+													for (var at = 0; at < numTracks; at++)
+													{
+														if (alert.tracks && (alert.tracks & (1 << at)) > 0)
+														{
+															alertTrack = at;
+															break;
+														}
+													}
+												}
+												else if (alert.camera && groupCams)
 												{
 													for (var at = 0; at < numTracks; at++)
 													{
@@ -13354,14 +13529,28 @@ function ClipTimeline()
 									{
 										// Find camera track for this alert
 										var alertTrack = -1;
-										if (numTracks > 1 && alert.camera && groupCams)
+										if (numTracks > 1)
 										{
-											for (var at = 0; at < numTracks; at++)
+											if (trackMode === "color")
 											{
-												if (groupCams[at] && iEquals(groupCams[at], alert.camera))
+												for (var at = 0; at < numTracks; at++)
 												{
-													alertTrack = at;
-													break;
+													if (alert.tracks && (alert.tracks & (1 << at)) > 0)
+													{
+														alertTrack = at;
+														break;
+													}
+												}
+											}
+											else if (alert.camera && groupCams)
+											{
+												for (var at = 0; at < numTracks; at++)
+												{
+													if (groupCams[at] && iEquals(groupCams[at], alert.camera))
+													{
+														alertTrack = at;
+														break;
+													}
 												}
 											}
 										}
@@ -13411,9 +13600,10 @@ function ClipTimeline()
 						// Pinned camera track label badges in Modern UI
 						// Rendered AFTER alert track markers so badges always sit cleanly ON TOP of the vertical lines (markers pass behind badges)
 						// Suppressed in single-camera view (numTracks === 1) to leave the timeline full and unobstructed
-						if (isModern && canvas.width > 240 && numTracks > 1)
+						if (isModern && canvas.width > 240 && numTracks > 1 && trackMode !== "color")
 						{
 							var longestCamNames = [];
+							var trackDotColors = [];
 							var maxTextWidth = 0;
 							var badgeH_sample = Math.max(6 * dpr, Math.min(timelineColorbarHeight - (1 * dpr), 18 * dpr));
 							var badgeFontSize = Math.round(Math.max(6.5, Math.min(9.5, badgeH_sample * 0.65 / dpr)) * dpr);
@@ -13421,13 +13611,37 @@ function ClipTimeline()
 
 							for (var t = 0; t < numTracks; t++)
 							{
-								var cid = (groupCams && groupCams[t]) ? groupCams[t] : null;
-								var cobj = cid && typeof cameraListLoader !== "undefined" ? cameraListLoader.GetCameraWithId(cid) : null;
-								var cname = cobj ? (cobj.optionDisplay || cobj.optionValue) : (cid || ("Cam " + (t + 1)));
+								var cname = "";
+								var dotColor = null;
+								if (trackMode === "color")
+								{
+									var trackColor = (canvasData.colors && canvasData.colors[t]) ? canvasData.colors[t] : "#38BDF8";
+									dotColor = trackColor;
+									var matchingNames = [];
+									if (groupCams && typeof cameraListLoader !== "undefined" && cameraListLoader)
+									{
+										for (var gc = 0; gc < groupCams.length; gc++)
+										{
+											var gObj = cameraListLoader.GetCameraWithId(groupCams[gc]);
+											if (gObj && typeof gObj.color !== "undefined" && ("#" + BlueIrisColorToCssColor(gObj.color)).toUpperCase() === trackColor.toUpperCase())
+												matchingNames.push(gObj.optionDisplay || gObj.optionValue);
+										}
+									}
+									cname = matchingNames.length > 0 ? matchingNames.join(", ") : (numTracks === 1 ? "All Cameras (1 Color)" : ("Color " + (t + 1)));
+								}
+								else
+								{
+									var cid = (groupCams && groupCams[t]) ? groupCams[t] : null;
+									var cobj = cid && typeof cameraListLoader !== "undefined" ? cameraListLoader.GetCameraWithId(cid) : null;
+									cname = cobj ? (cobj.optionDisplay || cobj.optionValue) : (cid || ("Cam " + (t + 1)));
+									if (useCameraColorsForRows && cobj && typeof cobj.color !== "undefined" && cobj.color !== null)
+										dotColor = "#" + BlueIrisColorToCssColor(cobj.color);
+								}
 								if (cname.length > 40)
-									cname = cname.substr(0, 40);
+									cname = cname.substr(0, 39) + "\u2026";
 								longestCamNames.push(cname);
-								var tw = ctx.measureText(cname).width;
+								trackDotColors.push(dotColor);
+								var tw = ctx.measureText(cname).width + (dotColor ? (10 * dpr) : 0);
 								if (tw > maxTextWidth)
 									maxTextWidth = tw;
 							}
@@ -13443,6 +13657,7 @@ function ClipTimeline()
 								var laneH = y2 - y1;
 
 								var camName = longestCamNames[track] || ("Cam " + (track + 1));
+								var dotCol = trackDotColors[track];
 								var badgeH = Math.max(6 * dpr, Math.min(laneH - (1 * dpr), 18 * dpr));
 
 								if (badgeH >= 5 * dpr)
@@ -13461,15 +13676,25 @@ function ClipTimeline()
 									ctx.strokeStyle = isLightTheme ? "rgba(15, 23, 42, 0.18)" : "rgba(255, 255, 255, 0.10)";
 									ctx.strokeRect(4 * dpr, badgeY, dynamicBadgeW, badgeH);
 
-									// Label text (color dot removed for clean, unified look)
+									var textLeft = 8 * dpr;
+									if (dotCol)
+									{
+										var dotR = Math.max(2 * dpr, Math.min(3.5 * dpr, badgeH * 0.28));
+										ctx.beginPath();
+										ctx.arc(8 * dpr + dotR, badgeY + (badgeH / 2), dotR, 0, Math.PI * 2);
+										ctx.fillStyle = dotCol;
+										ctx.fill();
+										textLeft = 8 * dpr + (dotR * 2) + (4 * dpr);
+									}
+
 									ctx.save();
 									ctx.beginPath();
-									ctx.rect(6 * dpr, badgeY, dynamicBadgeW - (10 * dpr), badgeH);
+									ctx.rect(textLeft - (2 * dpr), badgeY, dynamicBadgeW - (textLeft - (4 * dpr)) - (4 * dpr), badgeH);
 									ctx.clip();
 									ctx.font = badgeFontSize + "px ui-monospace, SFMono-Regular, Menlo, Monaco, monospace, sans-serif";
 									ctx.fillStyle = isLightTheme ? "#0F172A" : "#E2E8F0";
 									ctx.textBaseline = "middle";
-									ctx.fillText(camName, 8 * dpr, badgeY + (badgeH / 2));
+									ctx.fillText(camName, textLeft, badgeY + (badgeH / 2));
 									ctx.restore();
 								}
 							}
@@ -13606,14 +13831,26 @@ function ClipTimeline()
 						{
 							if (this.isModernUI)
 							{
+								var sx = Math.round(erStartX);
+								var sw = 32 * dpr;
+								var sh = 16 * dpr;
+								var sr = 4 * dpr;
 								ctx.fillStyle = "#00FF88";
-								ctx.fillRect(Math.round(erStartX) - dpr, 0, 2 * dpr, canvas.height);
-								// Start Flag Handle
+								ctx.fillRect(sx - dpr, 0, 2 * dpr, canvas.height);
+								// Start Flag Handle (rounded rectangle + soft black border)
+								ctx.beginPath();
+								if (ctx.roundRect)
+									ctx.roundRect(sx, 1 * dpr, sw, sh, sr);
+								else
+									ctx.rect(sx, 1 * dpr, sw, sh);
 								ctx.fillStyle = "#00FF88";
-								ctx.fillRect(Math.round(erStartX), 0, 32 * dpr, 16 * dpr);
+								ctx.fill();
+								ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+								ctx.lineWidth = 1 * dpr;
+								ctx.stroke();
 								ctx.fillStyle = "#0B1118";
 								ctx.font = "bold " + (10 * dpr) + "px Roboto, sans-serif";
-								ctx.fillText("[ IN", Math.round(erStartX) + (4 * dpr), 12 * dpr);
+								ctx.fillText("[ IN", sx + (4 * dpr), 12.5 * dpr);
 							}
 							else
 							{
@@ -13627,14 +13864,26 @@ function ClipTimeline()
 						{
 							if (this.isModernUI)
 							{
+								var ex = Math.round(erEndX);
+								var ew = 36 * dpr;
+								var eh = 16 * dpr;
+								var er = 4 * dpr;
 								ctx.fillStyle = "#FF3366";
-								ctx.fillRect(Math.round(erEndX) - dpr, 0, 2 * dpr, canvas.height);
-								// End Flag Handle
+								ctx.fillRect(ex - dpr, 0, 2 * dpr, canvas.height);
+								// End Flag Handle (rounded rectangle + black text + soft black border)
+								ctx.beginPath();
+								if (ctx.roundRect)
+									ctx.roundRect(ex - ew, 1 * dpr, ew, eh, er);
+								else
+									ctx.rect(ex - ew, 1 * dpr, ew, eh);
 								ctx.fillStyle = "#FF3366";
-								ctx.fillRect(Math.round(erEndX) - (36 * dpr), 0, 36 * dpr, 16 * dpr);
-								ctx.fillStyle = "#FFFFFF";
+								ctx.fill();
+								ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+								ctx.lineWidth = 1 * dpr;
+								ctx.stroke();
+								ctx.fillStyle = "#0B1118";
 								ctx.font = "bold " + (10 * dpr) + "px Roboto, sans-serif";
-								ctx.fillText("OUT ]", Math.round(erEndX) - (32 * dpr), 12 * dpr);
+								ctx.fillText("OUT ]", ex - (32 * dpr), 12.5 * dpr);
 							}
 							else
 							{
@@ -14102,11 +14351,20 @@ function ClipTimeline()
 					this.timelineExportCamPath = camId;
 					this.timelineExportCamName = (typeof cameraListLoader !== "undefined" && cameraListLoader) ? cameraListLoader.GetCameraName(camId) : camId;
 				},
-				toggleUnifiedAlerts: function ()
+				cycleTimelineTrackMode: function ()
 				{
-					this.isUnifiedAlerts = !this.isUnifiedAlerts;
+					var order = ["cameras", "color", "unified"];
+					var idx = order.indexOf(this.timelineTrackMode);
+					var next = order[(idx + 1) % order.length];
+					this.timelineTrackMode = next;
+					this.isUnifiedAlerts = (next === "unified");
 					if (typeof settings !== "undefined" && settings.setItem)
-						settings.setItem("ui3_modern_timeline_unified_alerts", this.isUnifiedAlerts ? "1" : "0");
+					{
+						settings.setItem("ui3_modern_timeline_track_mode", next);
+						settings.setItem("ui3_modern_timeline_unified_alerts", next === "unified" ? "1" : "0");
+					}
+					if (next === "cameras" && (!canvasData || !canvasData.clipsByCamera) && timelineDataLoader && timelineDataLoader.ForceReload)
+						timelineDataLoader.ForceReload();
 					this.drawCanvas();
 				},
 				setPlaySpeed: function (speed)
@@ -14375,6 +14633,14 @@ function ClipTimeline()
 			},
 			computed:
 			{
+				timelineTrackModeTitle: function ()
+				{
+					if (this.timelineTrackMode === "color")
+						return "Grouped by Camera Color (Click for Unified Single Track)";
+					if (this.timelineTrackMode === "unified")
+						return "Unified Single Track (Click for Individual Camera Rows)";
+					return "Individual Camera Rows (Click for Group by Camera Color)";
+				},
 				timelineDurationPresets: function ()
 				{
 					return [
@@ -15994,6 +16260,9 @@ function PlaybackControls()
 	var $pc = $("#playbackControls");
 	var $playbackSettings = $();
 	var buttonContainer = $("#pcButtonContainer");
+	var $topRow = $('<div id="pcTopRow"></div>');
+	var $topOverflow = $('<div id="pcTopOverflow"></div>');
+	var rightSideOriginalOrder = buttonContainer.children(".rightSide").toArray();
 	var $timeWrapper = $("#pcTimeWrapper");
 	if ($timeWrapper.length === 0)
 	{
@@ -16038,10 +16307,53 @@ function PlaybackControls()
 		var width = $pc.parent().width() - paddingSize;
 		$pc.css("width", width + "px");
 
-		// Mobile / narrow overlay controls layout:
-		// When viewing on mobile or narrow screens where all video feed overlay controls
-		// cannot fit on a single row, move the current time display text above the other
-		// controls on its own row, left justified.
+		// Restore any previously overflowed .rightSide buttons back to buttonContainer in original DOM order before measuring
+		if ($topOverflow.children().length > 0)
+		{
+			for (var ri = 0; ri < rightSideOriginalOrder.length; ri++)
+				buttonContainer.append(rightSideOriginalOrder[ri]);
+		}
+
+		if (width > 475)
+			$("#volumeBar").addClass("wide");
+		else
+			$("#volumeBar").removeClass("wide");
+
+		// Adaptive spacing: reduce horizontal padding as more controls are enabled so more fit on a single row
+		var $visibleControls = buttonContainer.children(".pcButton:visible, #volumeBar:visible, #playbackSpeedText:visible");
+		var visibleCount = $visibleControls.length;
+		buttonContainer.removeClass("pc-dense-1 pc-dense-2 pc-dense-3");
+		if (visibleCount >= 12)
+			buttonContainer.addClass("pc-dense-2");
+		else if (visibleCount >= 9)
+			buttonContainer.addClass("pc-dense-1");
+
+		// Measure total row width of visible controls + time text to detect single-row overflow in landscape too
+		var controlsWidth = 0;
+		$visibleControls.each(function ()
+		{
+			controlsWidth += $(this).outerWidth(true) || 0;
+		});
+		if (width > 0 && controlsWidth + 8 > width && visibleCount >= 10)
+		{
+			buttonContainer.removeClass("pc-dense-1 pc-dense-2").addClass("pc-dense-3");
+			controlsWidth = 0;
+			$visibleControls.each(function ()
+			{
+				controlsWidth += $(this).outerWidth(true) || 0;
+			});
+		}
+		var timeTextWidth = 0;
+		if ($timeWrapper.is(":visible"))
+		{
+			timeTextWidth = ($progressText.is(":visible") ? ($progressText.outerWidth(true) || 0) : 0)
+				+ ($playbackFrameTimestamp.is(":visible") ? ($playbackFrameTimestamp.outerWidth(true) || 0) : 0)
+				+ 12;
+		}
+
+		// Mobile / narrow / crowded overlay controls layout:
+		// When all video feed overlay controls cannot fit on a single row, move the current time
+		// display text above the other controls on its own row, left justified.
 		var isPortrait = $('html, body').hasClass('portrait');
 		var isMobileBrowser = (typeof browser_is_android !== 'undefined' && browser_is_android) ||
 		                      (typeof browser_is_ios !== 'undefined' && browser_is_ios) ||
@@ -16049,7 +16361,10 @@ function PlaybackControls()
 		                      (typeof BrowserIsIOS === 'function' && BrowserIsIOS()) ||
 		                      ('ontouchstart' in window && window.innerWidth <= 1024);
 		var isNarrow = (width < 680);
-		var shouldStack = isPortrait || (isMobileBrowser && isNarrow) || (width < 500);
+		var currentlyStacked = $pc.hasClass("stackedTime");
+		var overflowThreshold = currentlyStacked ? (width - 24) : width;
+		var overflowsSingleRow = (width > 0) && ((controlsWidth + timeTextWidth + 16) > overflowThreshold);
+		var shouldStack = isPortrait || (isMobileBrowser && isNarrow) || (width < 500) || overflowsSingleRow;
 
 		if (shouldStack)
 		{
@@ -16057,7 +16372,25 @@ function PlaybackControls()
 			{
 				$pc.addClass("stackedTime");
 				buttonContainer.addClass("stackedTime");
-				buttonContainer.prepend($timeWrapper);
+			}
+			if ($topRow.parent()[0] !== buttonContainer[0])
+				buttonContainer.prepend($topRow);
+			if ($timeWrapper.parent()[0] !== $topRow[0])
+				$topRow.prepend($timeWrapper);
+			if ($topOverflow.parent()[0] !== $topRow[0])
+				$topRow.append($topOverflow);
+
+			// If bottom row buttons still exceed width, overflow innermost .rightSide buttons onto the top row
+			if (width > 0 && controlsWidth + 8 > width)
+			{
+				var bottomRightVisible = buttonContainer.children(".rightSide:visible").toArray();
+				while (bottomRightVisible.length > 0 && controlsWidth + 8 > width)
+				{
+					var btnEl = bottomRightVisible.pop();
+					var btnW = $(btnEl).outerWidth(true) || 0;
+					$topOverflow.prepend(btnEl);
+					controlsWidth -= btnW;
+				}
 			}
 		}
 		else
@@ -16066,16 +16399,15 @@ function PlaybackControls()
 			{
 				$pc.removeClass("stackedTime");
 				buttonContainer.removeClass("stackedTime");
-				$("#volumeBar").after($timeWrapper);
 			}
+			if ($timeWrapper.parent()[0] !== buttonContainer[0])
+				$("#volumeBar").after($timeWrapper);
+			if ($topRow.parent().length > 0)
+				$topRow.detach();
 		}
 
 		var o = $pc.offset();
 		$pc.get(0).savedBounds = { x: o ? o.left : 0, y: o ? o.top : 0, w: width, h: $pc.height() };
-		if (width > 475)
-			$("#volumeBar").addClass("wide");
-		else
-			$("#volumeBar").removeClass("wide");
 
 		seekBar.resized();
 		exportControls.resized();
@@ -16148,6 +16480,8 @@ function PlaybackControls()
 		else
 			$("#pcButtonContainer .showWhenLive").addClass('temporarilyUnavailable');
 		self.setPlayPauseButtonState();
+		if (isVisible)
+			self.resized();
 		if (window.modernUI3 && window.modernUI3.updateLiveState)
 			window.modernUI3.updateLiveState(isLive);
 	}
@@ -16313,6 +16647,10 @@ function PlaybackControls()
 	}
 	this.MouseInInteractiveControls = function (e)
 	{
+		if (self.IsSeekbarDragging())
+			return true;
+		if (e && e.target && $(e.target).closest("#exportOffsetWrapper, #seekBarWrapper, #volumeBar, .pcButton, #playbackSpeedText, #playbackSettings, #playbackHeader").length > 0)
+			return true;
 		mouseCoordFixer.fix(e);
 		if (pointInsideElement($playbackSettings, e.mouseX, e.mouseY)
 			|| pointInsideElement(playbackHeader.Get$Ref(), e.mouseX, e.mouseY)
@@ -17012,25 +17350,33 @@ function SeekBar()
 	}
 	this.drawSeekbarAtPercent = function (percentValue)
 	{
+		if (typeof percentValue !== "number" || !isFinite(percentValue))
+			percentValue = 0;
 		var seekbarW = bar.width();
 		var x = percentValue * seekbarW;
 		x = Clamp(x, 0, seekbarW);
 		left.css("width", x + "px");
 		handle.css("left", x + "px");
 		var msec = videoPlayer.Loading().image.msec;
+		if (typeof msec !== "number" || !isFinite(msec) || msec < 0)
+			msec = 0;
 		var timeValue;
 		if (percentValue >= 1)
 			timeValue = msec;
 		else if (percentValue <= 0)
 			timeValue = 0;
 		else
-			timeValue = (msec - 1) * percentValue;
+			timeValue = Math.max(0, (msec - 1) * percentValue);
 		if (!videoPlayer.Loading().image.isLive && !videoPlayer.Loading().image.isTimeline())
 			playbackControls.SetProgressText(msToTime(timeValue, 0) + " / " + msToTime(msec, 0));
 	}
 	this.drawSeekbarAtTime = function (timeValue)
 	{
+		if (typeof timeValue !== "number" || !isFinite(timeValue) || timeValue < 0)
+			timeValue = 0;
 		var msec = videoPlayer.Loading().image.msec;
+		if (typeof msec !== "number" || !isFinite(msec) || msec < 0)
+			msec = 0;
 		var currentSeekBarPositionRelative;
 		if (msec <= 1)
 			currentSeekBarPositionRelative = 0;
@@ -21632,6 +21978,8 @@ function SessionManager()
 		ProcessStreamsArray();
 		SyncStreamingQualityWarningIcon(true);
 		self.ProcessVersionAvailability();
+		if (typeof modernUi3UpdateChecker !== "undefined" && modernUi3UpdateChecker)
+			modernUi3UpdateChecker.AutoCheckIfNeeded();
 
 		BI_CustomEvent.Invoke("Login Success", response);
 
@@ -22032,6 +22380,8 @@ function SessionManager()
 	}
 	this.UpdateAvailable = function ()
 	{
+		if (typeof modernUi3UpdateChecker !== "undefined" && modernUi3UpdateChecker && modernUi3UpdateChecker.IsUpdateAvailable())
+			return true;
 		if (!permission_installupdate || !lastResponse || !lastResponse.data || !lastResponse.data.version)
 			return false;
 		// The login response's "newversion" is not the only source; an update check performed in
@@ -25758,7 +26108,8 @@ function FetchH264VideoModule()
 		if (frame.formatData)
 			lastFormatData = frame.formatData;
 
-		currentSeekPositionPercent = frame.rawtime / loading.msec;
+		if (typeof frame.rawtime === "number" && isFinite(frame.rawtime) && loading.msec > 0)
+			currentSeekPositionPercent = Clamp(frame.rawtime / loading.msec, 0, 1);
 
 		videoPlayer.ImageRendered({ id: loading.uniqueId, w: frame.width, h: frame.height, loadingTime: frame.actualInterframe, utc: frame.utc, isFirstFrame: lastStreamBeganAt === lastFrameAt });
 		if (loading.isLive || loading.isTimeline())
@@ -26725,6 +27076,8 @@ function WebCodec_WebGPU_Player(frameRendered, PlaybackReachedNaturalEndCB)
 						frame.width = msg.width;
 						frame.height = msg.height;
 						frame.timestamp = frame.time;
+						if (frame.meta && typeof frame.meta.rawtime === "number")
+							frame.rawtime = frame.meta.rawtime;
 						frame.expectedInterframe = (typeof msg.expectedInterframe === "number" && msg.expectedInterframe > 0) ? msg.expectedInterframe : (frame.expectedInterframe || 33);
 						finishedFrameCount++;
 						timestampLastRenderedFrame = frame.time;
@@ -37278,6 +37631,386 @@ function IsBlueIrisVersionNumber(str)
 	return typeof str === "string" && /^\d{1,5}(\.\d{1,5}){1,3}$/.test(str);
 }
 ///////////////////////////////////////////////////////////////
+// ModernUI3 GitHub Release Checker ///////////////////////////
+///////////////////////////////////////////////////////////////
+function ModernUi3UpdateChecker()
+{
+	var self = this;
+	var CACHE_KEY = "modern_ui3_github_release_cache";
+	var API_URL = "https://api.github.com/repos/bwenger9/ModernUI3/releases?per_page=20";
+	var RELEASES_PAGE_URL = "https://github.com/bwenger9/ModernUI3/releases";
+	var AUTO_CHECK_INTERVAL_MS = 12 * 60 * 60 * 1000;
+	var MANUAL_COOLDOWN_MS = 30 * 1000;
+	var DEFAULT_RATE_LIMIT_BACKOFF_MS = 15 * 60 * 1000;
+	var MAX_RATE_LIMIT_BACKOFF_MS = 60 * 60 * 1000;
+	var inFlightCallbacks = null;
+	var inFlightRequest = null;
+
+	this.GetReleasesPageUrl = function ()
+	{
+		return RELEASES_PAGE_URL;
+	}
+	this.GetInstalledVersion = function ()
+	{
+		if (typeof ui_version !== "string")
+			return "";
+		return NormalizeVersion(ui_version) || $.trim(ui_version);
+	}
+	function NormalizeVersion(tag)
+	{
+		if (typeof tag !== "string")
+			return "";
+		var cleaned = $.trim(tag).replace(/^v/i, "");
+		if (!/^\d+(?:\.\d+){1,3}$/.test(cleaned))
+			return "";
+		return cleaned;
+	}
+	function LoadCache()
+	{
+		var empty = {
+			checkedAt: 0,
+			lastAttemptAt: 0,
+			releases: [],
+			rateLimitedUntil: 0,
+			rateLimitBackoffCount: 0,
+			lastError: null
+		};
+		try
+		{
+			var raw = localStorage.getItem(CACHE_KEY);
+			if (!raw)
+				return empty;
+			var parsed = JSON.parse(raw);
+			if (!parsed || typeof parsed !== "object")
+				return empty;
+			return {
+				checkedAt: typeof parsed.checkedAt === "number" && isFinite(parsed.checkedAt) ? parsed.checkedAt : 0,
+				lastAttemptAt: typeof parsed.lastAttemptAt === "number" && isFinite(parsed.lastAttemptAt) ? parsed.lastAttemptAt : 0,
+				releases: $.isArray(parsed.releases) ? parsed.releases : [],
+				rateLimitedUntil: typeof parsed.rateLimitedUntil === "number" && isFinite(parsed.rateLimitedUntil) ? parsed.rateLimitedUntil : 0,
+				rateLimitBackoffCount: typeof parsed.rateLimitBackoffCount === "number" && isFinite(parsed.rateLimitBackoffCount) ? parsed.rateLimitBackoffCount : 0,
+				lastError: typeof parsed.lastError === "string" ? parsed.lastError : null
+			};
+		}
+		catch (ex)
+		{
+			return empty;
+		}
+	}
+	function SaveCache(state)
+	{
+		try
+		{
+			localStorage.setItem(CACHE_KEY, JSON.stringify(state));
+		}
+		catch (ex) { }
+	}
+	function ParseReleasesResponse(arr)
+	{
+		var parsed = [];
+		if (!$.isArray(arr))
+			return parsed;
+		for (var i = 0; i < arr.length && parsed.length < 50; i++)
+		{
+			var rel = arr[i];
+			if (!rel || typeof rel !== "object" || rel.draft === true)
+				continue;
+			var version = NormalizeVersion(rel.tag_name);
+			if (!version)
+				continue;
+			var dateMs = Date.parse(rel.published_at || rel.created_at || "");
+			var url = typeof rel.html_url === "string" && /^https:\/\/github\.com\/[^\s]+$/i.test(rel.html_url)
+				? rel.html_url
+				: RELEASES_PAGE_URL;
+			var notes = typeof rel.body === "string" ? rel.body : "";
+			if (notes.length > 4000)
+				notes = notes.substr(0, 4000);
+			parsed.push({
+				version: version,
+				tag: $.trim(rel.tag_name),
+				name: typeof rel.name === "string" && $.trim(rel.name) ? $.trim(rel.name) : $.trim(rel.tag_name),
+				prerelease: rel.prerelease === true,
+				date: isFinite(dateMs) && dateMs > 0 ? dateMs : 0,
+				notes: notes,
+				url: url
+			});
+		}
+		parsed.sort(function (a, b) { return compareVersions(b.version, a.version); });
+		return parsed;
+	}
+	this.GetCachedState = function ()
+	{
+		return LoadCache();
+	}
+	this.GetLatestCachedRelease = function ()
+	{
+		var cache = LoadCache();
+		if (!cache.releases || cache.releases.length === 0)
+			return null;
+		return cache.releases[0];
+	}
+	this.IsUpdateAvailable = function ()
+	{
+		var installed = self.GetInstalledVersion();
+		var latest = self.GetLatestCachedRelease();
+		if (!installed || !latest || !latest.version)
+			return false;
+		return compareVersions(latest.version, installed) > 0;
+	}
+	this.FormatResetTime = function (untilMs)
+	{
+		if (!untilMs || untilMs <= Date.now())
+			return "shortly";
+		var diffMs = untilMs - Date.now();
+		var rel;
+		if (diffMs < 60000)
+			rel = "in " + Math.max(1, Math.ceil(diffMs / 1000)) + "s";
+		else
+			rel = "in " + Math.ceil(diffMs / 60000) + " min";
+		try
+		{
+			var timeStr = new Date(untilMs).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+			return timeStr + " (" + rel + ")";
+		}
+		catch (ex)
+		{
+			return rel;
+		}
+	}
+	this.AutoCheckIfNeeded = function ()
+	{
+		var cache = LoadCache();
+		var now = Date.now();
+		if (cache.rateLimitedUntil && now < cache.rateLimitedUntil)
+			return;
+		if (cache.checkedAt && (now - cache.checkedAt) < AUTO_CHECK_INTERVAL_MS)
+			return;
+		self.CheckForUpdates({ force: false });
+	}
+	this.CheckForUpdates = function (options, callback)
+	{
+		if (typeof options === "function")
+		{
+			callback = options;
+			options = {};
+		}
+		options = options || {};
+		var force = !!options.force;
+		var cache = LoadCache();
+		var now = Date.now();
+
+		var Notify = function (result)
+		{
+			if (typeof callback === "function")
+				callback(result);
+		};
+
+		if (cache.rateLimitedUntil && now < cache.rateLimitedUntil)
+		{
+			Notify({
+				ok: false,
+				rateLimited: true,
+				rateLimitedUntil: cache.rateLimitedUntil,
+				releases: cache.releases,
+				checkedAt: cache.checkedAt,
+				error: "GitHub API rate limit active. Checks are paused until " + self.FormatResetTime(cache.rateLimitedUntil) + " to prevent further rate limiting."
+			});
+			return;
+		}
+
+		if (!force && cache.checkedAt && (now - cache.checkedAt) < AUTO_CHECK_INTERVAL_MS && cache.releases.length > 0)
+		{
+			Notify({
+				ok: true,
+				fromCache: true,
+				releases: cache.releases,
+				checkedAt: cache.checkedAt
+			});
+			return;
+		}
+
+		if (force && cache.lastAttemptAt && (now - cache.lastAttemptAt) < MANUAL_COOLDOWN_MS && cache.releases.length > 0 && !cache.lastError)
+		{
+			var remainingSec = Math.max(1, Math.ceil((MANUAL_COOLDOWN_MS - (now - cache.lastAttemptAt)) / 1000));
+			Notify({
+				ok: true,
+				fromCache: true,
+				cooldownActive: true,
+				cooldownRemainingSec: remainingSec,
+				releases: cache.releases,
+				checkedAt: cache.checkedAt
+			});
+			return;
+		}
+
+		if (inFlightCallbacks)
+		{
+			if (typeof callback === "function")
+				inFlightCallbacks.push(callback);
+			return;
+		}
+
+		inFlightCallbacks = [];
+		if (typeof callback === "function")
+			inFlightCallbacks.push(callback);
+
+		var ResolveAll = function (result)
+		{
+			var cbs = inFlightCallbacks || [];
+			inFlightCallbacks = null;
+			inFlightRequest = null;
+			for (var i = 0; i < cbs.length; i++)
+				cbs[i](result);
+		};
+
+		inFlightRequest = $.ajax({
+			type: "GET",
+			url: API_URL,
+			dataType: "json",
+			timeout: 15000,
+			success: function (data, textStatus, jqXHR)
+			{
+				var doneAt = Date.now();
+				var releases = ParseReleasesResponse(data);
+				var rateLimitedUntil = 0;
+				try
+				{
+					var remainingHeader = jqXHR && jqXHR.getResponseHeader ? jqXHR.getResponseHeader("X-RateLimit-Remaining") : null;
+					var resetHeader = jqXHR && jqXHR.getResponseHeader ? jqXHR.getResponseHeader("X-RateLimit-Reset") : null;
+					if (remainingHeader === "0" && resetHeader)
+					{
+						var parsedReset = parseInt(resetHeader, 10);
+						if (isFinite(parsedReset) && parsedReset > 0)
+							rateLimitedUntil = parsedReset * 1000 + 2000;
+					}
+				}
+				catch (ex) { }
+
+				var nextState = {
+					checkedAt: doneAt,
+					lastAttemptAt: doneAt,
+					releases: releases,
+					rateLimitedUntil: rateLimitedUntil,
+					rateLimitBackoffCount: 0,
+					lastError: null
+				};
+				SaveCache(nextState);
+				if (typeof sessionManager !== "undefined" && sessionManager && sessionManager.ProcessVersionAvailability)
+					sessionManager.ProcessVersionAvailability();
+				ResolveAll({
+					ok: true,
+					fromCache: false,
+					releases: releases,
+					checkedAt: doneAt
+				});
+			},
+			error: function (jqXHR, textStatus)
+			{
+				var failAt = Date.now();
+				var latestCache = LoadCache();
+				var status = jqXHR ? jqXHR.status : 0;
+				var apiMsg = "";
+				try
+				{
+					if (jqXHR && jqXHR.responseJSON && typeof jqXHR.responseJSON.message === "string")
+						apiMsg = jqXHR.responseJSON.message;
+					else if (jqXHR && typeof jqXHR.responseText === "string" && jqXHR.responseText.charAt(0) === "{")
+					{
+						var parsedErr = JSON.parse(jqXHR.responseText);
+						if (parsedErr && typeof parsedErr.message === "string")
+							apiMsg = parsedErr.message;
+					}
+				}
+				catch (ex) { }
+
+				var remainingHdr = null;
+				var resetHdr = null;
+				var retryAfterHdr = null;
+				try
+				{
+					if (jqXHR && jqXHR.getResponseHeader)
+					{
+						remainingHdr = jqXHR.getResponseHeader("X-RateLimit-Remaining");
+						resetHdr = jqXHR.getResponseHeader("X-RateLimit-Reset");
+						retryAfterHdr = jqXHR.getResponseHeader("Retry-After");
+					}
+				}
+				catch (ex) { }
+
+				var isRateLimit = status === 429
+					|| (status === 403 && (remainingHdr === "0" || /rate\s*limit/i.test(apiMsg)));
+
+				if (isRateLimit)
+				{
+					var until = 0;
+					if (resetHdr)
+					{
+						var resetSec = parseInt(resetHdr, 10);
+						if (isFinite(resetSec) && resetSec > 0)
+							until = resetSec * 1000 + 2000;
+					}
+					if ((!until || until <= failAt) && retryAfterHdr)
+					{
+						var retrySec = parseInt(retryAfterHdr, 10);
+						if (isFinite(retrySec) && retrySec > 0)
+							until = failAt + retrySec * 1000;
+					}
+					var backoffCount = (latestCache.rateLimitBackoffCount || 0) + 1;
+					if (!until || until <= failAt)
+					{
+						var backoffMs = Math.min(MAX_RATE_LIMIT_BACKOFF_MS, DEFAULT_RATE_LIMIT_BACKOFF_MS * Math.pow(2, Math.min(backoffCount - 1, 3)));
+						until = failAt + backoffMs;
+					}
+					var rlMsg = "GitHub API rate limit reached (HTTP " + status + "). Checks are paused until " + self.FormatResetTime(until) + ".";
+					SaveCache({
+						checkedAt: latestCache.checkedAt,
+						lastAttemptAt: failAt,
+						releases: latestCache.releases,
+						rateLimitedUntil: until,
+						rateLimitBackoffCount: backoffCount,
+						lastError: rlMsg
+					});
+					ResolveAll({
+						ok: false,
+						rateLimited: true,
+						rateLimitedUntil: until,
+						releases: latestCache.releases,
+						checkedAt: latestCache.checkedAt,
+						error: rlMsg
+					});
+					return;
+				}
+
+				var errMsg;
+				if (textStatus === "timeout")
+					errMsg = "api.github.com did not respond in time.";
+				else if (!status)
+					errMsg = "api.github.com could not be reached (offline or blocked).";
+				else if (status === 404)
+					errMsg = "GitHub releases endpoint was not found (HTTP 404).";
+				else
+					errMsg = "GitHub responded with an error (HTTP " + status + (apiMsg ? ": " + apiMsg : "") + ").";
+
+				SaveCache({
+					checkedAt: latestCache.checkedAt,
+					lastAttemptAt: failAt,
+					releases: latestCache.releases,
+					rateLimitedUntil: latestCache.rateLimitedUntil || 0,
+					rateLimitBackoffCount: latestCache.rateLimitBackoffCount || 0,
+					lastError: errMsg
+				});
+				ResolveAll({
+					ok: false,
+					rateLimited: false,
+					releases: latestCache.releases,
+					checkedAt: latestCache.checkedAt,
+					error: errMsg
+				});
+			}
+		});
+	}
+}
+///////////////////////////////////////////////////////////////
 // Blue Iris News and Updates Dialog //////////////////////////
 ///////////////////////////////////////////////////////////////
 function BiUpdatesDialog()
@@ -37322,16 +38055,19 @@ function BiUpdatesDialog()
 	var thirdPartyHost = "biupdatehelper.hopto.org";
 	var thirdPartyNote = ", a service operated by the UI3 developer";
 	var thirdPartyRequest = null;
+	var activeTab = "blueiris";
 
-	this.open = function ()
+	this.open = function (initialTab)
 	{
 		CloseDialog();
+		var isAdmin = typeof sessionManager !== "undefined" && sessionManager && sessionManager.IsAdministratorSession();
+		activeTab = (initialTab === "modernui3" || !isAdmin) ? "modernui3" : "blueiris";
 		$content = $('<div class="biUpdatesDialog"></div>');
 		dialog = $content.dialog({
-			title: dialogTitle
+			title: activeTab === "modernui3" ? "ModernUI3 Updates" : dialogTitle
 			, overlayOpacity: 0.3
 			, closeOnOverlayClick: true
-			, onRefresh: RefreshData
+			, onRefresh: function () { RefreshData(true); }
 			, onClosing: function ()
 			{
 				AbortThirdPartyRequest();
@@ -37339,7 +38075,7 @@ function BiUpdatesDialog()
 				$content = null;
 			}
 		});
-		RefreshData();
+		RefreshData(false);
 	}
 	var CloseDialog = function ()
 	{
@@ -37351,10 +38087,50 @@ function BiUpdatesDialog()
 		if (dialog != null)
 			dialog.contentChanged(true);
 	}
-	var RefreshData = function ()
+	var MakeTabBar = function ()
+	{
+		var isAdmin = typeof sessionManager !== "undefined" && sessionManager && sessionManager.IsAdministratorSession();
+		var $tabs = $('<div class="biUpdTabs"></div>');
+		if (isAdmin)
+		{
+			var $biTab = $('<button type="button" class="biUpdTab"></button>')
+				.text("Blue Iris Server")
+				.toggleClass("active", activeTab === "blueiris")
+				.on('click', function ()
+				{
+					if (activeTab === "blueiris")
+						return;
+					activeTab = "blueiris";
+					RefreshData(false);
+				});
+			$tabs.append($biTab);
+		}
+		var hasModernUpdate = typeof modernUi3UpdateChecker !== "undefined" && modernUi3UpdateChecker && modernUi3UpdateChecker.IsUpdateAvailable();
+		var $muiTab = $('<button type="button" class="biUpdTab"></button>')
+			.text("ModernUI3")
+			.toggleClass("active", activeTab === "modernui3")
+			.on('click', function ()
+			{
+				if (activeTab === "modernui3")
+					return;
+				activeTab = "modernui3";
+				RefreshData(false);
+			});
+		if (hasModernUpdate)
+			$muiTab.append($('<span class="biUpdTabDot" title="Update available"></span>'));
+		$tabs.append($muiTab);
+		return $tabs;
+	}
+	var RefreshData = function (forceModernCheck)
 	{
 		if (!$content)
 			return;
+		if (activeTab === "modernui3")
+		{
+			AbortThirdPartyRequest();
+			RefreshModernUI3Data(!!forceModernCheck);
+			return;
+		}
 		AbortThirdPartyRequest();
 		ShowLoading("Checking for updates&hellip;");
 		if (simulateUpdateCheck)
@@ -37401,9 +38177,209 @@ function BiUpdatesDialog()
 		if (!$content)
 			return;
 		SetDialogChrome(null);
-		$content.removeClass("biUpdModern");
-		$content.html('<div class="biUpdLoading">' + html + '</div>');
+		$content.removeClass("biUpdModern").empty()
+			.append(MakeTabBar())
+			.append($('<div class="biUpdLoading"></div>').html(html));
 		ContentChanged();
+	}
+	var RefreshModernUI3Data = function (force)
+	{
+		if (!$content || typeof modernUi3UpdateChecker === "undefined" || !modernUi3UpdateChecker)
+			return;
+		ShowLoading("Checking GitHub for ModernUI3 releases&hellip;");
+		modernUi3UpdateChecker.CheckForUpdates({ force: !!force }, function (result)
+		{
+			if (!$content || activeTab !== "modernui3")
+				return;
+			RenderModernUI3(result);
+			ContentChanged();
+		});
+	}
+	var RenderModernUI3 = function (result)
+	{
+		if (!$content)
+			return;
+		result = result || {};
+		var releases = $.isArray(result.releases) ? result.releases.slice() : [];
+		var installedVersion = modernUi3UpdateChecker.GetInstalledVersion();
+		var releasesUrl = modernUi3UpdateChecker.GetReleasesPageUrl();
+
+		releases.sort(function (a, b) { return compareVersions(b.version, a.version); });
+		var latest = releases.length > 0 ? releases[0] : null;
+		var latestStable = null;
+		for (var i = 0; i < releases.length; i++)
+		{
+			if (!releases[i].prerelease)
+			{
+				latestStable = releases[i];
+				break;
+			}
+		}
+
+		var CompareToInstalled = function (entry)
+		{
+			if (!installedVersion)
+				return 1;
+			var c = compareVersions(entry.version, installedVersion);
+			return c < 0 ? -1 : (c > 0 ? 1 : 0);
+		};
+
+		if (latest && installedVersion)
+		{
+			var installedListed = false;
+			for (i = 0; i < releases.length; i++)
+			{
+				if (releases[i].version === installedVersion)
+				{
+					installedListed = true;
+					break;
+				}
+			}
+			if (!installedListed)
+			{
+				releases.push({ version: installedVersion, tag: "v" + installedVersion, name: "v" + installedVersion, prerelease: false, date: 0, notes: "", url: releasesUrl });
+				releases.sort(function (a, b) { return compareVersions(b.version, a.version); });
+			}
+		}
+
+		var groups = [
+			{ heading: "Newer than yours", cssClass: "biUpdGroupNewer", items: [] }
+			, { heading: "Installed", cssClass: "biUpdGroupInstalled", items: [] }
+			, { heading: "Older", cssClass: "", items: [] }
+		];
+		for (i = 0; i < releases.length; i++)
+		{
+			var rel = CompareToInstalled(releases[i]);
+			if (rel === 0)
+				groups[1].items.push(releases[i]);
+			else if (rel < 0)
+				groups[2].items.push(releases[i]);
+			else
+				groups[0].items.push(releases[i]);
+		}
+
+		var status;
+		if (!latest)
+			status = { name: "Error", headline: result.rateLimited ? "GitHub API rate limit reached" : "Could not check ModernUI3 updates", icon: "#svg_mio_warning" };
+		else if (CompareToInstalled(latest) <= 0)
+			status = { name: "Ok", headline: "ModernUI3 is up to date", icon: "#svg_x5F_OK" };
+		else
+			status = { name: "Update", headline: "ModernUI3 v" + latest.version + " is available", icon: "#svg_mio_update" };
+		SetDialogChrome(status);
+
+		$content.empty().addClass("biUpdModern");
+		$content.append(MakeTabBar());
+
+		var $layout = $('<div class="biUpdLayout"></div>');
+		var $list = $('<div class="biUpdList"></div>');
+		var $footer = $('<div class="biUpdFoot"></div>');
+		$layout.append($list).append($footer);
+
+		if (result.rateLimited || result.error)
+		{
+			var $banner = $('<div class="biUpdNoticeBanner biUpdNoticeError"></div>');
+			$banner.append($('<div></div>').text(result.error || "Unable to check GitHub for updates."));
+			if (latest && result.checkedAt)
+				$banner.append($('<div class="biUpdNoticeSub"></div>').text("Showing cached release data from " + new Date(result.checkedAt).toLocaleString() + "."));
+			$list.append($banner);
+		}
+		else if (result.cooldownActive)
+		{
+			$list.append($('<div class="biUpdNoticeBanner biUpdNoticeInfo"></div>')
+				.text("Checked just now \u2014 using cached release data (" + result.cooldownRemainingSec + "s cooldown to avoid GitHub rate limits)."));
+		}
+
+		var selected = null;
+		var blocks = [];
+		var $releaseLink = $('<a class="biUpdChangelogLink" target="_blank" rel="noopener noreferrer"></a>')
+			.attr("href", releasesUrl)
+			.append(document.createTextNode("Open ModernUI3 Releases on GitHub"))
+			.append(IconHtml("#svg_mio_launch"));
+
+		var SelectRelease = function (entry)
+		{
+			selected = entry;
+			for (var b = 0; b < blocks.length; b++)
+				blocks[b].$block.toggleClass("selected", blocks[b].entry === entry);
+			$releaseLink.attr("href", (entry && entry.url) ? entry.url : releasesUrl);
+		};
+
+		var MakeReleaseBlock = function (entry)
+		{
+			var relative = CompareToInstalled(entry);
+			var $block = $('<div class="biUpdBlock"></div>');
+			if (relative > 0)
+				$block.addClass("biUpdBlockNewer");
+			if (relative === 0)
+				$block.addClass("biUpdBlockInstalled");
+
+			var $row = $('<div class="biUpdBlockRow"></div>');
+			$row.append($('<div class="biUpdVer"></div>').text("v" + entry.version));
+			$row.append($('<div class="biUpdDate"></div>').text(FormatDateMs(entry.date)));
+			var $spacer = $('<div class="biUpdRowSpacer"></div>');
+			if (relative === 0)
+				$spacer.append($('<span class="biUpdBadge biUpdBadgeInstalled"></span>').text("Installed"));
+			$row.append($spacer);
+			if (entry === latest)
+				$row.append($('<span class="biUpdBadge"></span>').text("Latest"));
+			if (entry === latestStable && entry !== latest)
+				$row.append($('<span class="biUpdBadge biUpdBadgeStable"></span>').text("Latest stable"));
+			if (entry.prerelease)
+				$row.append($('<span class="biUpdBadge biUpdBadgePrerelease"></span>').text("Pre-release"));
+			$block.append($row);
+
+			var changes = ParseChangeList(entry.notes);
+			if (changes.length > 0)
+			{
+				var $changes = $('<div class="biUpdChanges"></div>');
+				for (var c = 0; c < changes.length; c++)
+					$changes.append($('<div></div>').text(changes[c]));
+				$block.append($changes);
+			}
+			$block.on('click', function () { SelectRelease(entry); });
+			blocks.push({ entry: entry, $block: $block });
+			return $block;
+		};
+
+		for (i = 0; i < groups.length; i++)
+		{
+			if (groups[i].items.length === 0)
+				continue;
+			$list.append($('<div class="biUpdGroup"></div>').addClass(groups[i].cssClass).text(groups[i].heading));
+			for (var n = 0; n < groups[i].items.length; n++)
+				$list.append(MakeReleaseBlock(groups[i].items[n]));
+		}
+
+		if (!latest)
+		{
+			var $empty = $('<div class="biUpdEmpty"></div>');
+			if (installedVersion)
+				$empty.append($('<div class="biUpdEmptyVersion"></div>')
+					.append(document.createTextNode("Installed version: "))
+					.append($('<b></b>').text("v" + installedVersion)));
+			$empty.append($('<div class="biUpdEmptyVersion"></div>')
+				.append($('<a target="_blank" rel="noopener noreferrer"></a>').attr("href", releasesUrl).text("View ModernUI3 releases on GitHub")));
+			$list.append($empty);
+		}
+
+		var $checkBtn = $('<input type="button" class="biUpdBtn biUpdBtnPrimary" value="Check again" />');
+		$checkBtn.on('click', function () { RefreshModernUI3Data(true); });
+		var $closeBtn = $('<input type="button" class="biUpdBtn" value="Close" />');
+		$closeBtn.on('click', function () { CloseDialog(); });
+		var $buttons = $('<div class="biUpdFootButtons"></div>');
+		$buttons.append($('<div class="biUpdFootButtonRow"></div>').append($checkBtn).append($closeBtn));
+		$footer.append($buttons);
+
+		var $notes = $('<div class="biUpdFootNotes"></div>');
+		$notes.append($('<div></div>').append($releaseLink));
+		if (installedVersion)
+			$notes.append($('<div></div>').text("Installed: ModernUI3 v" + installedVersion));
+		if (result.checkedAt)
+			$notes.append($('<div></div>').text("Last checked: " + new Date(result.checkedAt).toLocaleString()));
+		$footer.append($notes);
+
+		$content.append($layout);
+		SelectRelease(releases.length > 0 ? releases[0] : null);
 	}
 	var IsAutoThirdPartyEnabled = function ()
 	{
@@ -37898,6 +38874,7 @@ function BiUpdatesDialog()
 		SetDialogChrome(status);
 
 		$content.empty().addClass("biUpdModern");
+		$content.append(MakeTabBar());
 		var $layout = $('<div class="biUpdLayout"></div>');
 		var $list = $('<div class="biUpdList"></div>');
 		var $footer = $('<div class="biUpdFoot"></div>');

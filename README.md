@@ -158,6 +158,35 @@ Removes `modernui3.htm`, `modernui3\`, `applet\modernui3\`, strips only the fenc
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -TargetPath "C:\Program Files\Blue Iris\www" -Uninstall
 ```
 
+### Alternative: Manual Installation (GitHub Release ZIP)
+
+If you prefer not to use `git` or want to install manually from a release archive:
+
+1. Download the latest release `.zip` from [GitHub Releases](https://github.com/bwenger9/ModernUI3/releases) and extract it to a temporary folder (for example, `C:\Temp\ModernUI3`). *(Do not extract directly into `C:\Program Files\Blue Iris\www` without reviewing the steps below, as you only need the web payload folders and files.)*
+2. **Option A — Run the included installer from the extracted folder** in **PowerShell as Administrator**:
+   ```powershell
+   cd C:\Temp\ModernUI3
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -TargetPath "C:\Program Files\Blue Iris\www"
+   ```
+   *(Add `-ThemeLogin` if you also want the Cyber-Lens login page theme and custom icons.)*
+3. **Option B — 100% Manual File Copy** into `C:\Program Files\Blue Iris\www` (approve Administrator UAC prompts when prompted):
+   1. Copy `modernui3.htm` → `C:\Program Files\Blue Iris\www\modernui3.htm`
+   2. Copy the `modernui3\` folder → `C:\Program Files\Blue Iris\www\modernui3\`
+   3. Copy the `applet\modernui3\` folder → `C:\Program Files\Blue Iris\www\applet\modernui3\`
+   4. **Auto-redirect from `/` and `/ui3.htm` (recommended):** Copy the contents of `modernui3\redirect-shim.js` into `C:\Program Files\Blue Iris\www\ui3\ui3-local-overrides.js` (creating the file if needed, or pasting at the top of existing overrides) wrapped between `// === BEGIN MODERNUI3 REDIRECT ===` and `// === END MODERNUI3 REDIRECT ===`. *(If you skip this step, stock `/ui3.htm` remains default and you can open ModernUI3 directly at `/modernui3.htm`.)*
+   5. **Optional icons:** Back up `www\favicon.ico` and `www\BlueIris.png` (e.g. to `*.modernui3.bak`) and copy `applet\modernui3\favicon.ico` and `applet\modernui3\BlueIris.png` into `C:\Program Files\Blue Iris\www\`. *(For the fenced `login.htm` theme injection, running `install.ps1 -ThemeLogin` is recommended.)*
+   6. Hard-refresh your browser (`Ctrl+F5`).
+
+### Alternative: Manual Uninstallation
+
+To remove ModernUI3 manually from `C:\Program Files\Blue Iris\www` without running `install.ps1 -Uninstall` (approve Administrator UAC prompts):
+
+1. Delete `modernui3.htm`, the `modernui3\` folder, and the `applet\modernui3\` folder from `C:\Program Files\Blue Iris\www`.
+2. Open `C:\Program Files\Blue Iris\www\ui3\ui3-local-overrides.js` (if present) and remove the `// === BEGIN MODERNUI3 REDIRECT ===` through `// === END MODERNUI3 REDIRECT ===` block (or delete `ui3-local-overrides.js` if it contains nothing else).
+3. If you applied `-ThemeLogin` or replaced icons manually:
+   * Restore `login.htm.modernui3.bak`, `favicon.ico.modernui3.bak`, and `BlueIris.png.modernui3.bak` back to `login.htm`, `favicon.ico`, and `BlueIris.png`, **or**
+   * Edit `login.htm` to remove the `<!-- === BEGIN MODERNUI3 LOGIN HEAD === --> ... <!-- === END MODERNUI3 LOGIN HEAD === -->` and `<!-- === BEGIN MODERNUI3 LOGIN BODY === --> ... <!-- === END MODERNUI3 LOGIN BODY === -->` blocks.
+
 ---
 
 ## Repository File Layout

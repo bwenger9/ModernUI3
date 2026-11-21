@@ -6432,6 +6432,14 @@ div.warningSymbol.button
 	height: 48px;
 }
 
+html.modern-ui3 .about_icon,
+body.modern-ui3 .about_icon
+{
+	width: 64px !important;
+	height: 64px !important;
+	object-fit: contain !important;
+}
+
 #optionalFeaturesNotSupported
 {
 	display: none;
@@ -6504,6 +6512,13 @@ div.warningSymbol.button
 	cursor: -moz-grabbing !important;
 	cursor: -webkit-grabbing !important;
 	cursor: grabbing !important;
+}
+
+.col-resize,
+.col-resize .timelineMain,
+.col-resize .clipTimelineCanvas
+{
+	cursor: col-resize !important;
 }
 /* Corner Status Icons */
 #cornerStatusIcons
@@ -10095,7 +10110,7 @@ body.modern-ui3 #modern-sidebar-controls {
 	flex-direction: column;
 	gap: 6px;
 	scrollbar-width: thin;
-	scrollbar-color: rgba(0, 229, 255, 0.25) transparent;
+	scrollbar-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35) transparent;
 }
 html.modern-ui3 #modern-sidebar-controls::-webkit-scrollbar,
 body.modern-ui3 #modern-sidebar-controls::-webkit-scrollbar {
@@ -10122,6 +10137,37 @@ html.modern-ui3 #modern-sidebar-controls .leftBarBox {
 	border-radius: var(--ui-card-radius) !important;
 	box-sizing: border-box !important;
 	width: 100% !important;
+	transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+html.modern-ui3 .leftBarBox:has(> .leftBarHeading:not(.collapsed)),
+html.modern-ui3 #modern-sidebar-controls .leftBarBox:has(> .leftBarHeading:not(.collapsed)),
+html.modern-ui3 #ptzControlsBox:has(.leftBarHeading:not(.collapsed)),
+html.modern-ui3 #modern-sidebar-controls #ptzControlsBox:has(.leftBarHeading:not(.collapsed)),
+html.modern-ui3 #statusArea:not(.bottomDock):not(.isCollapsed),
+html.modern-ui3 #modern-sidebar-controls #statusArea:not(.bottomDock):not(.isCollapsed),
+html.modern-ui3 .leftBarBox:has(> .leftBarHeading:hover),
+html.modern-ui3 #modern-sidebar-controls .leftBarBox:has(> .leftBarHeading:hover),
+html.modern-ui3 .leftBarBox:has(> .collapsibleTrigger:hover),
+html.modern-ui3 #modern-sidebar-controls .leftBarBox:has(> .collapsibleTrigger:hover),
+html.modern-ui3 #ptzControlsBox:has(.leftBarHeading:hover),
+html.modern-ui3 #modern-sidebar-controls #ptzControlsBox:has(.leftBarHeading:hover),
+html.modern-ui3 #ptzControlsBox:has(.collapsibleTrigger:hover),
+html.modern-ui3 #modern-sidebar-controls #ptzControlsBox:has(.collapsibleTrigger:hover),
+html.modern-ui3 #statusArea:not(.bottomDock):has(.serverStatusHeader:hover),
+html.modern-ui3 #modern-sidebar-controls #statusArea:not(.bottomDock):has(.serverStatusHeader:hover) {
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.12) !important;
+	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.12) !important;
+}
+html.modern-ui3 .leftBarBox:has(> .leftBarHeading:not(.collapsed)):has(> .leftBarHeading:hover),
+html.modern-ui3 #modern-sidebar-controls .leftBarBox:has(> .leftBarHeading:not(.collapsed)):has(> .leftBarHeading:hover),
+html.modern-ui3 #ptzControlsBox:has(.leftBarHeading:not(.collapsed)):has(.leftBarHeading:hover),
+html.modern-ui3 #modern-sidebar-controls #ptzControlsBox:has(.leftBarHeading:not(.collapsed)):has(.leftBarHeading:hover),
+html.modern-ui3 #statusArea:not(.bottomDock):not(.isCollapsed):has(.serverStatusHeader:hover),
+html.modern-ui3 #modern-sidebar-controls #statusArea:not(.bottomDock):not(.isCollapsed):has(.serverStatusHeader:hover) {
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.18) !important;
+	border-color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 10px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
 }
 html.modern-ui3 #modern-sidebar-controls .leftBarHeading {
 	font-size: 11px !important;
@@ -10137,6 +10183,21 @@ html.modern-ui3 #modern-sidebar-controls .leftBarHeading {
 	background-color: transparent !important;
 	transition: color 0.2s ease, text-shadow 0.2s ease !important;
 }
+html.modern-ui3 .leftBarHeading:not(.collapsed),
+html.modern-ui3 #modern-sidebar-controls .leftBarHeading:not(.collapsed) {
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.65)) !important;
+}
+html.modern-ui3 .leftBarHeading:not(.collapsed) .collapsibleTriggerIcon,
+html.modern-ui3 #modern-sidebar-controls .leftBarHeading:not(.collapsed) .collapsibleTriggerIcon,
+html.modern-ui3 .leftBarHeading:not(.collapsed) svg,
+html.modern-ui3 #modern-sidebar-controls .leftBarHeading:not(.collapsed) svg,
+html.modern-ui3 #statusArea:not(.bottomDock):not(.isCollapsed) .serverStatusChevron,
+html.modern-ui3 #modern-sidebar-controls #statusArea:not(.bottomDock):not(.isCollapsed) .serverStatusChevron {
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	fill: currentColor !important;
+	filter: drop-shadow(0 0 6px var(--modern-accent-glow, rgba(0, 229, 255, 0.8))) !important;
+}
 @media (hover: hover) and (pointer: fine) {
 	html.modern-ui3 #modern-sidebar-controls .leftBarHeading:hover,
 	html.modern-ui3 #modern-sidebar-controls .collapsibleTrigger:hover,
@@ -10146,15 +10207,21 @@ html.modern-ui3 #modern-sidebar-controls .leftBarHeading {
 	body.modern-ui3 .collapsibleTrigger:hover {
 		background: transparent !important;
 		background-color: transparent !important;
-		color: #FFFFFF !important;
+		color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
 		text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.85)), 0 0 16px var(--modern-accent-glow, rgba(0, 229, 255, 0.45)) !important;
 	}
 	html.modern-ui3 #modern-sidebar-controls .leftBarHeading:hover .collapsibleTriggerIcon,
 	html.modern-ui3 #modern-sidebar-controls .collapsibleTrigger:hover .collapsibleTriggerIcon,
 	html.modern-ui3 .leftBarHeading:hover .collapsibleTriggerIcon,
-	html.modern-ui3 .collapsibleTrigger:hover .collapsibleTriggerIcon {
-		color: #FFFFFF !important;
-		fill: #FFFFFF !important;
+	html.modern-ui3 .collapsibleTrigger:hover .collapsibleTriggerIcon,
+	html.modern-ui3 #modern-sidebar-controls .leftBarHeading:hover svg,
+	html.modern-ui3 .leftBarHeading:hover svg,
+	html.modern-ui3 #modern-sidebar-controls .collapsibleTrigger:hover svg,
+	html.modern-ui3 .collapsibleTrigger:hover svg,
+	html.modern-ui3 #modern-sidebar-controls #statusArea:not(.bottomDock) .serverStatusHeader:hover .serverStatusChevron,
+	html.modern-ui3 #statusArea:not(.bottomDock) .serverStatusHeader:hover .serverStatusChevron {
+		color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+		fill: currentColor !important;
 		filter: drop-shadow(0 0 6px var(--modern-accent-glow, rgba(0, 229, 255, 0.95))) !important;
 	}
 }
@@ -10868,7 +10935,7 @@ body.modern-ui3 .leftBarHeading {
 	body.modern-ui3 .leftBarHeading:hover {
 		background: transparent !important;
 		background-color: transparent !important;
-		color: #FFFFFF !important;
+		color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
 		text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.85)), 0 0 16px var(--modern-accent-glow, rgba(0, 229, 255, 0.45)) !important;
 	}
 }
@@ -11571,7 +11638,7 @@ html.modern-ui3 .uiSettingsButtonBar,
 body.modern-ui3 .uiSettingsButtonBar
 {
 	max-width: 500px !important;
-	width: 100% !important;
+	width: min(500px, calc(100vw - 64px)) !important;
 	box-sizing: border-box !important;
 }
 html.modern-ui3 .uiSettingsButtonBar,
@@ -13760,6 +13827,130 @@ html.modern-ui3 .biUpdBtn.biUpdBtnPrimary:hover
 	box-shadow: 0 0 12px var(--modern-accent-glow, rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35)) !important;
 }
 
+/* Tab Switcher & ModernUI3 Release Notices */
+html.modern-ui3 .biUpdTabs,
+body.modern-ui3 .biUpdTabs
+{
+	display: flex !important;
+	gap: 6px !important;
+	margin-bottom: 10px !important;
+	padding: 4px !important;
+	border-radius: 8px !important;
+	background: rgba(13, 20, 36, 0.72) !important;
+	border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.modern-ui3 .biUpdTab,
+body.modern-ui3 .biUpdTab
+{
+	flex: 1 1 0 !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 6px !important;
+	height: 30px !important;
+	padding: 0 12px !important;
+	border-radius: 6px !important;
+	border: 1px solid transparent !important;
+	background: transparent !important;
+	color: #94A3B8 !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	cursor: pointer !important;
+	transition: all 0.15s ease !important;
+}
+
+html.modern-ui3 .biUpdTab:hover,
+body.modern-ui3 .biUpdTab:hover
+{
+	color: #F1F5F9 !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.10) !important;
+}
+
+html.modern-ui3 .biUpdTab.active,
+body.modern-ui3 .biUpdTab.active
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
+	font-weight: 700 !important;
+}
+
+html.modern-ui3 .biUpdTabDot,
+body.modern-ui3 .biUpdTabDot
+{
+	width: 7px !important;
+	height: 7px !important;
+	border-radius: 50% !important;
+	background: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 6px var(--modern-accent-glow, rgba(0, 229, 255, 0.7)) !important;
+	display: inline-block !important;
+}
+
+html.modern-ui3 .biUpdNoticeBanner,
+body.modern-ui3 .biUpdNoticeBanner
+{
+	padding: 8px 10px !important;
+	margin-bottom: 8px !important;
+	border-radius: 6px !important;
+	font-size: 12px !important;
+	line-height: 1.45 !important;
+}
+
+html.modern-ui3 .biUpdNoticeBanner.biUpdNoticeError,
+body.modern-ui3 .biUpdNoticeBanner.biUpdNoticeError
+{
+	background: rgba(239, 68, 68, 0.14) !important;
+	border: 1px solid rgba(239, 68, 68, 0.42) !important;
+	color: #FCA5A5 !important;
+}
+
+html.modern-ui3 .biUpdNoticeBanner.biUpdNoticeInfo,
+body.modern-ui3 .biUpdNoticeBanner.biUpdNoticeInfo
+{
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.10) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35) !important;
+	color: #E2E8F0 !important;
+}
+
+html.modern-ui3 .biUpdNoticeSub,
+body.modern-ui3 .biUpdNoticeSub
+{
+	margin-top: 4px !important;
+	font-size: 11px !important;
+	opacity: 0.85 !important;
+}
+
+html.modern-ui3 .biUpdBadgePrerelease,
+body.modern-ui3 .biUpdBadgePrerelease
+{
+	background: rgba(245, 158, 11, 0.16) !important;
+	border-color: rgba(245, 158, 11, 0.45) !important;
+	color: #FBBF24 !important;
+}
+
+html.modern-ui3 .modernSettingsActionBtn,
+body.modern-ui3 .modernSettingsActionBtn
+{
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.16) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.48) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	border-radius: 6px !important;
+	padding: 6px 12px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	cursor: pointer !important;
+	transition: all 0.15s ease !important;
+}
+
+html.modern-ui3 .modernSettingsActionBtn:hover,
+body.modern-ui3 .modernSettingsActionBtn:hover
+{
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.28) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	color: #FFFFFF !important;
+}
+
 html.modern-ui3 .biUpdNewsBody
 {
 	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.07) !important;
@@ -14346,7 +14537,7 @@ body.modern-ui3 #ptzControlsBox .leftBarInnerBox
 	width: 100% !important;
 	max-width: 100% !important;
 	max-height: 50vh !important;
-	overflow-y: auto !important;
+	overflow-y: auto;
 	overflow-x: hidden !important;
 	-webkit-overflow-scrolling: touch !important;
 	box-sizing: border-box !important;
@@ -16997,6 +17188,12 @@ body.modern-ui3 .modern-tl-zoom-col-btn.is-pressed svg
 		border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.6) !important;
 		box-shadow: 0 0 6px var(--modern-accent-glow, rgba(var(--modern-accent-rgb, 0, 229, 255), 0.35)) !important;
 	}
+
+	html.modern-ui3[data-modern-theme="light"] .modern-tl-zoom-col-btn:hover:not(:active):not(.is-pressed),
+	body.modern-ui3[data-modern-theme="light"] .modern-tl-zoom-col-btn:hover:not(:active):not(.is-pressed)
+	{
+		color: var(--modern-accent-primary, #0284C7) !important;
+	}
 }
 
 html.modern-ui3.sizeSmall .modern-tl-zoom-col-btn,
@@ -17131,7 +17328,7 @@ html.modern-ui3 .modern-tl-transport-btn,
 body.modern-ui3 .modern-tl-transport-btn
 {
 	background: rgba(13, 21, 39, 0.85) !important;
-	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
 	color: #CBD5E1 !important;
 	width: 38px !important;
 	height: 34px !important;
@@ -18471,6 +18668,208 @@ html.modern-ui3 #pcButtonContainer,
 body.modern-ui3 #pcButtonContainer
 {
 	overflow: visible !important;
+	line-height: 42px !important;
+}
+
+html.modern-ui3.sizeMedium #pcButtonContainer,
+body.modern-ui3.sizeMedium #pcButtonContainer,
+html.modern-ui3 .sizeMedium #pcButtonContainer,
+body.modern-ui3 .sizeMedium #pcButtonContainer
+{
+	line-height: 33px !important;
+}
+
+html.modern-ui3.sizeSmall #pcButtonContainer,
+body.modern-ui3.sizeSmall #pcButtonContainer,
+html.modern-ui3 .sizeSmall #pcButtonContainer,
+body.modern-ui3 .sizeSmall #pcButtonContainer
+{
+	line-height: 24px !important;
+}
+
+/* Adaptive spacing when many overlay playback controls are enabled (4x wider padding) */
+html.modern-ui3 #pcButtonContainer .pcButton,
+body.modern-ui3 #pcButtonContainer .pcButton
+{
+	width: auto !important;
+	min-width: 26px !important;
+	height: 42px !important;
+	line-height: 26px !important;
+	padding: 8px 16px !important;
+	box-sizing: border-box !important;
+	vertical-align: middle !important;
+}
+
+html.modern-ui3 #playbackSettingsButton,
+body.modern-ui3 #playbackSettingsButton
+{
+	position: relative !important;
+}
+
+html.modern-ui3 #playbackSettingsQualityMark,
+body.modern-ui3 #playbackSettingsQualityMark
+{
+	position: absolute !important;
+	top: 1px !important;
+	left: 50% !important;
+	right: auto !important;
+	transform: translateX(-50%) !important;
+	line-height: 1.1 !important;
+	white-space: nowrap !important;
+}
+
+html.modern-ui3 #pcButtonContainer .pcButton svg,
+body.modern-ui3 #pcButtonContainer .pcButton svg
+{
+	width: 26px !important;
+	height: 26px !important;
+	flex-shrink: 0 !important;
+}
+
+html.modern-ui3.sizeMedium #pcButtonContainer .pcButton,
+body.modern-ui3.sizeMedium #pcButtonContainer .pcButton,
+html.modern-ui3 .sizeMedium #pcButtonContainer .pcButton,
+body.modern-ui3 .sizeMedium #pcButtonContainer .pcButton
+{
+	min-width: 21px !important;
+	height: 33px !important;
+	padding: 6px 12px !important;
+}
+
+html.modern-ui3.sizeMedium #pcButtonContainer .pcButton svg,
+body.modern-ui3.sizeMedium #pcButtonContainer .pcButton svg,
+html.modern-ui3 .sizeMedium #pcButtonContainer .pcButton svg,
+body.modern-ui3 .sizeMedium #pcButtonContainer .pcButton svg
+{
+	width: 21px !important;
+	height: 21px !important;
+}
+
+html.modern-ui3.sizeSmall #pcButtonContainer .pcButton,
+body.modern-ui3.sizeSmall #pcButtonContainer .pcButton,
+html.modern-ui3 .sizeSmall #pcButtonContainer .pcButton,
+body.modern-ui3 .sizeSmall #pcButtonContainer .pcButton
+{
+	min-width: 16px !important;
+	height: 24px !important;
+	padding: 4px 8px !important;
+}
+
+html.modern-ui3.sizeSmall #pcButtonContainer .pcButton svg,
+body.modern-ui3.sizeSmall #pcButtonContainer .pcButton svg,
+html.modern-ui3 .sizeSmall #pcButtonContainer .pcButton svg,
+body.modern-ui3 .sizeSmall #pcButtonContainer .pcButton svg
+{
+	width: 16px !important;
+	height: 16px !important;
+}
+
+html.modern-ui3 #pcButtonContainer.pc-dense-1 .pcButton,
+body.modern-ui3 #pcButtonContainer.pc-dense-1 .pcButton
+{
+	padding: 8px 14px !important;
+}
+
+html.modern-ui3 #pcButtonContainer.pc-dense-1 #playbackSpeedText,
+body.modern-ui3 #pcButtonContainer.pc-dense-1 #playbackSpeedText
+{
+	padding: 8px 12px !important;
+}
+
+html.modern-ui3 #pcButtonContainer.pc-dense-2 .pcButton,
+body.modern-ui3 #pcButtonContainer.pc-dense-2 .pcButton
+{
+	padding: 8px 12px !important;
+}
+
+html.modern-ui3 #pcButtonContainer.pc-dense-2 #playbackSpeedText,
+body.modern-ui3 #pcButtonContainer.pc-dense-2 #playbackSpeedText
+{
+	padding: 8px 10px !important;
+}
+
+html.modern-ui3 #pcButtonContainer.pc-dense-3 .pcButton,
+body.modern-ui3 #pcButtonContainer.pc-dense-3 .pcButton,
+html.modern-ui3 #pcButtonContainer.pc-dense-3 #playbackSpeedText,
+body.modern-ui3 #pcButtonContainer.pc-dense-3 #playbackSpeedText
+{
+	padding: 8px 6px !important;
+}
+
+html.modern-ui3 #pcButtonContainer .pcButton,
+body.modern-ui3 #pcButtonContainer .pcButton,
+html.modern-ui3 #pcButtonContainer #volumeBar,
+body.modern-ui3 #pcButtonContainer #volumeBar,
+html.modern-ui3 #pcButtonContainer #playbackSpeedText,
+body.modern-ui3 #pcButtonContainer #playbackSpeedText
+{
+	opacity: 0.65 !important;
+	transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease !important;
+}
+
+html.modern-ui3 #pcButtonContainer .pcButton:hover,
+body.modern-ui3 #pcButtonContainer .pcButton:hover,
+html.modern-ui3 #pcButtonContainer #volumeBar:hover,
+body.modern-ui3 #pcButtonContainer #volumeBar:hover,
+html.modern-ui3 #pcButtonContainer #playbackSpeedText:hover,
+body.modern-ui3 #pcButtonContainer #playbackSpeedText:hover
+{
+	opacity: 1 !important;
+}
+
+html.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-1 .pcButton,
+body.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-1 .pcButton,
+html.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-1 #playbackSpeedText,
+body.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-1 #playbackSpeedText
+{
+	padding: 6px 10px !important;
+}
+
+html.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-2 .pcButton,
+body.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-2 .pcButton,
+html.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-2 #playbackSpeedText,
+body.modern-ui3.sizeMedium #pcButtonContainer.pc-dense-2 #playbackSpeedText
+{
+	padding: 6px 9px !important;
+}
+
+html.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-1 .pcButton,
+body.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-1 .pcButton,
+html.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-1 #playbackSpeedText,
+body.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-1 #playbackSpeedText
+{
+	padding: 4px 7px !important;
+}
+
+html.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-2 .pcButton,
+body.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-2 .pcButton,
+html.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-2 #playbackSpeedText,
+body.modern-ui3.sizeSmall #pcButtonContainer.pc-dense-2 #playbackSpeedText
+{
+	padding: 4px 6px !important;
+}
+
+html.modern-ui3 #playbackControls:not(.stackedTime) #pcTimeWrapper,
+body.modern-ui3 #playbackControls:not(.stackedTime) #pcTimeWrapper
+{
+	display: inline-flex !important;
+	align-items: center !important;
+	height: 42px !important;
+	vertical-align: middle !important;
+	padding-left: 10px !important;
+	padding-right: 10px !important;
+}
+
+html.modern-ui3.sizeMedium #playbackControls:not(.stackedTime) #pcTimeWrapper,
+body.modern-ui3.sizeMedium #playbackControls:not(.stackedTime) #pcTimeWrapper
+{
+	height: 33px !important;
+}
+
+html.modern-ui3.sizeSmall #playbackControls:not(.stackedTime) #pcTimeWrapper,
+body.modern-ui3.sizeSmall #playbackControls:not(.stackedTime) #pcTimeWrapper
+{
+	height: 24px !important;
 }
 
 html.modern-ui3 #seekBarWrapper,
@@ -18570,7 +18969,7 @@ body.modern-ui3 .pcButton svg
 html.modern-ui3 .pcButton:hover,
 body.modern-ui3 .pcButton:hover
 {
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
 	transform: scale(1.1) !important;
 	filter: none !important;
 }
@@ -18601,6 +19000,27 @@ html.modern-ui3 #volumeBar,
 body.modern-ui3 #volumeBar
 {
 	color: var(--modern-accent-primary, #00E5FF) !important;
+	height: 42px !important;
+	line-height: 26px !important;
+	vertical-align: middle !important;
+	padding: 8px 10px 8px 8px !important;
+	box-sizing: border-box !important;
+}
+
+html.modern-ui3.sizeMedium #volumeBar,
+body.modern-ui3.sizeMedium #volumeBar
+{
+	height: 33px !important;
+	line-height: 21px !important;
+	padding: 6px 8px 6px 6px !important;
+}
+
+html.modern-ui3.sizeSmall #volumeBar,
+body.modern-ui3.sizeSmall #volumeBar
+{
+	height: 24px !important;
+	line-height: 16px !important;
+	padding: 4px 6px 4px 4px !important;
 }
 
 html.modern-ui3 #volumeBar .statusBarLabel,
@@ -18628,7 +19048,7 @@ body.modern-ui3 #volumeBar .statusBarLabel:hover #pcVolume,
 html.modern-ui3 #pcVolume:hover,
 body.modern-ui3 #pcVolume:hover
 {
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
 	transform: scale(1.1) !important;
 }
 
@@ -18638,7 +19058,7 @@ html.modern-ui3 #pcVolume:hover svg,
 body.modern-ui3 #pcVolume:hover svg
 {
 	fill: currentColor !important;
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
 	filter: none !important;
 }
 
@@ -18674,22 +19094,22 @@ body.modern-ui3 #playbackSpeedText
 	border: none !important;
 	border-radius: 0 !important;
 	box-shadow: none !important;
-	padding: 8px 4px !important;
+	padding: 8px 6px !important;
 	min-width: 26px !important;
 	height: 42px !important;
 	min-height: 42px !important;
 	box-sizing: border-box !important;
 	color: var(--modern-accent-primary, #00E5FF) !important;
 	font-weight: 700 !important;
-	font-size: 21px !important;
+	font-size: 24px !important;
 	display: inline-flex !important;
 	align-items: center !important;
 	justify-content: center !important;
-	margin: 0 2px !important;
-	vertical-align: top !important;
+	margin: 0 !important;
+	vertical-align: middle !important;
 	transition: all 0.15s ease !important;
 	cursor: pointer !important;
-	line-height: 1 !important;
+	line-height: 26px !important;
 	filter: none !important;
 }
 
@@ -18701,9 +19121,10 @@ body.modern-ui3 .sizeMedium #playbackSpeedText
 	min-width: 21px !important;
 	height: 33px !important;
 	min-height: 33px !important;
-	margin: 0 2px !important;
-	padding: 6px 3px !important;
-	font-size: 17px !important;
+	margin: 0 !important;
+	padding: 6px 4px !important;
+	font-size: 19px !important;
+	line-height: 21px !important;
 }
 
 html.modern-ui3.sizeSmall #playbackSpeedText,
@@ -18714,9 +19135,10 @@ body.modern-ui3 .sizeSmall #playbackSpeedText
 	min-width: 16px !important;
 	height: 24px !important;
 	min-height: 24px !important;
-	margin: 0 1px !important;
-	padding: 4px 2px !important;
-	font-size: 13px !important;
+	margin: 0 !important;
+	padding: 4px 3px !important;
+	font-size: 15px !important;
+	line-height: 16px !important;
 }
 
 html.modern-ui3 #playbackSpeedText:hover,
@@ -18725,7 +19147,7 @@ body.modern-ui3 #playbackSpeedText:hover
 	background: transparent !important;
 	border: none !important;
 	box-shadow: none !important;
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
 	transform: scale(1.1) !important;
 	filter: none !important;
 }
@@ -19216,7 +19638,7 @@ body.modern-ui3 .modern-tl-export-toggle-btn
 	padding: 0 10px !important;
 	border-radius: 6px !important;
 	background: rgba(13, 21, 39, 0.8) !important;
-	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
 	color: #CBD5E1 !important;
 	font-size: 13px !important;
 	font-weight: 700 !important;
@@ -19390,14 +19812,32 @@ body.modern-ui3 .dialog_wrapper .dialogOption_ddl_top select
 	cursor: pointer !important;
 }
 
+html.modern-ui3 .dialog_wrapper .dialogOption_item_ddl select:hover,
+body.modern-ui3 .dialog_wrapper .dialogOption_item_ddl select:hover,
+html.modern-ui3 .dialog_wrapper .dialogOption_ddl_top select:hover,
+body.modern-ui3 .dialog_wrapper .dialogOption_ddl_top select:hover
+{
+	border-color: var(--modern-accent-primary, #00F0FF) !important;
+	box-shadow: 0 0 10px var(--modern-accent-glow, rgba(0, 240, 255, 0.35)) !important;
+}
+
 html.modern-ui3 .dialog_wrapper .dialogOption_item_ddl select:focus,
 body.modern-ui3 .dialog_wrapper .dialogOption_item_ddl select:focus,
 html.modern-ui3 .dialog_wrapper .dialogOption_ddl_top select:focus,
 body.modern-ui3 .dialog_wrapper .dialogOption_ddl_top select:focus
 {
-	border-color: var(--modern-accent-color, #00F0FF) !important;
+	border-color: rgba(255, 255, 255, 0.25) !important;
 	outline: none !important;
-	box-shadow: 0 0 8px rgba(0, 240, 255, 0.3) !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3 .dialog_wrapper .dialogOption_item_ddl select:focus:hover,
+body.modern-ui3 .dialog_wrapper .dialogOption_item_ddl select:focus:hover,
+html.modern-ui3 .dialog_wrapper .dialogOption_ddl_top select:focus:hover,
+body.modern-ui3 .dialog_wrapper .dialogOption_ddl_top select:focus:hover
+{
+	border-color: var(--modern-accent-primary, #00F0FF) !important;
+	box-shadow: 0 0 10px var(--modern-accent-glow, rgba(0, 240, 255, 0.35)) !important;
 }
 
 html.modern-ui3 .dialog_wrapper .dialogOption_item_ddl .settingDesc,
@@ -19600,6 +20040,16 @@ body.modern-ui3 .dialog_wrapper .campropcontent input[type="button"].largeBtnDis
 	cursor: default !important;
 }
 
+html.modern-ui3 .dialog_wrapper .clipExportPanel .clipprop_item_info,
+body.modern-ui3 .dialog_wrapper .clipExportPanel .clipprop_item_info
+{
+	width: 100% !important;
+	box-sizing: border-box !important;
+	text-align: left !important;
+	padding-left: 14px !important;
+	margin: 4px 0 8px 0 !important;
+}
+
 html.modern-ui3 .dialog_wrapper .clipExportPanel .dialogOption_item_info,
 body.modern-ui3 .dialog_wrapper .clipExportPanel .dialogOption_item_info
 {
@@ -19618,7 +20068,8 @@ body.modern-ui3 .dialog_wrapper .exportControlsExportBtn
 	padding: 10px 20px !important;
 	font-size: 14px !important;
 	font-weight: 700 !important;
-	border: none !important;
+	line-height: 1.25 !important;
+	border: 1px solid transparent !important;
 	border-radius: 8px !important;
 	background: linear-gradient(135deg, #00FF88 0%, #00C853 100%) !important;
 	color: #051A10 !important;
@@ -19641,25 +20092,28 @@ body.modern-ui3 .dialog_wrapper .exportControlsCancelBtn
 {
 	width: 100% !important;
 	max-width: 320px !important;
-	padding: 8px 18px !important;
-	font-size: 13px !important;
-	font-weight: 600 !important;
-	border: 1px solid rgba(255, 255, 255, 0.15) !important;
+	padding: 10px 20px !important;
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	line-height: 1.25 !important;
+	border: 1px solid rgba(239, 68, 68, 0.55) !important;
 	border-radius: 8px !important;
-	background: rgba(255, 255, 255, 0.08) !important;
-	color: #94A3B8 !important;
+	background: rgba(239, 68, 68, 0.14) !important;
+	color: #F87171 !important;
 	cursor: pointer !important;
 	transition: all 0.15s ease !important;
-	margin: 4px auto 8px auto !important;
+	margin: 6px auto 8px auto !important;
 	display: block !important;
 }
 
 html.modern-ui3 .dialog_wrapper .exportControlsCancelBtn:hover,
 body.modern-ui3 .dialog_wrapper .exportControlsCancelBtn:hover
 {
-	background: rgba(239, 68, 68, 0.2) !important;
-	color: #EF4444 !important;
-	border-color: rgba(239, 68, 68, 0.4) !important;
+	background: rgba(239, 68, 68, 0.28) !important;
+	color: #FFFFFF !important;
+	border-color: #EF4444 !important;
+	box-shadow: 0 0 14px rgba(239, 68, 68, 0.35) !important;
+	transform: translateY(-1px) !important;
 }
 
 /* Modern UI Cyber-Slate Export Status Dialog */
@@ -20625,6 +21079,38 @@ body.modern-ui3 .menuItemStatus.on
 	padding: 0;
 }
 
+#playbackControls.stackedTime #pcTopRow,
+html.modern-ui3 #playbackControls.stackedTime #pcTopRow,
+body.modern-ui3 #playbackControls.stackedTime #pcTopRow
+{
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	width: 100% !important;
+	gap: 8px !important;
+	margin: 0 0 2px 0 !important;
+	box-sizing: border-box !important;
+}
+
+#playbackControls.stackedTime #pcTopOverflow,
+html.modern-ui3 #playbackControls.stackedTime #pcTopOverflow,
+body.modern-ui3 #playbackControls.stackedTime #pcTopOverflow
+{
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	flex-shrink: 0 !important;
+}
+
+#playbackControls.stackedTime #pcTopOverflow .pcButton,
+#playbackControls.stackedTime #pcTopOverflow #playbackSpeedText,
+html.modern-ui3 #playbackControls.stackedTime #pcTopOverflow .pcButton,
+html.modern-ui3 #playbackControls.stackedTime #pcTopOverflow #playbackSpeedText
+{
+	float: none !important;
+}
+
 #playbackControls.stackedTime #pcTimeWrapper,
 html.modern-ui3 #playbackControls.stackedTime #pcTimeWrapper,
 body.modern-ui3 #playbackControls.stackedTime #pcTimeWrapper,
@@ -20635,12 +21121,14 @@ body.modern-ui3.portrait #pcTimeWrapper
 	flex-direction: row !important;
 	align-items: center !important;
 	justify-content: flex-start !important;
-	width: 100% !important;
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+	width: auto !important;
 	clear: both !important;
 	float: none !important;
 	box-sizing: border-box !important;
-	padding: 2px 6px 3px 6px !important;
-	margin: 0 0 2px 0 !important;
+	padding: 2px 8px 3px 12px !important;
+	margin: 0 !important;
 	overflow: hidden !important;
 	text-overflow: ellipsis !important;
 	white-space: nowrap !important;
@@ -20664,7 +21152,7 @@ html.modern-ui3.portrait #playbackFrameTimestamp
 	color: #CBD5E1 !important;
 	letter-spacing: 0.3px !important;
 	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.7) !important;
-	padding: 0 8px 0 0 !important;
+	padding: 0 8px 0 4px !important;
 	margin: 0 !important;
 	white-space: nowrap !important;
 	overflow: hidden !important;
@@ -20734,8 +21222,9 @@ body.modern-ui3[data-modern-theme="light"] #modern-sidebar
 {
 	background: rgba(248, 250, 252, 0.98) !important;
 	background-color: #F8FAFC !important;
-	border-right-color: rgba(15, 23, 42, 0.10) !important;
+	border-right-color: rgba(15, 23, 42, 0.14) !important;
 	border-top-color: rgba(15, 23, 42, 0.10) !important;
+	box-shadow: none !important;
 	color: #0F172A !important;
 }
 
@@ -20775,6 +21264,15 @@ body.modern-ui3[data-modern-theme="light"] #modern-sidebar .modern-nav-item.acti
 	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.18) !important;
 	border-color: var(--modern-accent-primary, #0284C7) !important;
 	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.40), inset 0 0 10px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.16) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-sidebar-collapse-btn,
+body.modern-ui3[data-modern-theme="light"] .modern-sidebar-collapse-btn
+{
+	background: #FFFFFF !important;
+	border: 1px solid rgba(15, 23, 42, 0.24) !important;
+	color: #334155 !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-sidebar-collapse-btn:hover,
@@ -20838,9 +21336,24 @@ html.modern-ui3[data-modern-theme="light"] #modern-topbar .modern-icon-btn,
 html.modern-ui3[data-modern-theme="light"] #modern-btn-mainmenu
 {
 	background: #FFFFFF !important;
-	border-color: rgba(15, 23, 42, 0.12) !important;
+	border-color: rgba(15, 23, 42, 0.24) !important;
 	color: #334155 !important;
-	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-profile-pill,
+body.modern-ui3[data-modern-theme="light"] .modern-profile-pill
+{
+	background: #FFFFFF !important;
+	border-color: rgba(15, 23, 42, 0.24) !important;
+	color: #0F172A !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-profile-arrow,
+body.modern-ui3[data-modern-theme="light"] .modern-profile-arrow
+{
+	color: #475569 !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-tool-btn:hover,
@@ -20875,6 +21388,20 @@ html.modern-ui3[data-modern-theme="light"] .modern-profile-pill:hover .modern-pr
 body.modern-ui3[data-modern-theme="light"] .modern-profile-pill:hover .modern-profile-arrow
 {
 	color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-density-pill,
+body.modern-ui3[data-modern-theme="light"] .modern-density-pill
+{
+	background: #FFFFFF !important;
+	border: 1px solid rgba(15, 23, 42, 0.24) !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modern-density-btn,
+body.modern-ui3[data-modern-theme="light"] .modern-density-btn
+{
+	color: #334155 !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-density-btn.active,
@@ -20916,8 +21443,8 @@ html.modern-ui3[data-modern-theme="light"] #statusArea:not(.bottomDock),
 body.modern-ui3[data-modern-theme="light"] #statusArea:not(.bottomDock)
 {
 	background: #FFFFFF !important;
-	border-color: rgba(15, 23, 42, 0.12) !important;
-	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06) !important;
+	border-color: rgba(15, 23, 42, 0.24) !important;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08) !important;
 	color: #0F172A !important;
 }
 
@@ -21024,25 +21551,84 @@ html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #ptzControls
 html.modern-ui3[data-modern-theme="light"] .modern-control-card
 {
 	background: #FFFFFF !important;
-	border-color: rgba(15, 23, 42, 0.12) !important;
-	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06) !important;
+	border-color: rgba(15, 23, 42, 0.24) !important;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08) !important;
 	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .leftBarBox:has(> .leftBarHeading:not(.collapsed)),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarBox:has(> .leftBarHeading:not(.collapsed)),
+html.modern-ui3[data-modern-theme="light"] #ptzControlsBox:has(.leftBarHeading:not(.collapsed)),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #ptzControlsBox:has(.leftBarHeading:not(.collapsed)),
+html.modern-ui3[data-modern-theme="light"] #statusArea:not(.bottomDock):not(.isCollapsed),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #statusArea:not(.bottomDock):not(.isCollapsed),
+html.modern-ui3[data-modern-theme="light"] .leftBarBox:has(> .leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarBox:has(> .leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] .leftBarBox:has(> .collapsibleTrigger:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarBox:has(> .collapsibleTrigger:hover),
+html.modern-ui3[data-modern-theme="light"] #ptzControlsBox:has(.leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #ptzControlsBox:has(.leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] #ptzControlsBox:has(.collapsibleTrigger:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #ptzControlsBox:has(.collapsibleTrigger:hover),
+html.modern-ui3[data-modern-theme="light"] #statusArea:not(.bottomDock):has(.serverStatusHeader:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #statusArea:not(.bottomDock):has(.serverStatusHeader:hover)
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+	border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.55) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.32), inset 0 0 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.12) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .leftBarBox:has(> .leftBarHeading:not(.collapsed)):has(> .leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarBox:has(> .leftBarHeading:not(.collapsed)):has(> .leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] #ptzControlsBox:has(.leftBarHeading:not(.collapsed)):has(.leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #ptzControlsBox:has(.leftBarHeading:not(.collapsed)):has(.leftBarHeading:hover),
+html.modern-ui3[data-modern-theme="light"] #statusArea:not(.bottomDock):not(.isCollapsed):has(.serverStatusHeader:hover),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #statusArea:not(.bottomDock):not(.isCollapsed):has(.serverStatusHeader:hover)
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.18) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 14px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.40), inset 0 0 10px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.16) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .leftBarHeading,
 html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading
 {
 	color: var(--modern-accent-primary, #0284C7) !important;
-	border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+	border-bottom-color: rgba(15, 23, 42, 0.14) !important;
 }
 
+html.modern-ui3[data-modern-theme="light"] .leftBarHeading:not(.collapsed),
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading:not(.collapsed),
 html.modern-ui3[data-modern-theme="light"] .leftBarHeading:hover,
 html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading:hover,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .collapsibleTrigger:hover,
 html.modern-ui3[data-modern-theme="light"] .leftBarHeading:focus-visible,
 html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading:focus-visible
 {
-	color: var(--modern-accent-light, #0369A1) !important;
-	text-shadow: none !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	text-shadow: 0 0 6px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .leftBarHeading:not(.collapsed) .collapsibleTriggerIcon,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading:not(.collapsed) .collapsibleTriggerIcon,
+html.modern-ui3[data-modern-theme="light"] .leftBarHeading:hover .collapsibleTriggerIcon,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading:hover .collapsibleTriggerIcon,
+html.modern-ui3[data-modern-theme="light"] .collapsibleTrigger:hover .collapsibleTriggerIcon,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .collapsibleTrigger:hover .collapsibleTriggerIcon,
+html.modern-ui3[data-modern-theme="light"] .leftBarHeading:not(.collapsed) svg,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading:not(.collapsed) svg,
+html.modern-ui3[data-modern-theme="light"] .leftBarHeading:hover svg,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .leftBarHeading:hover svg,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls .collapsibleTrigger:hover svg,
+html.modern-ui3[data-modern-theme="light"] #statusArea:not(.bottomDock):not(.isCollapsed) .serverStatusChevron,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #statusArea:not(.bottomDock):not(.isCollapsed) .serverStatusChevron,
+html.modern-ui3[data-modern-theme="light"] #statusArea:not(.bottomDock) .serverStatusHeader:hover .serverStatusChevron,
+html.modern-ui3[data-modern-theme="light"] #modern-sidebar-controls #statusArea:not(.bottomDock) .serverStatusHeader:hover .serverStatusChevron
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	fill: currentColor !important;
+	stroke: currentColor !important;
+	filter: drop-shadow(0 0 5px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45)) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .dropdownBox,
@@ -21485,9 +22071,99 @@ html.modern-ui3[data-modern-theme="light"] .dialogOptionPanel input[type="passwo
 }
 
 html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="range"],
-html.modern-ui3[data-modern-theme="light"] .dialogOptionPanel input[type="range"]
+html.modern-ui3[data-modern-theme="light"] .dialogOptionPanel input[type="range"],
+html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="checkbox"],
+html.modern-ui3[data-modern-theme="light"] .dialogOptionPanel input[type="checkbox"],
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper input[type="checkbox"]
 {
 	accent-color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3 .dialog_content input[type="checkbox"],
+html.modern-ui3 .dialogOptionPanel input[type="checkbox"],
+html.modern-ui3 .dialog_wrapper input[type="checkbox"]
+{
+	accent-color: var(--modern-accent-primary, #00E5FF) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select,
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select
+{
+	background: #FFFFFF !important;
+	border: 1px solid rgba(15, 23, 42, 0.22) !important;
+	color: #0F172A !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select:hover,
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select:hover
+{
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 10px var(--modern-accent-glow, rgba(2, 132, 199, 0.32)) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select:focus,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select:focus,
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select:focus,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select:focus
+{
+	border-color: rgba(15, 23, 42, 0.22) !important;
+	box-shadow: none !important;
+	outline: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select:focus:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_item_ddl select:focus:hover,
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select:focus:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .dialogOption_ddl_top select:focus:hover
+{
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 10px var(--modern-accent-glow, rgba(2, 132, 199, 0.32)) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .clipExportPanel .clipprop_item_info,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .clipExportPanel .clipprop_item_info
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsExportBtn,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsExportBtn
+{
+	background: var(--modern-accent-primary, #0284C7) !important;
+	border: 1px solid var(--modern-accent-primary, #0284C7) !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 2px 10px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.30) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsExportBtn:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsExportBtn:hover
+{
+	box-shadow: 0 4px 16px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45) !important;
+	transform: translateY(-1px) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsCancelBtn,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsCancelBtn
+{
+	background: rgba(239, 68, 68, 0.10) !important;
+	border: 1px solid rgba(239, 68, 68, 0.55) !important;
+	color: #DC2626 !important;
+	box-shadow: none !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsCancelBtn:hover,
+body.modern-ui3[data-modern-theme="light"] .dialog_wrapper .exportControlsCancelBtn:hover
+{
+	background: #DC2626 !important;
+	border-color: #DC2626 !important;
+	color: #FFFFFF !important;
+	box-shadow: 0 2px 10px rgba(239, 68, 68, 0.30) !important;
+	transform: translateY(-1px) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"],
@@ -21744,11 +22420,12 @@ html.modern-ui3[data-modern-theme="light"] .modern-tl-zoom-btn,
 html.modern-ui3[data-modern-theme="light"] .modern-tl-pill,
 html.modern-ui3[data-modern-theme="light"] .modern-tl-icon-btn,
 html.modern-ui3[data-modern-theme="light"] .modern-tl-transport-btn,
+body.modern-ui3[data-modern-theme="light"] .modern-tl-transport-btn,
 html.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn,
 body.modern-ui3[data-modern-theme="light"] .modern-tl-speed-btn
 {
 	background: #FFFFFF !important;
-	border-color: rgba(15, 23, 42, 0.14) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
 	color: #0F172A !important;
 }
 
@@ -21788,11 +22465,93 @@ html.modern-ui3[data-modern-theme="light"] .modern-tl-pill.active
 html.modern-ui3[data-modern-theme="light"] #playbackControls,
 body.modern-ui3[data-modern-theme="light"] #playbackControls
 {
-	background: linear-gradient(0deg, rgba(10, 15, 29, 0.34) 0%, rgba(10, 15, 29, 0.16) 28px, rgba(10, 15, 29, 0) 46px) !important;
+	background: linear-gradient(0deg, rgba(15, 23, 42, 0.16) 0%, rgba(15, 23, 42, 0.07) 9px, rgba(15, 23, 42, 0) 16px) !important;
 	background-color: transparent !important;
 	border-top: none !important;
 	color: #F8FAFC !important;
 	pointer-events: none !important;
+	transition: background 0.15s ease !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #playbackControls:has(.pcButton:hover, #volumeBar:hover, #playbackSpeedText:hover),
+body.modern-ui3[data-modern-theme="light"] #playbackControls:has(.pcButton:hover, #volumeBar:hover, #playbackSpeedText:hover)
+{
+	background: linear-gradient(0deg, rgba(15, 23, 42, 0.36) 0%, rgba(15, 23, 42, 0.20) 32px, rgba(15, 23, 42, 0) 54px) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekBarMain,
+body.modern-ui3[data-modern-theme="light"] #seekBarMain
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.28) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekBarLeft,
+body.modern-ui3[data-modern-theme="light"] #seekBarLeft
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.88) !important;
+	box-shadow: 0 0 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.35) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekBarHighlight,
+body.modern-ui3[data-modern-theme="light"] #seekBarHighlight
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekBarHandle,
+body.modern-ui3[data-modern-theme="light"] #seekBarHandle
+{
+	background: #FFFFFF !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	box-shadow: 0 0 8px rgba(var(--modern-accent-rgb, 2, 132, 199), 0.45) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekhint,
+body.modern-ui3[data-modern-theme="light"] #seekhint
+{
+	background-color: rgba(255, 255, 255, 0.96) !important;
+	border: 1px solid rgba(15, 23, 42, 0.18) !important;
+	border-radius: 8px !important;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18) !important;
+	color: #0F172A !important;
+	overflow: hidden !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekhint_helper,
+body.modern-ui3[data-modern-theme="light"] #seekhint_helper
+{
+	color: #475569 !important;
+	padding: 6px 8px 2px 8px !important;
+	box-sizing: border-box !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekhint_label,
+body.modern-ui3[data-modern-theme="light"] #seekhint_label
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	font-weight: 700 !important;
+	padding: 4px 8px 6px 8px !important;
+	box-sizing: border-box !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #seekhint_label .seekTimeReal,
+body.modern-ui3[data-modern-theme="light"] #seekhint_label .seekTimeReal
+{
+	color: #475569 !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] #zoomhint,
+body.modern-ui3[data-modern-theme="light"] #zoomhint
+{
+	background-color: rgba(255, 255, 255, 0.96) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	border: 1px solid rgba(15, 23, 42, 0.18) !important;
+	border-radius: 6px !important;
+	padding: 4px 8px !important;
+	font-weight: 700 !important;
+	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] #playbackControls *,
@@ -21816,10 +22575,13 @@ html.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText 
 }
 
 html.modern-ui3[data-modern-theme="light"] #playbackHeader,
-body.modern-ui3[data-modern-theme="light"] #playbackHeader
+body.modern-ui3[data-modern-theme="light"] #playbackHeader,
+html.modern-ui3[data-modern-theme="light"] #clipNameHeading,
+body.modern-ui3[data-modern-theme="light"] #clipNameHeading
 {
 	background: transparent !important;
-	color: #F8FAFC !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] #playbackProgressText,
@@ -21847,7 +22609,7 @@ body.modern-ui3[data-modern-theme="light"] #volumeBar .statusBarLabel:hover #pcV
 html.modern-ui3[data-modern-theme="light"] #pcVolume:hover,
 body.modern-ui3[data-modern-theme="light"] #pcVolume:hover
 {
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 	transform: scale(1.1) !important;
 }
 
@@ -21857,7 +22619,7 @@ html.modern-ui3[data-modern-theme="light"] #pcVolume:hover svg,
 body.modern-ui3[data-modern-theme="light"] #pcVolume:hover svg
 {
 	fill: currentColor !important;
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 	filter: none !important;
 }
 
@@ -21872,7 +22634,7 @@ body.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText
 html.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText:hover,
 body.modern-ui3[data-modern-theme="light"] #playbackControls #playbackSpeedText:hover
 {
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 	text-shadow: none !important;
 	transform: scale(1.1) !important;
 	filter: none !important;
@@ -21896,7 +22658,7 @@ html.modern-ui3[data-modern-theme="light"] .pcButton:hover,
 body.modern-ui3[data-modern-theme="light"] .pcButton:hover
 {
 	background: transparent !important;
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 	transform: scale(1.1) !important;
 	filter: none !important;
 }
@@ -21905,7 +22667,7 @@ html.modern-ui3[data-modern-theme="light"] .pcButton:hover svg,
 body.modern-ui3[data-modern-theme="light"] .pcButton:hover svg
 {
 	fill: currentColor !important;
-	color: #FFFFFF !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
 	filter: none !important;
 }
 
@@ -21999,8 +22761,8 @@ html.modern-ui3[data-modern-theme="light"] .modern-brand-pill,
 body.modern-ui3[data-modern-theme="light"] .modern-brand-pill
 {
 	background: #FFFFFF !important;
-	border: 1px solid rgba(15, 23, 42, 0.12) !important;
-	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+	border: 1px solid rgba(15, 23, 42, 0.24) !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .modern-brand-pill:hover,
@@ -22182,6 +22944,22 @@ body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_clip_backingup"] 
 	color: #0EA5E9 !important;
 }
 
+html.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_flag"] .clipicon,
+body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_flag"] .clipicon,
+html.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_is_new"] .clipicon,
+body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_is_new"] .clipicon
+{
+	color: #F59E0B !important;
+}
+
+html.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_is_recording"] .clipicon,
+body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_is_recording"] .clipicon,
+html.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_nosignal"] .clipicon,
+body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_clipicon_nosignal"] .clipicon
+{
+	color: #EF4444 !important;
+}
+
 html.modern-ui3 .uiSettingsRow[data-settings-key="ui3_auto_maximize"] .clipicon,
 body.modern-ui3 .uiSettingsRow[data-settings-key="ui3_auto_maximize"] .clipicon,
 html.modern-ui3 .uiSettingsRow[data-settings-key="ui3_auto_maximize_on"] .clipicon,
@@ -22257,7 +23035,7 @@ html.modern-ui3[data-modern-theme="light"] .modern-tl-export-toggle-btn,
 body.modern-ui3[data-modern-theme="light"] .modern-tl-export-toggle-btn
 {
 	background: #FFFFFF !important;
-	border: 1px solid rgba(15, 23, 42, 0.14) !important;
+	border: 1px solid var(--modern-accent-primary, #0284C7) !important;
 	color: #0F172A !important;
 }
 
@@ -22988,6 +23766,75 @@ html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdVer,
 body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdVer
 {
 	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdTabs,
+body.modern-ui3[data-modern-theme="light"] .biUpdTabs
+{
+	background: #F1F5F9 !important;
+	border: 1px solid rgba(15, 23, 42, 0.12) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdTab,
+body.modern-ui3[data-modern-theme="light"] .biUpdTab
+{
+	color: #475569 !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdTab:hover,
+body.modern-ui3[data-modern-theme="light"] .biUpdTab:hover
+{
+	color: #0F172A !important;
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.08) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdTab.active,
+body.modern-ui3[data-modern-theme="light"] .biUpdTab.active
+{
+	color: var(--modern-accent-primary, #0284C7) !important;
+	background: #FFFFFF !important;
+	border-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.40) !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdNoticeBanner.biUpdNoticeError,
+body.modern-ui3[data-modern-theme="light"] .biUpdNoticeBanner.biUpdNoticeError
+{
+	background: rgba(220, 38, 38, 0.08) !important;
+	border: 1px solid rgba(220, 38, 38, 0.35) !important;
+	color: #B91C1C !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdNoticeBanner.biUpdNoticeInfo,
+body.modern-ui3[data-modern-theme="light"] .biUpdNoticeBanner.biUpdNoticeInfo
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.08) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.30) !important;
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdBadgePrerelease,
+body.modern-ui3[data-modern-theme="light"] .biUpdBadgePrerelease
+{
+	background: rgba(217, 119, 6, 0.12) !important;
+	border-color: rgba(217, 119, 6, 0.40) !important;
+	color: #B45309 !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modernSettingsActionBtn,
+body.modern-ui3[data-modern-theme="light"] .modernSettingsActionBtn
+{
+	background: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.10) !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 2, 132, 199), 0.42) !important;
+	color: var(--modern-accent-primary, #0284C7) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .modernSettingsActionBtn:hover,
+body.modern-ui3[data-modern-theme="light"] .modernSettingsActionBtn:hover
+{
+	background: var(--modern-accent-primary, #0284C7) !important;
+	border-color: var(--modern-accent-primary, #0284C7) !important;
+	color: #FFFFFF !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .biUpdDate,
