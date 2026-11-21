@@ -17289,8 +17289,8 @@ body.modern-ui3 .modern-tl-alert-mode-btn
 	padding: 0 !important;
 	border-radius: 8px !important;
 	background: rgba(13, 21, 39, 0.85) !important;
-	border: 1px solid rgba(255, 255, 255, 0.12) !important;
-	color: #94A3B8 !important;
+	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
 	cursor: pointer !important;
 	transition: all 0.15s ease !important;
 	box-sizing: border-box !important;
@@ -17299,9 +17299,11 @@ body.modern-ui3 .modern-tl-alert-mode-btn
 html.modern-ui3 .modern-tl-alert-mode-btn:hover,
 body.modern-ui3 .modern-tl-alert-mode-btn:hover
 {
-	background: rgba(255, 255, 255, 0.1) !important;
-	color: #FFFFFF !important;
-	border-color: rgba(255, 255, 255, 0.25) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	border-color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.75)) !important;
 }
 
 html.modern-ui3 .modern-tl-alert-mode-btn.active,
@@ -17339,7 +17341,7 @@ body.modern-ui3 .modern-tl-transport-btn
 {
 	background: rgba(13, 21, 39, 0.85) !important;
 	border: 1px solid rgba(var(--modern-accent-rgb, 0, 229, 255), 0.55) !important;
-	color: #CBD5E1 !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
 	width: 38px !important;
 	height: 34px !important;
 	border-radius: 8px !important;
@@ -17355,9 +17357,11 @@ body.modern-ui3 .modern-tl-transport-btn
 html.modern-ui3 .modern-tl-transport-btn:hover,
 body.modern-ui3 .modern-tl-transport-btn:hover
 {
-	color: var(--modern-accent-primary, #00E5FF) !important;
-	border-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45) !important;
-	background: rgba(255, 255, 255, 0.1) !important;
+	color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	border-color: var(--modern-accent-primary, var(--modern-accent-cyan, #00E5FF)) !important;
+	background: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	box-shadow: 0 0 12px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.45), inset 0 0 8px rgba(var(--modern-accent-rgb, 0, 229, 255), 0.14) !important;
+	text-shadow: 0 0 8px var(--modern-accent-glow, rgba(0, 229, 255, 0.75)) !important;
 	transform: translateY(-1px) !important;
 }
 
@@ -21512,12 +21516,16 @@ body.modern-ui3[data-modern-theme="light"] .ptzCenterJoystick .ptzJoystickKnobCa
 }
 
 /* Status Area & Pills */
+html.modern-ui3[data-modern-theme="light"] #statusArea.bottomDock,
+body.modern-ui3[data-modern-theme="light"] #statusArea.bottomDock,
 html.modern-ui3[data-modern-theme="light"] #statusArea.modernStatus,
 html.modern-ui3[data-modern-theme="light"] .modern-status-area,
 html.modern-ui3[data-modern-theme="light"] #modern-status-bar
 {
 	background: rgba(248, 250, 252, 0.96) !important;
 	border-color: rgba(15, 23, 42, 0.10) !important;
+	border-top-color: rgba(15, 23, 42, 0.12) !important;
+	box-shadow: none !important;
 	color: #1E293B !important;
 }
 
@@ -21552,6 +21560,7 @@ html.modern-ui3[data-modern-theme="light"] #modern-mobile-controls
 {
 	background: #F1F5F9 !important;
 	border-color: rgba(15, 23, 42, 0.10) !important;
+	box-shadow: none !important;
 	color: #0F172A !important;
 }
 
@@ -22487,18 +22496,12 @@ html.modern-ui3[data-modern-theme="light"] .modern-tl-pill.active
 html.modern-ui3[data-modern-theme="light"] #playbackControls,
 body.modern-ui3[data-modern-theme="light"] #playbackControls
 {
-	background: linear-gradient(0deg, rgba(15, 23, 42, 0.16) 0%, rgba(15, 23, 42, 0.07) 9px, rgba(15, 23, 42, 0) 16px) !important;
+	background: transparent !important;
 	background-color: transparent !important;
 	border-top: none !important;
 	color: #F8FAFC !important;
 	pointer-events: none !important;
 	transition: background 0.15s ease !important;
-}
-
-html.modern-ui3[data-modern-theme="light"] #playbackControls:has(.pcButton:hover, #volumeBar:hover, #playbackSpeedText:hover),
-body.modern-ui3[data-modern-theme="light"] #playbackControls:has(.pcButton:hover, #volumeBar:hover, #playbackSpeedText:hover)
-{
-	background: linear-gradient(0deg, rgba(15, 23, 42, 0.36) 0%, rgba(15, 23, 42, 0.20) 32px, rgba(15, 23, 42, 0) 54px) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] #seekBarMain,
