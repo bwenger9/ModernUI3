@@ -1,6 +1,6 @@
 /* ModernUI3 Cyber-Tech Login Theme Runtime Enhancer */
 (function () {
-	var version = "0.348.2";
+	var version = "1.348.0";
 	try {
 		var cur = document.currentScript;
 		if (cur && cur.src) {

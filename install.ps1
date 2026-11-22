@@ -200,7 +200,7 @@ function Get-ModernUI3Version {
     if ($m.Success) {
         return $m.Groups[1].Value
     }
-    return '0.348.2'
+    return '1.348.0'
 }
 
 function Install-LoginTheme {
