@@ -4623,8 +4623,26 @@ $(function ()
 	startupPagePref = startupPagePref.toLowerCase();
 
 	var urlPageParam = UrlParameters.Get("page", "p");
+	var hasUrlRec = false;
 	if (urlPageParam !== '')
+	{
 		startupPagePref = urlPageParam.toLowerCase();
+	}
+	else
+	{
+		var urlTimeline = UrlParameters.Get("timeline", "tl");
+		var urlTab = UrlParameters.Get("tab", "t").toLowerCase();
+		var urlRec = UrlParameters.Get("rec", "r");
+		if (urlTimeline !== '' || urlTab === "timeline" || urlTab === "t")
+			startupPagePref = "timeline";
+		else if (urlRec !== '' || urlTab === "clips" || urlTab === "c")
+		{
+			startupPagePref = "clips";
+			hasUrlRec = (urlRec !== '');
+		}
+		else if (urlTab === "live" || urlTab === "l")
+			startupPagePref = "dashboard";
+	}
 
 	if (startupPagePref === "last_used")
 	{
@@ -4644,7 +4662,7 @@ $(function ()
 		currentPrimaryTab = "clips";
 		if (startupPagePref === "alerts")
 			settings.ui3_current_dbView = "alerts";
-		else
+		else if (UrlParameters.Get("clipview", "v") === '' && !hasUrlRec)
 			settings.ui3_current_dbView = "all";
 	}
 	else
@@ -12576,7 +12594,6 @@ function ClipTimeline()
 			{
 				timeline = this;
 				timelineDataLoader = new TimelineDataLoader(this.callbackStartedLoading, this.callbackGotData, this.callbackError);
-				loadingHelper.SetLoadedStatus("timeline");
 				if (startupTimelineMs !== null)
 				{
 					if (startupTimelineMs < 0)
@@ -12632,7 +12649,7 @@ function ClipTimeline()
 				BI_CustomEvent.AddListener("OpenVideo", this.onOpenVideo);
 				BI_CustomEvent.AddListener("Playback_Play", this.onVideoPlay);
 				BI_CustomEvent.AddListener("Playback_Pause", this.onVideoPause);
-				BI_CustomEvent.AddListener("TabLoaded_timeline", this.drawCanvas);
+				BI_CustomEvent.AddListener("TabLoaded_timeline", this.onTabLoadedTimeline);
 				BI_CustomEvent.AddListener("TabLoaded_live", this.hidePreviewCard);
 				BI_CustomEvent.AddListener("TabLoaded_clips", this.hidePreviewCard);
 				BI_CustomEvent.AddListener("ImageRendered", this.FrameRendered);
@@ -12642,10 +12659,35 @@ function ClipTimeline()
 					if (selfComp.showSpeedMenu)
 						selfComp.showSpeedMenu = false;
 				});
+				var syncVisibleTimeline = function ()
+				{
+					if (!document.hidden && currentPrimaryTab === "timeline")
+					{
+						requestAnimationFrame(function ()
+						{
+							if (currentPrimaryTab === "timeline" && selfComp.$refs && selfComp.$refs.tl_root)
+							{
+								$("#layoutbottomTimeline").show();
+								if (selfComp.AfterResize)
+									selfComp.AfterResize();
+								if (selfComp.newTimelineParameters)
+									selfComp.newTimelineParameters();
+								if (selfComp.drawCanvas)
+									selfComp.drawCanvas();
+							}
+						});
+					}
+				};
 				$(document).on("visibilitychange.timelinePreview", function ()
 				{
 					if (document.hidden && selfComp.hidePreviewCard)
 						selfComp.hidePreviewCard();
+					else
+						syncVisibleTimeline();
+				});
+				$(window).on("pageshow.timelinePreview", function ()
+				{
+					syncVisibleTimeline();
 				});
 				$(document).on("keydown.timelinePreview", function (e)
 				{
@@ -12663,6 +12705,7 @@ function ClipTimeline()
 				timeline.hammertime.off('pinchstart pinchmove');
 				timeline.hammertime.get('pinch').set({ enable: false });
 				$(document).off(".timelinePreview");
+				$(window).off(".timelinePreview");
 				$(document).off(".timelineSpeedMenu");
 				$(document).off(".tlResizePad .tlDurationDrag");
 				if (this._onSpeedDocClick)
@@ -12692,7 +12735,7 @@ function ClipTimeline()
 				BI_CustomEvent.RemoveListener("OpenVideo", this.onOpenVideo);
 				BI_CustomEvent.RemoveListener("Playback_Play", this.onVideoPlay);
 				BI_CustomEvent.RemoveListener("Playback_Pause", this.onVideoPause);
-				BI_CustomEvent.RemoveListener("TabLoaded_timeline", this.drawCanvas);
+				BI_CustomEvent.RemoveListener("TabLoaded_timeline", this.onTabLoadedTimeline);
 				BI_CustomEvent.RemoveListener("TabLoaded_live", this.hidePreviewCard);
 				BI_CustomEvent.RemoveListener("TabLoaded_clips", this.hidePreviewCard);
 				BI_CustomEvent.RemoveListener("ImageRendered", this.FrameRendered);
@@ -12758,6 +12801,24 @@ function ClipTimeline()
 					timeline.errorHtml = errHtml;
 					console.error(htmlDecode(errHtml));
 				},
+				onTabLoadedTimeline: function ()
+				{
+					this.drawCanvas();
+					var selfComp = this;
+					requestAnimationFrame(function ()
+					{
+						if (currentPrimaryTab === "timeline" && selfComp.$refs && selfComp.$refs.tl_root)
+						{
+							$("#layoutbottomTimeline").show();
+							if (selfComp.AfterResize)
+								selfComp.AfterResize();
+							if (selfComp.newTimelineParameters)
+								selfComp.newTimelineParameters();
+							if (selfComp.drawCanvas)
+								selfComp.drawCanvas();
+						}
+					});
+				},
 				AfterResize: function ()
 				{
 					if (this.hidePreviewCard)
@@ -12789,10 +12850,29 @@ function ClipTimeline()
 							w: availW,
 							h: totalH
 						};
-						this.timelineInternalWidth = Math.ceil(availW * dpr);
-						this.timelineInternalHeight = Math.ceil(availH * dpr);
+						var newInternalW = Math.ceil(availW * dpr);
+						var newInternalH = Math.ceil(availH * dpr);
+						var sizeChanged = (this.timelineInternalWidth !== newInternalW || this.timelineInternalHeight !== newInternalH || this.timelineWidth !== availW || this.timelineHeight !== availH);
+						var canvasEl = this.$refs.clipTimelineCanvas;
+						if (availW > 0 && availH > 0 && canvasEl && (canvasEl.width !== newInternalW || canvasEl.height !== newInternalH))
+						{
+							canvasEl.width = newInternalW;
+							canvasEl.height = newInternalH;
+							sizeChanged = true;
+						}
+						this.timelineInternalWidth = newInternalW;
+						this.timelineInternalHeight = newInternalH;
 						this.timelineWidth = availW;
 						this.timelineHeight = availH;
+						if (sizeChanged && availW > 0 && availH > 0)
+						{
+							var selfComp = this;
+							this.$nextTick(function ()
+							{
+								if (selfComp.drawCanvas)
+									selfComp.drawCanvas();
+							});
+						}
 					}
 				},
 				mouseDown: function (e)
@@ -15119,6 +15199,15 @@ function ClipTimeline()
 
 		// The [timeline] field will contain a reference to the component, set by the component after its creation.
 		new Vue({ el: "#layoutbottomTimeline" });
+		if (currentPrimaryTab === "timeline")
+		{
+			$("#layoutbottomTimeline").show();
+			$("body").removeClass("tabRecordings").addClass("tabTimeline");
+		}
+		else
+		{
+			$("#layoutbottomTimeline").hide();
+		}
 
 		function onTimelineContextMenuAction(action)
 		{
@@ -15198,6 +15287,15 @@ function ClipTimeline()
 		$("#layoutbottomTimeline").contextmenu(optionTimeline);
 
 		resized();
+		loadingHelper.SetLoadedStatus("timeline");
+		if (currentPrimaryTab === "timeline" && timeline && timeline.onTabLoadedTimeline)
+		{
+			requestAnimationFrame(function ()
+			{
+				if (currentPrimaryTab === "timeline" && timeline && (timeline.timelineWidth <= 0 || timeline.timelineHeight <= 0))
+					timeline.onTabLoadedTimeline();
+			});
+		}
 	}
 	function doWithTempShadowSettings(ctx, x, y, c, b, fn)
 	{
@@ -46779,7 +46877,7 @@ function UISettingsPanel()
 	var Add_ImportAllSettingsButton = function (cat, rowIdx)
 	{
 		var $row = $('<div id="importAllSettingsBtn" class="uiSettingsRow dialogOption_item dialogOption_item_info"></div>');
-		var $input = $('<a class="input" href="modernui3/storageinfo.htm">modernui3/storageinfo.htm</a>');
+		var $input = $('<a class="input" href="modernui3/storageinfo.htm">Import Settings</a>');
 		//$input.on('click', function ()
 		//{
 		//	SimpleDialog.InputText("Import All Settings", "Paste settings that were previously exported.<br>If import is successful, UI3 will be reloaded.", function (inputText)

@@ -16130,6 +16130,12 @@ body.modern-ui3 #layoutbottomTimeline
 	padding: 0 !important;
 }
 
+html.modern-ui3 body.tabTimeline #layoutbottomTimeline,
+html.modern-ui3.tabTimeline #layoutbottomTimeline
+{
+	display: block !important;
+}
+
 html.modern-ui3 .clipTimeline,
 body.modern-ui3 .clipTimeline
 {
