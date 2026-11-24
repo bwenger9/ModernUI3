@@ -5,13 +5,13 @@
 </p>
 
 <p align="center">
-  <strong>A Security Operations Center (SOC)–grade dark &amp; light web client for Blue Iris v5 / v6, built on open-source UI3 (base <code>348</code>).</strong>
+  <strong>A Security Operations Center (SOC)–grade dark &amp; light web client for Blue Iris v5 / v6, built on open-source UI3 (base <code>350</code>).</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v1.348.0-00E5FF.svg" alt="Version v1.348.0" />
+  <img src="https://img.shields.io/badge/version-v1.350.0-00E5FF.svg" alt="Version v1.350.0" />
   <img src="https://img.shields.io/badge/license-LGPL--3.0-2563EB.svg" alt="License LGPL-3.0" />
-  <img src="https://img.shields.io/badge/base%20UI3-348-1E293B.svg" alt="Base UI3 348" />
+  <img src="https://img.shields.io/badge/base%20UI3-350-1E293B.svg" alt="Base UI3 350" />
   <img src="https://img.shields.io/badge/Blue%20Iris-v5.x%20%7C%20v6.x-2563EB.svg" alt="Blue Iris v5 / v6" />
   <img src="https://img.shields.io/badge/install-update--proof%20sideload-10B981.svg" alt="Update-Proof Sideload" />
   <img src="https://img.shields.io/badge/WebGPU-CAS%20%2B%20WebCodecs-A855F7.svg" alt="WebGPU + WebCodecs" />
@@ -28,7 +28,7 @@ Under the hood, the proven Blue Iris video decoding and streaming engines remain
 
 ### Versioning Scheme
 
-ModernUI3 tracks both its own release maturity and the upstream `bp2008/ui3` base version (`348`):
+ModernUI3 tracks both its own release maturity and the upstream `bp2008/ui3` base version (`350`):
 
 | Format | Stage | Example | Meaning |
 |---|---|---|---|
@@ -60,7 +60,7 @@ ModernUI3 tracks both its own release maturity and the upstream `bp2008/ui3` bas
 
 ---
 
-## Key Upgrades Over Base Stock UI3 (348)
+## Key Upgrades Over Base Stock UI3 (350)
 
 ### Design System, Dark/Light Themes & 13 Dynamic Accents
 * **Three Appearance Modes:** **Dark** (`#090D14` obsidian canvas, frosted glass cards), **Light** (`#F1F5F9` daylight slate with tuned contrast), and **Follow System** (`prefers-color-scheme`), with zero-flicker early `<head>` preboot styling and a one-click top-bar switcher.

@@ -402,7 +402,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 				{
 					self.postMessage({
 						type: "DECODER_ERROR",
-						message: err && err.message ? err.message : String(err)
+						message: err && err.name ? (err.name + ": " + err.message) : (err && err.message ? err.message : String(err))
 					});
 				}
 			});
@@ -570,6 +570,30 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 		}
 	}
 
+	function clearSurface()
+	{
+		if (!isInitialized || !gpuDevice || !ctx)
+		{
+			return;
+		}
+		try
+		{
+			var commandEncoder = gpuDevice.createCommandEncoder();
+			var textureView = ctx.getCurrentTexture().createView();
+			var passEncoder = commandEncoder.beginRenderPass({
+				colorAttachments: [{
+					view: textureView,
+					clearValue: { r: 0, g: 0, b: 0, a: 0 },
+					loadOp: "clear",
+					storeOp: "store"
+				}]
+			});
+			passEncoder.end();
+			gpuDevice.queue.submit([commandEncoder.finish()]);
+		}
+		catch (e) { }
+	}
+
 	function flush()
 	{
 		if (renderScheduler)
@@ -656,6 +680,9 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 				break;
 			case "FLUSH":
 				flush();
+				break;
+			case "CLEAR_SURFACE":
+				clearSurface();
 				break;
 			case "DISPOSE":
 				dispose();
