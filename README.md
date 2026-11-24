@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v1.350.0-00E5FF.svg" alt="Version v1.350.0" />
+  <img src="https://img.shields.io/badge/version-v1.350.1-00E5FF.svg" alt="Version v1.350.1" />
   <img src="https://img.shields.io/badge/license-LGPL--3.0-2563EB.svg" alt="License LGPL-3.0" />
   <img src="https://img.shields.io/badge/base%20UI3-350-1E293B.svg" alt="Base UI3 350" />
   <img src="https://img.shields.io/badge/Blue%20Iris-v5.x%20%7C%20v6.x-2563EB.svg" alt="Blue Iris v5 / v6" />

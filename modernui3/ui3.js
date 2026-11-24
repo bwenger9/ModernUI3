@@ -38552,6 +38552,144 @@ function BiUpdatesDialog()
 			$releaseLink.attr("href", (entry && entry.url) ? entry.url : releasesUrl);
 		};
 
+		var RenderInlineMarkdown = function (rawText)
+		{
+			var codeTokens = [];
+			var withTokens = String(rawText || "").replace(/`([^`]+)`/g, function (_, code)
+			{
+				var idx = codeTokens.length;
+				codeTokens.push('<code class="biUpdMdCode">' + htmlEncode(code) + '</code>');
+				return "\x00CODE" + idx + "\x00";
+			});
+			var html = htmlEncode(withTokens);
+			html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url)
+			{
+				return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>';
+			});
+			html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+			html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+			html = html.replace(/(^|[^\*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+			html = html.replace(/(^|[^_])_([^_\n]+)_/g, '$1<em>$2</em>');
+			html = html.replace(/\x00CODE(\d+)\x00/g, function (_, idxStr)
+			{
+				var idx = parseInt(idxStr, 10);
+				return codeTokens[idx] || "";
+			});
+			return html;
+		};
+
+		var RenderBasicMarkdown = function (notes)
+		{
+			if (typeof notes !== "string" || !$.trim(notes))
+				return "";
+			var lines = notes.replace(/\r\n?/g, "\n").split("\n");
+			var out = [];
+			var listTag = null;
+			var inCodeBlock = false;
+			var codeLines = [];
+
+			var closeList = function ()
+			{
+				if (listTag)
+				{
+					out.push("</" + listTag + ">");
+					listTag = null;
+				}
+			};
+
+			for (var i = 0; i < lines.length; i++)
+			{
+				var line = lines[i];
+				var trimmed = $.trim(line);
+
+				if (/^```/.test(trimmed))
+				{
+					closeList();
+					if (inCodeBlock)
+					{
+						out.push('<pre class="biUpdMdPre"><code>' + htmlEncode(codeLines.join("\n")) + '</code></pre>');
+						codeLines = [];
+						inCodeBlock = false;
+					}
+					else
+					{
+						inCodeBlock = true;
+						codeLines = [];
+					}
+					continue;
+				}
+				if (inCodeBlock)
+				{
+					codeLines.push(line);
+					continue;
+				}
+
+				if (!trimmed)
+				{
+					closeList();
+					continue;
+				}
+
+				if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed))
+				{
+					closeList();
+					out.push('<hr class="biUpdMdHr" />');
+					continue;
+				}
+
+				var headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
+				if (headingMatch)
+				{
+					closeList();
+					var level = headingMatch[1].length;
+					out.push('<div class="biUpdMdHeading biUpdMdH' + level + '">' + RenderInlineMarkdown(headingMatch[2]) + '</div>');
+					continue;
+				}
+
+				var ulMatch = line.match(/^\s*[-*+]\s+(.+)$/);
+				if (ulMatch)
+				{
+					if (listTag !== "ul")
+					{
+						closeList();
+						listTag = "ul";
+						out.push('<ul class="biUpdMdList">');
+					}
+					out.push('<li>' + RenderInlineMarkdown(ulMatch[1]) + '</li>');
+					continue;
+				}
+
+				var olMatch = line.match(/^\s*\d+[.)]\s+(.+)$/);
+				if (olMatch)
+				{
+					if (listTag !== "ol")
+					{
+						closeList();
+						listTag = "ol";
+						out.push('<ol class="biUpdMdList">');
+					}
+					out.push('<li>' + RenderInlineMarkdown(olMatch[1]) + '</li>');
+					continue;
+				}
+
+				var quoteMatch = trimmed.match(/^>\s?(.*)$/);
+				if (quoteMatch)
+				{
+					closeList();
+					out.push('<blockquote class="biUpdMdQuote">' + RenderInlineMarkdown(quoteMatch[1]) + '</blockquote>');
+					continue;
+				}
+
+				closeList();
+				out.push('<p class="biUpdMdPara">' + RenderInlineMarkdown(trimmed) + '</p>');
+			}
+
+			if (inCodeBlock && codeLines.length > 0)
+				out.push('<pre class="biUpdMdPre"><code>' + htmlEncode(codeLines.join("\n")) + '</code></pre>');
+			closeList();
+			return out.join("");
+		};
+
 		var MakeReleaseBlock = function (entry)
 		{
 			var relative = CompareToInstalled(entry);
@@ -38576,12 +38714,11 @@ function BiUpdatesDialog()
 				$row.append($('<span class="biUpdBadge biUpdBadgePrerelease"></span>').text("Pre-release"));
 			$block.append($row);
 
-			var changes = ParseChangeList(entry.notes);
-			if (changes.length > 0)
+			var notesHtml = RenderBasicMarkdown(entry.notes);
+			if (notesHtml)
 			{
-				var $changes = $('<div class="biUpdChanges"></div>');
-				for (var c = 0; c < changes.length; c++)
-					$changes.append($('<div></div>').text(changes[c]));
+				var $changes = $('<div class="biUpdChanges biUpdChangesMd"></div>').html(notesHtml);
+				$changes.find("a").on("click", function (e) { e.stopPropagation(); });
 				$block.append($changes);
 			}
 			$block.on('click', function () { SelectRelease(entry); });

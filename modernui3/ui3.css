@@ -13780,6 +13780,87 @@ html.modern-ui3 .biUpdBlock.selected .biUpdChanges
 	border-top-color: rgba(var(--modern-accent-rgb, 0, 229, 255), 0.24) !important;
 }
 
+html.modern-ui3 .biUpdChangesMd .biUpdMdHeading
+{
+	font-weight: 700 !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	margin: 8px 0 4px 0 !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdHeading:first-child
+{
+	margin-top: 0 !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdH1 { font-size: 14px !important; }
+html.modern-ui3 .biUpdChangesMd .biUpdMdH2 { font-size: 13px !important; }
+html.modern-ui3 .biUpdChangesMd .biUpdMdH3,
+html.modern-ui3 .biUpdChangesMd .biUpdMdH4 { font-size: 12px !important; }
+html.modern-ui3 .biUpdChangesMd .biUpdMdPara
+{
+	margin: 4px 0 !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdPara:first-child
+{
+	margin-top: 0 !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdPara:last-child,
+html.modern-ui3 .biUpdChangesMd .biUpdMdList:last-child
+{
+	margin-bottom: 0 !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdList
+{
+	margin: 4px 0 6px 0 !important;
+	padding-left: 18px !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdList li
+{
+	margin: 2px 0 !important;
+}
+html.modern-ui3 .biUpdChangesMd strong
+{
+	color: #F8FAFC !important;
+	font-weight: 700 !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdCode
+{
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+	font-size: 11px !important;
+	padding: 1px 5px !important;
+	border-radius: 4px !important;
+	background: rgba(15, 23, 42, 0.85) !important;
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdPre
+{
+	margin: 6px 0 !important;
+	padding: 8px 10px !important;
+	border-radius: 6px !important;
+	background: rgba(9, 13, 20, 0.9) !important;
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	overflow-x: auto !important;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+	font-size: 11px !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdQuote
+{
+	margin: 6px 0 !important;
+	padding: 2px 10px !important;
+	border-left: 3px solid var(--modern-accent-primary, #00E5FF) !important;
+	color: #94A3B8 !important;
+}
+html.modern-ui3 .biUpdChangesMd .biUpdMdHr
+{
+	border: none !important;
+	border-top: 1px solid rgba(255, 255, 255, 0.10) !important;
+	margin: 8px 0 !important;
+}
+html.modern-ui3 .biUpdChangesMd a
+{
+	color: var(--modern-accent-primary, #00E5FF) !important;
+	text-decoration: underline !important;
+}
+
 /* Footer Buttons (Specificity > .dialog_content input[type="button"]) */
 html.modern-ui3 .dialog_content input[type="button"].biUpdBtn,
 body.modern-ui3 .dialog_content input[type="button"].biUpdBtn,
@@ -23933,6 +24014,40 @@ html.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdChanges,
 body.modern-ui3[data-modern-theme="light"] .biUpdBlock.selected .biUpdChanges
 {
 	border-top-color: rgba(var(--modern-accent-rgb, 2, 132, 199), 0.25) !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdChangesMd strong,
+body.modern-ui3[data-modern-theme="light"] .biUpdChangesMd strong
+{
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdCode,
+body.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdCode
+{
+	background: #E2E8F0 !important;
+	border-color: rgba(15, 23, 42, 0.12) !important;
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdPre,
+body.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdPre
+{
+	background: #F1F5F9 !important;
+	border-color: rgba(15, 23, 42, 0.12) !important;
+	color: #0F172A !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdQuote,
+body.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdQuote
+{
+	color: #475569 !important;
+}
+
+html.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdHr,
+body.modern-ui3[data-modern-theme="light"] .biUpdChangesMd .biUpdMdHr
+{
+	border-top-color: rgba(15, 23, 42, 0.12) !important;
 }
 
 html.modern-ui3[data-modern-theme="light"] .dialog_content input[type="button"].biUpdBtn,
