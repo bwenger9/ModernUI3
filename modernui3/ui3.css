@@ -12061,6 +12061,119 @@ body.modern-ui3[data-modern-theme="light"] .modernAccentMenu
 	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18) !important;
 }
 
+/* Watch-friendly Custom Select Picker (bypasses broken Wear OS native <select> sheet) */
+html.modern-ui3 .modernWatchSelectPicker,
+body.modern-ui3 .modernWatchSelectPicker
+{
+	position: relative !important;
+	margin-left: auto !important;
+	flex: 0 1 auto !important;
+	max-width: 100% !important;
+}
+html.modern-ui3 .modernWatchSelectTrigger,
+body.modern-ui3 .modernWatchSelectTrigger
+{
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	min-width: 110px !important;
+	max-width: 100% !important;
+	height: 32px !important;
+	padding: 4px 10px !important;
+	background: rgba(10, 16, 30, 0.92) !important;
+	border: 1px solid var(--modern-card-border, rgba(255, 255, 255, 0.16)) !important;
+	border-radius: 6px !important;
+	color: var(--modern-text-primary, #E2E8F0) !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	cursor: pointer !important;
+	box-sizing: border-box !important;
+}
+html.modern-ui3 .modernWatchSelectTrigger.open,
+body.modern-ui3 .modernWatchSelectTrigger.open
+{
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	box-shadow: 0 0 10px var(--modern-accent-glow, rgba(0, 229, 255, 0.3)) !important;
+}
+html.modern-ui3 .modernWatchSelectName,
+body.modern-ui3 .modernWatchSelectName
+{
+	flex: 1 1 auto !important;
+	text-align: left !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	white-space: nowrap !important;
+}
+html.modern-ui3 .modernWatchSelectBackdrop,
+body.modern-ui3 .modernWatchSelectBackdrop
+{
+	position: fixed !important;
+	inset: 0 !important;
+	z-index: 26000 !important;
+	background: rgba(2, 6, 15, 0.72) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 20px !important;
+	box-sizing: border-box !important;
+}
+html.modern-ui3 .modernWatchSelectMenu,
+body.modern-ui3 .modernWatchSelectMenu
+{
+	width: min(260px, calc(100vw - 36px)) !important;
+	max-height: calc(100vh - 56px) !important;
+	overflow-y: auto !important;
+	background: rgba(11, 17, 30, 0.98) !important;
+	border: 1px solid var(--modern-card-border-glow, rgba(0, 229, 255, 0.4)) !important;
+	border-radius: 12px !important;
+	padding: 8px !important;
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px var(--modern-accent-glow, rgba(0, 229, 255, 0.2)) !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 4px !important;
+	box-sizing: border-box !important;
+}
+html.modern-ui3 .modernWatchSelectOption,
+body.modern-ui3 .modernWatchSelectOption
+{
+	width: 100% !important;
+	text-align: left !important;
+	padding: 9px 12px !important;
+	background: transparent !important;
+	border: 1px solid transparent !important;
+	border-radius: 8px !important;
+	color: var(--modern-text-primary, #E2E8F0) !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	cursor: pointer !important;
+	box-sizing: border-box !important;
+}
+html.modern-ui3 .modernWatchSelectOption.selected,
+body.modern-ui3 .modernWatchSelectOption.selected
+{
+	background: var(--modern-accent-bg-subtle, rgba(0, 229, 255, 0.14)) !important;
+	border-color: var(--modern-accent-primary, #00E5FF) !important;
+	color: var(--modern-accent-primary, #00E5FF) !important;
+}
+html.modern-ui3[data-modern-theme="light"] .modernWatchSelectTrigger,
+body.modern-ui3[data-modern-theme="light"] .modernWatchSelectTrigger
+{
+	background: #FFFFFF !important;
+	border-color: rgba(15, 23, 42, 0.18) !important;
+	color: #0F172A !important;
+}
+html.modern-ui3[data-modern-theme="light"] .modernWatchSelectMenu,
+body.modern-ui3[data-modern-theme="light"] .modernWatchSelectMenu
+{
+	background: rgba(255, 255, 255, 0.98) !important;
+	border-color: rgba(15, 23, 42, 0.18) !important;
+}
+html.modern-ui3[data-modern-theme="light"] .modernWatchSelectOption,
+body.modern-ui3[data-modern-theme="light"] .modernWatchSelectOption
+{
+	color: #0F172A !important;
+}
+
 /* Form Controls in Settings & Dialogs (Select, Text, Number, Password, Range, Buttons) */
 html.modern-ui3 .dialog_content select,
 body.modern-ui3 .dialog_content select,

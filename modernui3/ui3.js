@@ -47076,6 +47076,8 @@ function UISettingsPanel()
 					$row.append(UIFormField(formFields));
 					if (s.key === "ui3_modern_accent" && typeof modernUI3 !== "undefined" && modernUI3 && typeof modernUI3.getAccentPaletteFor === "function")
 						AttachModernAccentPicker($row, s.options);
+					else if (typeof IsWatchDevice === "function" && IsWatchDevice())
+						AttachModernWatchSelectPicker($row, s.options);
 				}
 				else if (s.inputType === "number" || s.inputType === "range")
 				{
@@ -47900,6 +47902,115 @@ function AttachModernAccentPicker($row, options)
 		$(document).off("keydown.modernAccentPicker", onDocKeyDown);
 		$(window).off("resize.modernAccentPicker", onScrollOrResize);
 		$row.closest(".dialog_content").off("scroll.modernAccentPicker", closeMenu);
+	}
+
+	$trigger.on("click", function (e)
+	{
+		e.stopPropagation();
+		if (isOpen) closeMenu();
+		else openMenu();
+	});
+
+	$select.on("change", syncFromSelect);
+	syncFromSelect();
+}
+function AttachModernWatchSelectPicker($row, options)
+{
+	var $select = $row.find("select");
+	if (!$select.length || !options || !options.length)
+		return;
+
+	$select.addClass("modernAccentNativeSelectHidden");
+
+	var $picker = $('<div class="modernWatchSelectPicker"></div>');
+	var $trigger = $('<button type="button" class="modernWatchSelectTrigger" aria-haspopup="listbox" aria-expanded="false"></button>');
+	var $triggerName = $('<span class="modernWatchSelectName"></span>');
+	var $triggerArrow = $('<span class="modernAccentArrow">&#9662;</span>');
+	$trigger.append($triggerName, $triggerArrow);
+	$picker.append($trigger);
+	$select.after($picker);
+
+	var $backdrop = $('<div class="modernWatchSelectBackdrop"></div>');
+	var $menu = $('<div class="modernWatchSelectMenu" role="listbox"></div>');
+	$backdrop.append($menu);
+
+	var optionByValue = {};
+	var optionEls = {};
+
+	var normalizeOpt = function (rawOpt)
+	{
+		if (rawOpt && typeof rawOpt === "object")
+		{
+			var v = (typeof rawOpt.value !== "undefined") ? String(rawOpt.value) : String(rawOpt.name || "");
+			var n = (typeof rawOpt.name !== "undefined") ? String(rawOpt.name) : v;
+			return { value: v, name: n };
+		}
+		return { value: String(rawOpt), name: String(rawOpt) };
+	};
+
+	for (var i = 0; i < options.length; i++)
+	{
+		(function (opt)
+		{
+			optionByValue[opt.value] = opt;
+			var $optBtn = $('<button type="button" class="modernWatchSelectOption" role="option"></button>');
+			$optBtn.attr("data-value", opt.value).text(opt.name);
+			$optBtn.on("click", function (e)
+			{
+				e.stopPropagation();
+				$select.val(opt.value).trigger("change");
+				closeMenu();
+			});
+			optionEls[opt.value] = $optBtn;
+			$menu.append($optBtn);
+		})(normalizeOpt(options[i]));
+	}
+
+	var syncFromSelect = function ()
+	{
+		var val = $select.val();
+		var opt = (val !== null && typeof val !== "undefined" && optionByValue[String(val)]) ? optionByValue[String(val)] : normalizeOpt(options[0]);
+		$triggerName.text(opt ? opt.name : "");
+		for (var k in optionEls)
+		{
+			if (!Object.prototype.hasOwnProperty.call(optionEls, k)) continue;
+			var isSel = opt && k === opt.value;
+			optionEls[k].toggleClass("selected", !!isSel).attr("aria-selected", isSel ? "true" : "false");
+		}
+	};
+
+	var isOpen = false;
+	var onDocKeyDown = function (e)
+	{
+		if (isOpen && e.key === "Escape")
+			closeMenu();
+	};
+	$backdrop.on("click", function (e)
+	{
+		if (e.target === $backdrop[0])
+			closeMenu();
+	});
+
+	function openMenu()
+	{
+		if (isOpen) return;
+		isOpen = true;
+		syncFromSelect();
+		$("body").append($backdrop);
+		$trigger.attr("aria-expanded", "true").addClass("open");
+		$(document).on("keydown.modernWatchSelectPicker", onDocKeyDown);
+		var $sel = $menu.find(".modernWatchSelectOption.selected");
+		if ($sel.length && $sel[0].scrollIntoView)
+			try { $sel[0].scrollIntoView({ block: "nearest" }); } catch (e) {}
+	}
+
+	function closeMenu()
+	{
+		if (!isOpen) return;
+		isOpen = false;
+		$backdrop.detach();
+		$trigger.attr("aria-expanded", "false").removeClass("open");
+		$(document).off("keydown.modernWatchSelectPicker", onDocKeyDown);
 	}
 
 	$trigger.on("click", function (e)
@@ -51100,6 +51211,14 @@ function SysNameToAppName(sysName)
 function IsStandaloneApp()
 {
 	return navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches == true);
+}
+function IsWatchDevice()
+{
+	var w = window.innerWidth || (document.documentElement ? document.documentElement.clientWidth : 0);
+	var h = window.innerHeight || (document.documentElement ? document.documentElement.clientHeight : 0);
+	var isWatchViewport = (w > 0 && h > 0 && w <= 500 && h <= 500);
+	var isWatchUA = (typeof navigator !== "undefined" && navigator.userAgent && /\b(?:Wear\s?OS|Galaxy\s?Watch|Pixel\s?Watch|Watch)\b/i.test(navigator.userAgent));
+	return !!(isWatchViewport || isWatchUA);
 }
 (function ()
 {
