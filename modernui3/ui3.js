@@ -5730,7 +5730,11 @@ function UiSizeHelper()
 		else if (settings.ui3_portrait_layout === "No")
 			return false;
 		else
-			return (windowWidth / windowHeight < (5 / 6) || (windowWidth < windowHeight && windowWidth < 440));
+		{
+			var isWatchViewport = (windowWidth > 0 && windowHeight > 0 && windowWidth <= 500 && windowHeight <= 500);
+			var isWatchUA = (typeof navigator !== "undefined" && navigator.userAgent && /\b(?:Wear\s?OS|Galaxy\s?Watch|Pixel\s?Watch|Watch)\b/i.test(navigator.userAgent));
+			return (isWatchViewport || isWatchUA || windowWidth / windowHeight < (5 / 6) || (windowWidth < windowHeight && windowWidth < 440));
+		}
 	}
 	this.SetPortraitLayout = function (portrait)
 	{
@@ -5944,6 +5948,14 @@ function ModernUIController()
 				}
 			});
 		}
+		window.addEventListener("pageshow", function (e)
+		{
+			if (e && e.persisted && self.isEnabled() && typeof IsStandaloneApp === "function" && IsStandaloneApp())
+			{
+				if (self.getStartupPage() !== "last_used")
+					self.applyStartupPage();
+			}
+		});
 		BI_CustomEvent.AddListener("MaximizeChanged", function (maximized)
 		{
 			if (self.isEnabled())
@@ -42747,7 +42759,7 @@ function UpdateCurrentURL()
 		search = "?" + search;
 
 	var newUrl = location.origin + location.pathname + search + location.hash;
-	if (location.href !== newUrl)
+	if (location.href !== newUrl && !(typeof IsStandaloneApp === "function" && IsStandaloneApp()))
 	{
 		try
 		{
