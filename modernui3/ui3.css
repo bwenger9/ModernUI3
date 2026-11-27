@@ -7605,6 +7605,7 @@ a[role="button"].pwToggleBtn
 	border: 1px solid #5f5f5f;
 	border-radius: 5px;
 	cursor: pointer;
+	touch-action: pan-y;
 	font-size: 10pt;
 	color: #cdcdcd;
 }

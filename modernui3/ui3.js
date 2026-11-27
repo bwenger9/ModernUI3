@@ -46431,7 +46431,8 @@ function DragAndDropHelper($list, onItemMoved)
 		$ele.on('touchstart.ddh mousedown.ddh', function (e)
 		{
 			OnStart(e, $ele);
-			return false;
+			if (!touchEvents.isTouchEvent(e))
+				return false;
 		});
 		$ele.on('contextmenu.ddh', function (e)
 		{
@@ -46443,6 +46444,7 @@ function DragAndDropHelper($list, onItemMoved)
 		if (startDragTimeout)
 		{
 			clearTimeout(startDragTimeout);
+			startDragTimeout = null;
 		}
 	}
 	var OnStart = function (e, $ele)
@@ -46492,6 +46494,8 @@ function DragAndDropHelper($list, onItemMoved)
 		{
 			moved = true;
 			ClearDragTimeout();
+			if (!drag)
+				$lastTouched = null;
 		}
 		if ($lastTouched && distance > 50)
 			$lastTouched = null;
@@ -46545,14 +46549,14 @@ function DragAndDropHelper($list, onItemMoved)
 				TimedClick($drag);
 			$drag = $blank = $ghost = null;
 		}
-		else
+		else if (!touchEvents.isTouchEvent(e))
 		{
 			if ($lastTouched && $lastTouched.length > 0 && pointInsideElement($lastTouched, e.mouseX, e.mouseY))
 			{
 				TimedClick($lastTouched);
-				$lastTouched = null;
 			}
 		}
+		$lastTouched = null;
 		down = drag = moved = false;
 	}
 	var OnCancel = function (e)
@@ -46568,10 +46572,20 @@ function DragAndDropHelper($list, onItemMoved)
 			$ele.trigger('click');
 		}, 0);
 	}
+	var PreventTouchScroll = function (e)
+	{
+		if (drag && e.cancelable)
+			e.preventDefault();
+	};
+	if ($list && $list.length)
+		$list.get(0).addEventListener("touchmove", PreventTouchScroll, { passive: false });
 	this.Destroy = function ()
 	{
+		ClearDragTimeout();
 		if ($items && $items.length)
 			$items.off('touchstart.ddh mousedown.ddh contextmenu.ddh');
+		if ($list && $list.length)
+			$list.get(0).removeEventListener("touchmove", PreventTouchScroll);
 		$(document).off('touchmove.ddh mousemove.ddh', OnMove);
 		$(document).off('touchend.ddh mouseup.ddh', OnEnd);
 		$(document).off('touchcancel.ddh', OnCancel);
@@ -47073,11 +47087,14 @@ function UISettingsPanel()
 						s.options = s.getOptions();
 					formFields.options = s.options;
 					formFields.onChange = SelectChanged;
-					$row.append(UIFormField(formFields));
 					if (s.key === "ui3_modern_accent" && typeof modernUI3 !== "undefined" && modernUI3 && typeof modernUI3.getAccentPaletteFor === "function")
+					{
+						formFields.customPicker = true;
+						$row.append(UIFormField(formFields));
 						AttachModernAccentPicker($row, s.options);
-					else if (typeof IsWatchDevice === "function" && IsWatchDevice())
-						AttachModernWatchSelectPicker($row, s.options);
+					}
+					else
+						$row.append(UIFormField(formFields));
 				}
 				else if (s.inputType === "number" || s.inputType === "range")
 				{
@@ -47919,11 +47936,15 @@ function AttachModernWatchSelectPicker($row, options)
 	var $select = $row.find("select");
 	if (!$select.length || !options || !options.length)
 		return;
+	if ($select.hasClass("modernAccentNativeSelectHidden") || $select.siblings(".modernWatchSelectPicker, .modernAccentPicker").length)
+		return;
 
 	$select.addClass("modernAccentNativeSelectHidden");
 
 	var $picker = $('<div class="modernWatchSelectPicker"></div>');
 	var $trigger = $('<button type="button" class="modernWatchSelectTrigger" aria-haspopup="listbox" aria-expanded="false"></button>');
+	if ($select.prop("disabled"))
+		$trigger.prop("disabled", true);
 	var $triggerName = $('<span class="modernWatchSelectName"></span>');
 	var $triggerArrow = $('<span class="modernAccentArrow">&#9662;</span>');
 	$trigger.append($triggerName, $triggerArrow);
@@ -48988,6 +49009,8 @@ function UIFormFieldInternal(o)
 				$el.append($topRow);
 			}
 		}
+		if (!o.customPicker && typeof IsWatchDevice === "function" && IsWatchDevice() && o.options && o.options.length)
+			AttachModernWatchSelectPicker($el, o.options);
 		return $el;
 	}
 	else if (o.inputType === "number" || o.inputType === "range")
